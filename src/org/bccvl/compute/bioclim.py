@@ -9,7 +9,7 @@ from zope.component import getUtility
 from urllib import urlopen
 
 BIOCLIM_CONFIG="""
-.libPaths({rlibdir})
+.libPaths("{rlibdir}")
 wd = "{workdir}"
 species = "{species}"
 occur.data = "{occurence}"
@@ -33,7 +33,7 @@ def check_r_libs_path(rootpath):
 
 
 def init_work_env(rootpath, species):
-    check_r_libs_path()
+    check_r_libs_path(rootpath)
     # FIXME: cleanup even if there is some serious error somewhere
     path = mkdtemp(dir=rootpath)
     os.makedirs(os.path.join(path, 'species', species))
@@ -120,7 +120,7 @@ def addFile(content, filename, file=None, mimetype='application/octet-stream'):
 
 
 def execute(context, climateitem, speciesitem):
-    rootpath = os.environ.get('WORKER_ROOT') or os.enivron['HOME']
+    rootpath = os.environ.get('WORKER_DIR') or os.enivron['HOME']
     path = init_work_env(rootpath, "ABT")
     names = ["bioclim_01", "bioclim_04", "bioclim_05",
              "bioclim_06", "bioclim_12", "bioclim_15",
