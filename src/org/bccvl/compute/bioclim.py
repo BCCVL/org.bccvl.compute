@@ -4,6 +4,7 @@ import shutil
 from tempfile import mkdtemp
 from pkg_resources import resource_string
 import zipfile
+from subprocess import call
 from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
 from urllib import urlopen
