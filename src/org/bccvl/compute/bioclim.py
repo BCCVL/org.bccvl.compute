@@ -1,148 +1,120 @@
 import os
 import os.path
 import shutil
-from tempfile import mkdtemp
 from pkg_resources import resource_string
 import zipfile
 from subprocess import call
-from plone.i18n.normalizer.interfaces import IFileNameNormalizer
-from zope.component import getUtility
-from urllib import urlopen
+from org.bccvl.compute.utils import (check_r_libs_path,
+                                     init_work_env,
+                                     prepare_data,
+                                     addFile)
+import glob
 
-BIOCLIM_CONFIG="""
+BIOCLIM_CONFIG = """
 .libPaths("{rlibdir}")
 wd = "{workdir}"
 species = "{species}"
 occur.data = "{occurence}"
 bkgd.data = {background}
 enviro.data.names = c({enviro[names]})
-enviro.data = c({enviro[data]})
+enviro.data.current = c({enviro[data]})
 enviro.data.type = c({enviro[type]})
+enviro.data.future= c({future[data]})
 
 model.bioclim = TRUE
-opt.tails = c("both")
 project.bioclim = TRUE
+model.brt = FALSE
+project.brt = FALSE
+
+opt.tails = c("both")
 opt.ext = NULL
 """
 
 
-def check_r_libs_path(rootpath):
-    path = os.path.join(rootpath, 'R', 'library')
-    if not os.path.exists(path):
-        os.makedirs(path)
-    return path
-
-
-def init_work_env(rootpath, species):
-    check_r_libs_path(rootpath)
-    # FIXME: cleanup even if there is some serious error somewhere
-    path = mkdtemp(dir=rootpath)
-    os.makedirs(os.path.join(path, 'species', species))
-    os.makedirs(os.path.join(path, 'enviro', 'current'))
-    # TODO: place data correctly
-    return path
+def get_datapath_for_glob(path, match):
+    flist = list(glob.glob(os.path.join(path,  'enviro', match)))
+    if len(flist):
+        return flist[0]
+    return None
 
 
 def write_bioclim_config(rootpath, path, species):
     names = ["bioclim_01", "bioclim_04", "bioclim_05",
              "bioclim_06", "bioclim_12", "bioclim_15",
-             "bioclim_16","bioclim_17"]
+             "bioclim_16", "bioclim_17"]
+
+    currentfolder = get_datapath_for_glob(path, 'current*')
+    futurefolder = get_datapath_for_glob(path, '*2085')
+    curdata = ",".join(('"{0}"'.format(os.path.join(currentfolder, name + ".tif")) for name in names)),
+    futdata = ''
+    if futurefolder:
+        futdata = ",".join(('"{0}"'.format(os.path.join(futurefolder, name + ".tif")) for name in names))
 
     params = {
         'rlibdir': check_r_libs_path(rootpath),
         'workdir': path,
         'species': species,
         'occurence': os.path.join(path, 'species', species, 'occur.csv'),
-        'background': "NULL", #os.path.join(path, 'species', species, 'background.csv')
+        'background': "NULL",  # os.path.join(path, 'species', species, 'background.csv')
         'enviro': {
-            'names': ",".join( ('"{0}"'.format(name) for name in names) ),
-            'data': ",".join( ('"{0}"'.format(os.path.join(path, 'enviro', 'current', 'current.76to05', name + ".asc")) for name in names) ),
-            'type': ",".join( ('"continuous"' for i in xrange(0,len(names))))
+            'names': ",".join(('"{0}"'.format(name) for name in names)),
+            'data': curdata,
+            'type': ",".join(('"continuous"' for i in xrange(0, len(names))))
+            },
+        'future': {
+            'data': futdata
             }
         }
 
     script = BIOCLIM_CONFIG.format(**params) + resource_string('org.bccvl.compute', 'rscripts/bioclim.R')
     scriptfile = os.path.join(path, 'bioclim.R')
-    f = open(scriptfile,"w")
+    f = open(scriptfile, "w")
     f.write(script)
     f.close()
     return scriptfile
 
 
-def prepare_data(path, names, climateitem, speciesitem):
+def execute(experiment):
+    """
+    This function takes an experiment and executes.
 
-    dest = open(os.path.join(path, 'enviro', 'current', 'current.zip'), 'w')
-    src = climateitem.getFile().getBlob().open('r')
-    shutil.copyfileobj(src, dest)
-    src.close()
-    dest.close()
-    dest = open(os.path.join(path, 'species', 'ABT', 'occur.csv'), 'w')
-    src = speciesitem.getFile().getBlob().open('r')
-    shutil.copyfileobj(src, dest)
-    src.close()
-    dest.close()
-    curzip = zipfile.ZipFile(os.path.join(path, 'enviro', 'current', 'current.zip'))
-    curzip.extractall(path=os.path.join(path, 'enviro', 'current'))
-    curzip.close()
-    # for name in names:
-    #     shutil.copy(os.path.join(path, 'enviro', 'current.76to05'), name + ".asc"),
-    #                 os.path.join(path, 'enviro', 'current'))
-    # shutil.copy(os.path.join(os.path.expanduser("~"), species, "occur.csv"),
-    #             os.path.join(path, 'species', species))
+    It usesenvirnoment variables WORKER_DIR or HOME as root folder to execute
+    experiments.
 
-def addFile(content, filename, file=None, mimetype='application/octet-stream'):
-    normalizer = getUtility(IFileNameNormalizer)
-    linkid = normalizer.normalize(os.path.basename(filename))
-    if linkid in content:
-        return content[linkid]
-    if file is None:
-        file = urlopen(filename)
-    linkid = content.invokeFactory(type_name='File', id=linkid, title=os.path.basename(filename),
-                                   file=file.read())
-    linkcontent = content[linkid]
-    linkcontent.setFormat(mimetype)
-    linkcontent.setFilename(filename.encode('utf-8'))
+    After the execution finishes the output files will be attached to the
+    experiment.
 
-    # FIXME: stupid archetypes ... do we really need to call processForm ?
-    # Create a request to work with
-    import sys
-    from ZPublisher.HTTPResponse import HTTPResponse
-    from ZPublisher.HTTPRequest import HTTPRequest
-    response = HTTPResponse(stdout=sys.stdout)
-    env = {'SERVER_NAME':'fake_server',
-           'SERVER_PORT':'80',
-           'REQUEST_METHOD':'GET'}
-    request = HTTPRequest(sys.stdin, env, response)
-    content.REQUEST = request
-    linkcontent.processForm()
-    del content.REQUEST #Avoid "can't pickle file objects"
-
-    return linkcontent
+    :param experiment: The experiment holding the configuration and receiving
+                       the results
+    :type experiment: org.bccvl.site.content.IExperiment
 
 
-def execute(context, climateitem, speciesitem):
+    """
     rootpath = os.environ.get('WORKER_DIR') or os.enivron['HOME']
-    path = init_work_env(rootpath, "ABT")
     names = ["bioclim_01", "bioclim_04", "bioclim_05",
              "bioclim_06", "bioclim_12", "bioclim_15",
              "bioclim_16", "bioclim_17"]
-    prepare_data(path, names, climateitem, speciesitem)
-    script = write_bioclim_config(rootpath, path, "ABT")
+    species = experiment.species_occurrence_dataset
+    climate = experiment.climate_dataset
+
+    path = init_work_env(rootpath, species.id)
+    prepare_data(path, names, climate, species)
+    script = write_bioclim_config(rootpath, path, species.id)
     scriptout = script + "out"
     cmd = ['R', 'CMD', 'BATCH', '--no-save', '--no-restore', script, scriptout]
     ret = call(cmd, shell=False)
     # TODO: check ret for error
     # TODO: make sure script returns proper error codes
-    # TODO: zip result and store on context
+    # TODO: zip result and store on experiment
     with zipfile.ZipFile(os.path.join(path, 'output.zip'), 'w', zipfile.ZIP_DEFLATED) as zipf:
         for fname in os.listdir(os.path.join(path, 'output_bioclim')):
             zipf.write(os.path.join(path, 'output_bioclim', fname), fname)
         zipf.write(os.path.join(path, 'bioclim.Rout'), 'bioclim.Rout')
-    addFile(context,
+    addFile(experiment,
             filename=u'file://' + os.path.join(path, 'output.zip'),
             mimetype='application/zip')
     shutil.rmtree(path)
 
 
-if __name__ ==  '__main__':
+if __name__ == '__main__':
     execute()
