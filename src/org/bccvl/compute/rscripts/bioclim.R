@@ -34,9 +34,10 @@ if (populate.data) {
     if (!is.null(bkgd.data)) {
         bkgd = read.csv(bkgd.data) #read in teh background position data lon.lat
     }
-    for (ii in 1:length(enviro.data)) {
-        cat(ii,'of',length(enviro.data),'\n') #cycle through each of the environmental datasets and append the data
-        tasc = read.asc(enviro.data[ii]) #read in the envirodata
+    for (ii in 1:length(enviro.data.current)) {
+        cat(ii,'of',length(enviro.data.current),'\n') #cycle through each of the environmental datasets and append the data
+        #tasc = read.asc(enviro.data.current[ii]) #read in the envirodata
+        tasc = readGDAL(enviro.data.current[ii]) #read in the envirodata
         occur[,enviro.data.names[ii]] = extract.data(cbind(occur$lon,occur$lat),tasc) #extract envirodata for observations
         if (!is.null(bkgd.data)) bkgd[,enviro.data.names[ii]] = extract.data(cbind(bkgd$lon,bkgd$lat),tasc) #extract envirodata for background data
     }

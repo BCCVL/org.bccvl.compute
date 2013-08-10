@@ -15,6 +15,7 @@ from urllib import urlopen
 import shutil
 import zipfile
 import glob
+from plone.namedfile.file import NamedBlobFile
 
 
 def check_r_libs_path(rootpath):
@@ -49,7 +50,7 @@ def check_r_libs_path(rootpath):
     return path
 
 
-def init_work_env(rootpath, species):
+def init_work_env(rootpath):
     """Prepare the folder structure for an R job.
 
     This method creates a new temporary work folder in rootpath, and
@@ -70,12 +71,12 @@ def init_work_env(rootpath, species):
     >>> import os.path
     >>> import shutil
     >>> root = mkdtemp()
-    >>> path = init_work_env(root, "ABC")
+    >>> path = init_work_env(root)
     >>> os.path.isdir(path)
     True
-    >>> os.path.isdir(os.path.join(path, 'species', 'ABC'))
+    >>> os.path.isdir(os.path.join(path, 'species'))
     True
-    >>> os.path.isdir(os.path.join(path, 'enviro', 'current'))
+    >>> os.path.isdir(os.path.join(path, 'enviro'))
     True
     >>> os.path.isdir(path)
     We have to clean up at the end.
@@ -85,31 +86,29 @@ def init_work_env(rootpath, species):
     check_r_libs_path(rootpath)
     # FIXME: cleanup even if there is some serious error somewhere
     path = mkdtemp(dir=rootpath)
-    os.makedirs(os.path.join(path, 'species', species))
-    os.makedirs(os.path.join(path, 'enviro', 'current'))
+    os.makedirs(os.path.join(path, 'species'))
+    os.makedirs(os.path.join(path, 'enviro'))
     # TODO: place data correctly
     return path
 
-
+# TODO: ensure all file write/remove actions happen within tmp_dir (prefix check?)
 def prepare_data(path, names, climateitem, speciesitem):
     # put datafiles onto filesystem
     for fileitem in climateitem.values():
         if not IFile.providedBy(fileitem):
             continue
-        dest = open(os.path.join(path, 'enviro', climateitem.file.filename), 'w')
-        src = climateitem.file.getBlob().open('r')
+        dest = open(os.path.join(path, 'enviro', fileitem.file.filename), 'w') # dexterity file has no filename
+        src = fileitem.file.open('r')
         shutil.copyfileobj(src, dest)
-        src.close()
         dest.close()
     destfolder = os.path.join(path, 'species', speciesitem.id)
     os.mkdir(destfolder)  # should not exist
-    for speciesitem in speciesitem.values():
+    for fileitem in speciesitem.values():
         if not IFile.providedBy(fileitem):
             continue
-        dest = open(os.path.join(destfolder, speciesitem.file.filename), 'w')
-        src = speciesitem.file.getBlob().open('r')
+        dest = open(os.path.join(destfolder, fileitem.file.filename), 'w')
+        src = fileitem.file.open('r')
         shutil.copyfileobj(src, dest)
-        src.close()
         dest.close()
     # unzip enviro data
     for zipfn in glob.glob(os.path.join(path, 'enviro', '*.zip')):
@@ -124,26 +123,30 @@ def addFile(content, filename, file=None, mimetype='application/octet-stream'):
     if linkid in content:
         return content[linkid]
     if file is None:
-        file = urlopen(filename)
+        # TODO: add IStorage adapter for urllib.addinfourl see:
+        # plone.namedfile-2.0.2-py2.7.egg/plone/namedfile/file.py:382: _setData(...)
+        file = open(filename)
     linkid = content.invokeFactory(type_name='File', id=linkid,
-                                   title=os.path.basename(filename),
-                                   file=file.read())
+                                   title=unicode(linkid))
     linkcontent = content[linkid]
     linkcontent.setFormat(mimetype)
-    linkcontent.setFilename(filename.encode('utf-8'))
+    linkcontent.file = NamedBlobFile(contentType=mimetype, filename=unicode(linkid))
+    linkcontent.file.data = file
+
+    #linkcontent.setFilename(filename.encode('utf-8'))  # no filename on dexterity file
 
     # FIXME: stupid archetypes ... do we really need to call processForm ?
     # Create a request to work with
-    import sys
-    from ZPublisher.HTTPResponse import HTTPResponse
-    from ZPublisher.HTTPRequest import HTTPRequest
-    response = HTTPResponse(stdout=sys.stdout)
-    env = {'SERVER_NAME': 'fake_server',
-           'SERVER_PORT': '80',
-           'REQUEST_METHOD': 'GET'}
-    request = HTTPRequest(sys.stdin, env, response)
-    content.REQUEST = request
-    linkcontent.processForm()
-    del content.REQUEST  # Avoid "can't pickle file objects"
+    # import sys
+    # from ZPublisher.HTTPResponse import HTTPResponse
+    # from ZPublisher.HTTPRequest import HTTPRequest
+    # response = HTTPResponse(stdout=sys.stdout)
+    # env = {'SERVER_NAME': 'fake_server',
+    #        'SERVER_PORT': '80',
+    #        'REQUEST_METHOD': 'GET'}
+    # request = HTTPRequest(sys.stdin, env, response)
+    # content.REQUEST = request
+    # linkcontent.processForm()
+    # del content.REQUEST  # Avoid "can't pickle file objects"
 
     return linkcontent

@@ -9,6 +9,8 @@ from org.bccvl.compute.utils import (check_r_libs_path,
                                      prepare_data,
                                      addFile)
 import glob
+from plone.app.uuid.utils import uuidToObject
+
 
 BIOCLIM_CONFIG = """
 .libPaths("{rlibdir}")
@@ -45,7 +47,8 @@ def write_bioclim_config(rootpath, path, species):
 
     currentfolder = get_datapath_for_glob(path, 'current*')
     futurefolder = get_datapath_for_glob(path, '*2085')
-    curdata = ",".join(('"{0}"'.format(os.path.join(currentfolder, name + ".tif")) for name in names)),
+    # maybe use glob here?
+    curdata = ",".join(('"{0}"'.format(os.path.join(currentfolder, name + ".tif")) for name in names))
     futdata = ''
     if futurefolder:
         futdata = ",".join(('"{0}"'.format(os.path.join(futurefolder, name + ".tif")) for name in names))
@@ -94,26 +97,31 @@ def execute(experiment):
     names = ["bioclim_01", "bioclim_04", "bioclim_05",
              "bioclim_06", "bioclim_12", "bioclim_15",
              "bioclim_16", "bioclim_17"]
-    species = experiment.species_occurrence_dataset
-    climate = experiment.climate_dataset
-
-    path = init_work_env(rootpath, species.id)
-    prepare_data(path, names, climate, species)
-    script = write_bioclim_config(rootpath, path, species.id)
-    scriptout = script + "out"
-    cmd = ['R', 'CMD', 'BATCH', '--no-save', '--no-restore', script, scriptout]
-    ret = call(cmd, shell=False)
-    # TODO: check ret for error
-    # TODO: make sure script returns proper error codes
-    # TODO: zip result and store on experiment
-    with zipfile.ZipFile(os.path.join(path, 'output.zip'), 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for fname in os.listdir(os.path.join(path, 'output_bioclim')):
-            zipf.write(os.path.join(path, 'output_bioclim', fname), fname)
-        zipf.write(os.path.join(path, 'bioclim.Rout'), 'bioclim.Rout')
-    addFile(experiment,
-            filename=u'file://' + os.path.join(path, 'output.zip'),
-            mimetype='application/zip')
-    shutil.rmtree(path)
+    species = uuidToObject(experiment.species_occurrence_dataset)
+    climate = uuidToObject(experiment.environmental_dataset)
+    try:
+        path = init_work_env(rootpath)
+        prepare_data(path, names, climate, species)
+        script = write_bioclim_config(rootpath, path, species.id)
+        scriptout = script + "out"
+        cmd = ['R', 'CMD', 'BATCH', '--no-save', '--no-restore', script, scriptout]
+        ret = call(cmd, shell=False)
+        # TODO: check ret for error
+        # TODO: make sure script returns proper error codes
+        # TODO: zip result and store on experiment
+        with zipfile.ZipFile(os.path.join(path, 'output.zip'), 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for fname in os.listdir(os.path.join(path, 'output_bioclim')):
+                zipf.write(os.path.join(path, 'output_bioclim', fname), fname)
+            zipf.write(os.path.join(path, 'bioclim.Rout'), 'bioclim.Rout')
+        addFile(experiment,
+                # TODO: IStorage adapter necessary
+                #filename=u'file://' + os.path.join(path, 'output.zip'),
+                filename=os.path.join(path, 'output.zip'),
+                mimetype='application/zip')
+    finally:
+        # TODO: maybe we should try to capture Rout etc, and send it back as status message
+        if os.path.exists(path):
+            shutil.rmtree(path)
 
 
 if __name__ == '__main__':
