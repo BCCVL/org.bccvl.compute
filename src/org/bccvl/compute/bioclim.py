@@ -99,9 +99,12 @@ def execute(experiment):
              "bioclim_16", "bioclim_17"]
     species = uuidToObject(experiment.species_occurrence_dataset)
     climate = uuidToObject(experiment.environmental_dataset)
+    future = uuidToObject(experiment.climate_dataset)
+    if future is None:
+        future = {}
     try:
         path = init_work_env(rootpath)
-        prepare_data(path, names, climate, species)
+        prepare_data(path, names, climate, future, species)
         script = write_bioclim_config(rootpath, path, species.id)
         scriptout = script + "out"
         cmd = ['R', 'CMD', 'BATCH', '--no-save', '--no-restore', script, scriptout]

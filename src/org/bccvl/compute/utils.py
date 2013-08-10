@@ -92,9 +92,16 @@ def init_work_env(rootpath):
     return path
 
 # TODO: ensure all file write/remove actions happen within tmp_dir (prefix check?)
-def prepare_data(path, names, climateitem, speciesitem):
+def prepare_data(path, names, climateitem, futureitem, speciesitem):
     # put datafiles onto filesystem
     for fileitem in climateitem.values():
+        if not IFile.providedBy(fileitem):
+            continue
+        dest = open(os.path.join(path, 'enviro', fileitem.file.filename), 'w') # dexterity file has no filename
+        src = fileitem.file.open('r')
+        shutil.copyfileobj(src, dest)
+        dest.close()
+    for fileitem in futureitem.values():
         if not IFile.providedBy(fileitem):
             continue
         dest = open(os.path.join(path, 'enviro', fileitem.file.filename), 'w') # dexterity file has no filename

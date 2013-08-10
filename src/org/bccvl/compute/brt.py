@@ -118,9 +118,12 @@ def execute(experiment):
     species = uuidToObject(experiment.species_occurrence_dataset)
     #absence = experiment.species_absence_dataset
     climate = uuidToObject(experiment.environmental_dataset)
+    future = uuidToObject(experiment.climate_dataset)
+    if future is None:
+        future = {}
     try:
         path = init_work_env(rootpath, species.id)
-        prepare_data(path, names, climate, species)
+        prepare_data(path, names, climate, future, species)
         script = write_brt_config(rootpath, path, species.id)
         # TODO: use script and scriptout instead of hardcoded brt.Rout etc...
         scriptout = script + "out"
