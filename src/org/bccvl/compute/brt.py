@@ -1,6 +1,7 @@
 import os
 import os.path
 import zipfile
+from subprocess import call
 from org.bccvl.compute.utils import (prepare_data, init_work_env, addFile,
                                      check_r_libs_path)
 import shutil
@@ -21,7 +22,7 @@ enviro.data.type = c({enviro[type]})
 enviro.data.future= c({future[data]})
 
 model.bioclim = FALSE
-project.bioglim = FALSE
+project.bioclim = FALSE
 model.brt = TRUE #boolean to run Boosted regression tree algorithm
 project.brt = TRUE #boolean to project Boosted regression tree algorithm
 
@@ -122,7 +123,7 @@ def execute(experiment):
     if future is None:
         future = {}
     try:
-        path = init_work_env(rootpath, species.id)
+        path = init_work_env(rootpath)
         prepare_data(path, names, climate, future, species)
         script = write_brt_config(rootpath, path, species.id)
         # TODO: use script and scriptout instead of hardcoded brt.Rout etc...
