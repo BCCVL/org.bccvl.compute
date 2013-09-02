@@ -157,3 +157,23 @@ def addFile(content, filename, file=None, mimetype='application/octet-stream'):
     # del content.REQUEST  # Avoid "can't pickle file objects"
 
     return linkcontent
+
+
+from datetime import datetime
+import mimetypes
+
+
+def store_results(experiment, outdir):
+    """
+    create a new DataSet under experiment and store all files found in outdir
+    within this dataset
+    """
+    dsid = experiment.invokeFactory('gu.repository.content.RepositoryItem',
+                                    id='result',
+                                    title=u'%s - result %s' % (experiment.title, datetime.now().isoformat()))
+    ds = experiment[dsid]
+    # TODO: store experiment config here as well
+    for fname in os.listdir(outdir):
+        addFile(ds,
+                filename=os.path.join(outdir, fname),
+                mimetype=mimetypes.guess_type(fname))

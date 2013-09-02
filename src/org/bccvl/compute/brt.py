@@ -1,9 +1,8 @@
 import os
 import os.path
-import zipfile
 from subprocess import call
-from org.bccvl.compute.utils import (prepare_data, init_work_env, addFile,
-                                     check_r_libs_path)
+from org.bccvl.compute.utils import (prepare_data, init_work_env,
+                                     check_r_libs_path, store_results)
 import shutil
 from pkg_resources import resource_string
 import glob
@@ -132,16 +131,9 @@ def execute(experiment):
         ret = call(cmd, shell=False)
         # TODO: check ret for error
         # TODO: make sure script returns proper error codes
-        # TODO: zip result and store on experiment
-        with zipfile.ZipFile(os.path.join(path, 'output.zip'), 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for fname in os.listdir(os.path.join(path, 'output_brt')):
-                zipf.write(os.path.join(path, 'output_brt', fname), fname)
-            zipf.write(os.path.join(path, 'brt.Rout'), 'brt.Rout')
-        addFile(experiment,
-                # TODO: need IStorage adapter for urllib.urlinfo
-                #filename=u'file://' + os.path.join(path, 'output.zip'),
-                filename=os.path.join(path, 'output.zip'),
-                mimetype='application/zip')
+        shutil.move(os.path.join(path, 'brt.Rout'),
+                    os.path.join(path, 'output_brt'))
+        store_results(experiment, os.path.join(path, 'output_brt'))
     finally:
         # TODO: capture detailed error message to report to user
         if os.path.exists(path):

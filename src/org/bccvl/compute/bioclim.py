@@ -2,12 +2,11 @@ import os
 import os.path
 import shutil
 from pkg_resources import resource_string
-import zipfile
 from subprocess import call
 from org.bccvl.compute.utils import (check_r_libs_path,
                                      init_work_env,
                                      prepare_data,
-                                     addFile)
+                                     store_results)
 import glob
 from plone.app.uuid.utils import uuidToObject
 
@@ -111,16 +110,10 @@ def execute(experiment):
         ret = call(cmd, shell=False)
         # TODO: check ret for error
         # TODO: make sure script returns proper error codes
-        # TODO: zip result and store on experiment
-        with zipfile.ZipFile(os.path.join(path, 'output.zip'), 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for fname in os.listdir(os.path.join(path, 'output_bioclim')):
-                zipf.write(os.path.join(path, 'output_bioclim', fname), fname)
-            zipf.write(os.path.join(path, 'bioclim.Rout'), 'bioclim.Rout')
-        addFile(experiment,
-                # TODO: IStorage adapter necessary
-                #filename=u'file://' + os.path.join(path, 'output.zip'),
-                filename=os.path.join(path, 'output.zip'),
-                mimetype='application/zip')
+        shutil.move(os.path.join(path, 'bioclim.Rout'),
+                    os.path.join(path, 'output_bioclim'))
+        store_results(experiment, os.path.join(path, 'output_bioclim'))
+
     finally:
         # TODO: maybe we should try to capture Rout etc, and send it back as status message
         if os.path.exists(path):
