@@ -11,6 +11,7 @@ from tempfile import mkdtemp
 from plone.app.contenttypes.interfaces import IFile
 from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
+from Products.CMFCore.utils import getToolByName
 from urllib import urlopen
 import shutil
 import zipfile
@@ -162,6 +163,27 @@ def addFile(content, filename, file=None, mimetype='application/octet-stream'):
 from datetime import datetime
 import mimetypes
 
+# register a few mimetypes
+mimetypes.add_type('text/plain', '.rascii')
+mimetypes.add_type('text/plain', '.rout')
+mimetypes.add_type('application/octet-stream', '.rdata')
+
+
+def guess_mimetype(name, path='', mtr=None):
+    # 1. try mimetype registry
+    mtype =  None
+    if mtr is not None:
+        mtype = mtr.lookupExtension(name)
+        if mtype is not None:
+            return mtype.normalized()
+        # TODO: maybe try mtr(filecontents) to use MTRs mime magic
+    if mtype is None:
+        mtype = mimetypes.guess_type(name)
+        # TODO: add mime magic here https://github.com/ahupp/python-magic/blob/master/magic.py
+        if mtype is not (None, None):
+            return mtype[0]
+    return 'application/octet-stream'
+
 
 def store_results(experiment, outdir):
     """
@@ -174,6 +196,8 @@ def store_results(experiment, outdir):
     ds = experiment[dsid]
     # TODO: store experiment config here as well
     for fname in os.listdir(outdir):
+        mtr = getToolByName(ds, 'mimetypes_registry')
+        mtype = guess_mimetype(fname, outdir, mtr)
         addFile(ds,
                 filename=os.path.join(outdir, fname),
-                mimetype=mimetypes.guess_type(fname))
+                mimetype=mtype)
