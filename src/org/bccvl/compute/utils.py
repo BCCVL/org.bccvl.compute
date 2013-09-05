@@ -161,6 +161,7 @@ def addFile(content, filename, file=None, mimetype='application/octet-stream'):
         linkcontent.file = NamedBlobFile(contentType=mimetype, filename=unicode(linkid))
         linkcontent.setFormat(mimetype)
         linkcontent.file.data = file
+    linkcontent.reindexObject()
     return linkcontent
 
 
