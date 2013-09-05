@@ -81,15 +81,17 @@ def execute(experiment):
     names = ["bioclim_01", "bioclim_04", "bioclim_05",
              "bioclim_06", "bioclim_12", "bioclim_15",
              "bioclim_16", "bioclim_17"]
-    species = uuidToObject(experiment.species_occurrence_dataset)
+    occurence = uuidToObject(experiment.species_occurrence_dataset)
+    absence = uuidToObject(experiment.species_absence_dataset)
     climate = uuidToObject(experiment.environmental_dataset)
     future = uuidToObject(experiment.climate_dataset)
     if future is None:
         future = {}
     try:
         path = init_work_env(rootpath)
-        prepare_data(path, names, climate, future, species)
-        script = write_bioclim_config(rootpath, path, species.id)
+        prepare_data(path, names, climate, future, occurence, absence)
+        # FIXME: assumes, occurence and absence use the same id
+        script = write_bioclim_config(rootpath, path, occurence.id)
         scriptout = script + "out"
         cmd = ['R', 'CMD', 'BATCH', '--no-save', '--no-restore', script, scriptout]
         ret = call(cmd, shell=False)
