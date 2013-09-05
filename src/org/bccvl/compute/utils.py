@@ -121,15 +121,16 @@ def prepare_data(path, names, climateitem, futureitem, occurenceitem, absenceite
             shutil.copyfileobj(src, dest)
             dest.close()
     # FIXME: again assumes same id as for occurence
-    for fileitem in absenceitem.values():
-        if not IFile.providedBy(fileitem):
-            continue
-        # FIXME: use metadata not filename
-        if 'bkgd' in fileitem.file.filename:
-            dest = open(os.path.join(destfolder, fileitem.file.filename), 'w')
-            src = fileitem.file.open('r')
-            shutil.copyfileobj(src, dest)
-            dest.close()
+    if absenceitem is not None:
+        for fileitem in absenceitem.values():
+            if not IFile.providedBy(fileitem):
+                continue
+            # FIXME: use metadata not filename
+            if 'bkgd' in fileitem.file.filename:
+                dest = open(os.path.join(destfolder, fileitem.file.filename), 'w')
+                src = fileitem.file.open('r')
+                shutil.copyfileobj(src, dest)
+                dest.close()
     # unzip enviro data
     for zipfn in glob.glob(os.path.join(path, 'enviro', '*.zip')):
         with zipfile.ZipFile(zipfn) as curzip:
