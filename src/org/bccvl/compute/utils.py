@@ -16,7 +16,7 @@ from urllib import urlopen
 import shutil
 import zipfile
 import glob
-from plone.namedfile.file import NamedBlobFile
+from plone.namedfile.file import NamedBlobFile, NamedBlobImage
 
 
 def check_r_libs_path(rootpath):
@@ -134,29 +134,18 @@ def addFile(content, filename, file=None, mimetype='application/octet-stream'):
         # TODO: add IStorage adapter for urllib.addinfourl see:
         # plone.namedfile-2.0.2-py2.7.egg/plone/namedfile/file.py:382: _setData(...)
         file = open(filename)
-    linkid = content.invokeFactory(type_name='File', id=linkid,
-                                   title=unicode(linkid))
-    linkcontent = content[linkid]
+    if mimetype.startswith('image') and not 'tif' in mimetype:
+        linkid = content.invokeFactory(type_name='Image', id=linkid,
+                                       title=unicode(linkid))
+        linkcontent = content[linkid]
+        linkcontent.file = NamedBlobImage(contentType=mimetype, filename=unicode(linkid))
+    else:
+        linkid = content.invokeFactory(type_name='File', id=linkid,
+                                       title=unicode(linkid))
+        linkcontent = content[linkid]
+        linkcontent.file = NamedBlobFile(contentType=mimetype, filename=unicode(linkid))
     linkcontent.setFormat(mimetype)
-    linkcontent.file = NamedBlobFile(contentType=mimetype, filename=unicode(linkid))
     linkcontent.file.data = file
-
-    #linkcontent.setFilename(filename.encode('utf-8'))  # no filename on dexterity file
-
-    # FIXME: stupid archetypes ... do we really need to call processForm ?
-    # Create a request to work with
-    # import sys
-    # from ZPublisher.HTTPResponse import HTTPResponse
-    # from ZPublisher.HTTPRequest import HTTPRequest
-    # response = HTTPResponse(stdout=sys.stdout)
-    # env = {'SERVER_NAME': 'fake_server',
-    #        'SERVER_PORT': '80',
-    #        'REQUEST_METHOD': 'GET'}
-    # request = HTTPRequest(sys.stdin, env, response)
-    # content.REQUEST = request
-    # linkcontent.processForm()
-    # del content.REQUEST  # Avoid "can't pickle file objects"
-
     return linkcontent
 
 
@@ -191,9 +180,12 @@ def store_results(experiment, outdir):
     create a new DataSet under experiment and store all files found in outdir
     within this dataset
     """
+    # FIXME: for some reason there is no auto id chooser here... maybe I'll have to setup
+    #        some NameChooser adapter? so we have to generate a uinque id ourselves for now
+    title = u'%s - result %s' % (experiment.title, datetime.now().isoformat())
     dsid = experiment.invokeFactory('gu.repository.content.RepositoryItem',
-                                    id='result',
-                                    title=u'%s - result %s' % (experiment.title, datetime.now().isoformat()))
+                                    id=title.encode('utf-8').replace(':', '-'),
+                                    title=title)
     ds = experiment[dsid]
     # TODO: store experiment config here as well
     for fname in os.listdir(outdir):
