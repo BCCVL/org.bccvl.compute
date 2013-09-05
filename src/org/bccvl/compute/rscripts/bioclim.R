@@ -61,6 +61,7 @@ err.null <- function (e) return(NULL)
 # function to save projection output raster
 saveModelProjection = function(out.model, model.name, projectiontime) {
     model.dir = paste(wd, "/output_", model.name, "/", sep="")
+    filename = paste(projectiontime, '.geotiff')
     writeRaster(out.model, paste(model.dir, projectiontime, sep="/"), format="GTiff")
 }
 
