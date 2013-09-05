@@ -151,14 +151,16 @@ def addFile(content, filename, file=None, mimetype='application/octet-stream'):
         linkid = content.invokeFactory(type_name='Image', id=linkid,
                                        title=unicode(linkid))
         linkcontent = content[linkid]
-        linkcontent.file = NamedBlobImage(contentType=mimetype, filename=unicode(linkid))
+        linkcontent.image = NamedBlobImage(contentType=mimetype, filename=unicode(linkid))
+        linkcontent.setFormat(mimetype)
+        linkcontent.image.data = file
     else:
         linkid = content.invokeFactory(type_name='File', id=linkid,
                                        title=unicode(linkid))
         linkcontent = content[linkid]
         linkcontent.file = NamedBlobFile(contentType=mimetype, filename=unicode(linkid))
-    linkcontent.setFormat(mimetype)
-    linkcontent.file.data = file
+        linkcontent.setFormat(mimetype)
+        linkcontent.file.data = file
     return linkcontent
 
 
