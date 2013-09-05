@@ -167,6 +167,7 @@ import mimetypes
 mimetypes.add_type('text/plain', '.rascii')
 mimetypes.add_type('text/plain', '.rout')
 mimetypes.add_type('application/octet-stream', '.rdata')
+mimetypes.add_type('image/geotiff', '.geotiff')
 
 
 def guess_mimetype(name, path='', mtr=None):
