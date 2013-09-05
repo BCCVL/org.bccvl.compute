@@ -11,27 +11,6 @@ import glob
 from plone.app.uuid.utils import uuidToObject
 
 
-BIOCLIM_CONFIG = """
-.libPaths("{rlibdir}")
-wd = "{workdir}"
-species = "{species}"
-occur.data = "{occurence}"
-bkgd.data = {background}
-enviro.data.names = c({enviro[names]})
-enviro.data.current = c({enviro[data]})
-enviro.data.type = c({enviro[type]})
-enviro.data.future= c({future[data]})
-
-model.bioclim = TRUE
-project.bioclim = TRUE
-model.brt = FALSE
-project.brt = FALSE
-
-opt.tails = c("both")
-opt.ext = NULL
-"""
-
-
 def get_datapath_for_glob(path, match):
     flist = list(glob.glob(os.path.join(path,  'enviro', match)))
     if len(flist):
@@ -68,7 +47,8 @@ def write_bioclim_config(rootpath, path, species):
             }
         }
 
-    script = BIOCLIM_CONFIG.format(**params) + resource_string('org.bccvl.compute', 'rscripts/bioclim.R')
+    bioclim_config = resource_string('org.bccvl.compute', 'rscripts/bioclim.init.R')
+    script = bioclim_config.format(**params) + resource_string('org.bccvl.compute', 'rscripts/bioclim.R')
     scriptfile = os.path.join(path, 'bioclim.R')
     f = open(scriptfile, "w")
     f.write(script)
