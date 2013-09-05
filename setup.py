@@ -27,6 +27,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'setuptools',  # distribute
+        'Jinja2',
     ],
     entry_points="""
     # -*- Entry points: -*-

@@ -9,6 +9,7 @@ from org.bccvl.compute.utils import (check_r_libs_path,
                                      store_results)
 import glob
 from plone.app.uuid.utils import uuidToObject
+from jinja2 import Template
 
 
 def get_datapath_for_glob(path, match):
@@ -26,21 +27,24 @@ def write_bioclim_config(rootpath, path, species):
     currentfolder = get_datapath_for_glob(path, 'current*')
     futurefolder = get_datapath_for_glob(path, '*2085')
     # maybe use glob here?
-    curdata = ",".join(('"{0}"'.format(os.path.join(currentfolder, name + ".tif")) for name in names))
-    futdata = ''
+    curdata = [os.path.join(currentfolder, name + ".tif") for name in names]
+    futdata = None
     if futurefolder:
-        futdata = ",".join(('"{0}"'.format(os.path.join(futurefolder, name + ".tif")) for name in names))
+        futdata = [os.path.join(futurefolder, name + ".tif") for name in names]
+    bkgdata = None
+    if os.path.exists(os.path.join(path, 'species', species, 'bkgd.csv')):
+        bkgdata = os.path.join(path, 'species', species, 'bkgd.csv')
 
     params = {
         'rlibdir': check_r_libs_path(rootpath),
         'workdir': path,
         'species': species,
         'occurence': os.path.join(path, 'species', species, 'occur.csv'),
-        'background': "NULL",  # os.path.join(path, 'species', species, 'background.csv')
+        'background': bkgdata,
         'enviro': {
-            'names': ",".join(('"{0}"'.format(name) for name in names)),
+            'names': names,
             'data': curdata,
-            'type': ",".join(('"continuous"' for i in xrange(0, len(names))))
+            'type': ["continuous" for i in xrange(0, len(names))],
             },
         'future': {
             'data': futdata
@@ -48,7 +52,8 @@ def write_bioclim_config(rootpath, path, species):
         }
 
     bioclim_config = resource_string('org.bccvl.compute', 'rscripts/bioclim.init.R')
-    script = bioclim_config.format(**params) + resource_string('org.bccvl.compute', 'rscripts/bioclim.R')
+    tmpl = Template(bioclim_config)
+    script = tmpl.render(params) + resource_string('org.bccvl.compute', 'rscripts/bioclim.R')
     scriptfile = os.path.join(path, 'bioclim.R')
     f = open(scriptfile, "w")
     f.write(script)

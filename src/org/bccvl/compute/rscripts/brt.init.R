@@ -1,19 +1,34 @@
 # This is a Python string template file and is currently tightly tied
 # to ../brt.py.
-.libPaths("{rlibdir}")
-wd = "{workdir}"
-species = "{species}"
-occur.data = "{occurence}"
-bkgd.data = "{background}"
-enviro.data.names = c({enviro[names]})
-enviro.data.current = c({enviro[data]})
-enviro.data.type = c({enviro[type]})
-enviro.data.future= c({future[data]})
+{% macro strvector(value) -%}
+  {%- if value -%}
+    c(
+    {%- for item in value -%}
+      {{ '"%s"'|format(item) -}}
+      {{ "," if not loop.last }}
+    {%- endfor -%}
+    )
+  {%- else -%}
+    NULL
+  {%- endif -%}
+{%- endmacro %}
+
+.libPaths("{{ rlibdir }}")
+wd = "{{ workdir }}"
+species = "{{ species }}"
+occur.data = "{{ occurence }}"
+bkgd.data = {{ '"%s"' % background if background else "NULL" }}
+enviro.data.names = {{ strvector(enviro['names']) }}
+enviro.data.current = {{ strvector(enviro['data']) }}
+enviro.data.type = {{ strvector(enviro['type']) }}
+enviro.data.future = {{ strvector(future['data']) }}
 
 model.bioclim = FALSE
 project.bioclim = FALSE
+evaluate.bioclim = FALSE #boolean to evaluate BIOCLIM algorithm
 model.brt = TRUE #boolean to run Boosted regression tree algorithm
 project.brt = TRUE #boolean to project Boosted regression tree algorithm
+evaluate.brt = TRUE #boolean to evaluate Boosted regression tree algorithm
 
 brt.fold.vector = NULL #a fold vector to be read in for cross validation with offsets
 brt.tree.complexity = 1 #sets the complexity of individual trees
@@ -37,3 +52,9 @@ brt.silent = FALSE #Logical. to allow running with no output for simplifying mod
 brt.keep.fold.models = FALSE #Logical. keep the fold models from cross valiation
 brt.keep.fold.vector = FALSE #Logical. allows the vector defining fold membership to be kept
 brt.keep.fold.fit = FALSE #Logical. allows the predicted values for observations from cross-validation to be kept
+
+# model accuracy statistics
+# these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R
+dismo.eval.method = c("ODP", "TNR", "FPR", "FNR", "NPP", "MCR", "OR")
+# and vice versa
+biomod.models.eval.meth = c("KAPPA", "TSS", "ROC", "FAR", "SR", "ACCURACY", "BIAS", "POD", "CSI", "ETS")
