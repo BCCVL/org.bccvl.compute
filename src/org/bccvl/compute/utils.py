@@ -200,7 +200,8 @@ def store_results(experiment, outdir):
     #        some NameChooser adapter? so we have to generate a uinque id ourselves for now
     title = u'%s - result %s' % (experiment.title, datetime.now().isoformat())
     dsid = experiment.invokeFactory('gu.repository.content.RepositoryItem',
-                                    id=title.encode('utf-8').replace(':', '-'),
+                                    # id=title.encode('utf-8').replace(':', '-'),
+                                    id='result',
                                     title=title)
     ds = experiment[dsid]
     # TODO: store experiment config here as well
