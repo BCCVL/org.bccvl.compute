@@ -100,7 +100,6 @@ def execute(experiment):
         shutil.move(os.path.join(path, 'bioclim.Rout'),
                     os.path.join(path, 'output_bioclim'))
         store_results(experiment, os.path.join(path, 'output_bioclim'))
-
     finally:
         # TODO: maybe we should try to capture Rout etc, and send it back as status message
         if os.path.exists(path):

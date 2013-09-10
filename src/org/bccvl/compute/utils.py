@@ -17,6 +17,8 @@ import shutil
 import zipfile
 import glob
 from plone.namedfile.file import NamedBlobFile, NamedBlobImage
+from zope.event import notify
+from zope.lifecycleevent import ObjectModifiedEvent
 
 
 def check_r_libs_path(rootpath):
@@ -161,7 +163,7 @@ def addFile(content, filename, file=None, mimetype='application/octet-stream'):
         linkcontent.file = NamedBlobFile(contentType=mimetype, filename=unicode(linkid))
         linkcontent.setFormat(mimetype)
         linkcontent.file.data = file
-    linkcontent.reindexObject()
+    notify(ObjectModifiedEvent(linkcontent))
     return linkcontent
 
 
