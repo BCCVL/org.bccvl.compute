@@ -19,6 +19,7 @@ import glob
 from plone.namedfile.file import NamedBlobFile, NamedBlobImage
 from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
+from plone.dexterity.utils import createContentInContainer
 
 
 def check_r_libs_path(rootpath):
@@ -198,14 +199,11 @@ def store_results(experiment, outdir):
     create a new DataSet under experiment and store all files found in outdir
     within this dataset
     """
-    # FIXME: for some reason there is no auto id chooser here... maybe I'll have to setup
-    #        some NameChooser adapter? so we have to generate a uinque id ourselves for now
+    # TODO: maybe use rfc822 date format?
     title = u'%s - result %s' % (experiment.title, datetime.now().isoformat())
-    dsid = experiment.invokeFactory('gu.repository.content.RepositoryItem',
-                                    # id=title.encode('utf-8').replace(':', '-'),
-                                    id='result',
-                                    title=title)
-    ds = experiment[dsid]
+    ds = createContentInContainer(experiment,
+                                  'gu.repository.content.RepositoryItem',
+                                  title=title)
     # TODO: store experiment config here as well
     for fname in os.listdir(outdir):
         mtr = getToolByName(ds, 'mimetypes_registry')
