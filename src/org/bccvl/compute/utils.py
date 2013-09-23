@@ -8,7 +8,7 @@
 import os
 import os.path
 from tempfile import mkdtemp
-from plone.app.contenttypes.interfaces import IFile
+from org.bccvl.site.content.dataset import IDataset
 from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
 from Products.CMFCore.utils import getToolByName
@@ -16,7 +16,7 @@ from urllib import urlopen
 import shutil
 import zipfile
 import glob
-from plone.namedfile.file import NamedBlobFile, NamedBlobImage
+from plone.namedfile.file import NamedBlobFile
 from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 from plone.dexterity.utils import createContentInContainer
@@ -98,42 +98,32 @@ def init_work_env(rootpath):
 # TODO: ensure all file write/remove actions happen within tmp_dir (prefix check?)
 def prepare_data(path, names, climateitem, futureitem, occurenceitem, absenceitem):
     # put datafiles onto filesystem
-    for fileitem in climateitem.values():
-        if not IFile.providedBy(fileitem):
-            continue
-        dest = open(os.path.join(path, 'enviro', fileitem.file.filename), 'w') # dexterity file has no filename
-        src = fileitem.file.open('r')
+    # Current climate Data
+    dest = open(os.path.join(path, 'enviro', climateitem.file.filename), 'w') # dexterity file has no filename
+    if climateitem is not None and IDataset.providedBy(climateitem):
+        src = climateitem.file.open('r')
         shutil.copyfileobj(src, dest)
         dest.close()
-    for fileitem in futureitem.values():
-        if not IFile.providedBy(fileitem):
-            continue
-        dest = open(os.path.join(path, 'enviro', fileitem.file.filename), 'w') # dexterity file has no filename
-        src = fileitem.file.open('r')
+    # Future climate data
+    if futureitem is not None and IDataset.providedBy(futureitem):
+        dest = open(os.path.join(path, 'enviro', futureitem.file.filename), 'w') # dexterity file has no filename
+        src = futureitem.file.open('r')
         shutil.copyfileobj(src, dest)
         dest.close()
+    # Species data
     destfolder = os.path.join(path, 'species', occurenceitem.id)
     os.mkdir(destfolder)  # should not exist
-    for fileitem in occurenceitem.values():
-        if not IFile.providedBy(fileitem):
-            continue
-        # FIXME: use metadata not filename
-        if 'occur' in fileitem.file.filename:
-            dest = open(os.path.join(destfolder, fileitem.file.filename), 'w')
-            src = fileitem.file.open('r')
-            shutil.copyfileobj(src, dest)
-            dest.close()
+    if occurenceitem is not None and IDataset.providedBy(occurenceitem):
+        dest = open(os.path.join(destfolder, occurenceitem.file.filename), 'w')
+        src = occurenceitem.file.open('r')
+        shutil.copyfileobj(src, dest)
+        dest.close()
     # FIXME: again assumes same id as for occurence
-    if absenceitem is not None:
-        for fileitem in absenceitem.values():
-            if not IFile.providedBy(fileitem):
-                continue
-            # FIXME: use metadata not filename
-            if 'bkgd' in fileitem.file.filename:
-                dest = open(os.path.join(destfolder, fileitem.file.filename), 'w')
-                src = fileitem.file.open('r')
-                shutil.copyfileobj(src, dest)
-                dest.close()
+    if absenceitem is not None and IDataset.providedBy(absenceitem):
+        dest = open(os.path.join(destfolder, absenceitem.file.filename), 'w')
+        src = absenceitem.file.open('r')
+        shutil.copyfileobj(src, dest)
+        dest.close()
     # unzip enviro data
     for zipfn in glob.glob(os.path.join(path, 'enviro', '*.zip')):
         with zipfile.ZipFile(zipfn) as curzip:
@@ -141,7 +131,7 @@ def prepare_data(path, names, climateitem, futureitem, occurenceitem, absenceite
         os.remove(zipfn)
 
 
-def addFile(content, filename, file=None, mimetype='application/octet-stream'):
+def addDataset(content, filename, file=None, mimetype='application/octet-stream'):
     normalizer = getUtility(IFileNameNormalizer)
     linkid = normalizer.normalize(os.path.basename(filename))
     if linkid in content:
@@ -150,20 +140,13 @@ def addFile(content, filename, file=None, mimetype='application/octet-stream'):
         # TODO: add IStorage adapter for urllib.addinfourl see:
         # plone.namedfile-2.0.2-py2.7.egg/plone/namedfile/file.py:382: _setData(...)
         file = open(filename)
-    if mimetype.startswith('image') and not 'tif' in mimetype:
-        linkid = content.invokeFactory(type_name='Image', id=linkid,
-                                       title=unicode(linkid))
-        linkcontent = content[linkid]
-        linkcontent.image = NamedBlobImage(contentType=mimetype, filename=unicode(linkid))
-        linkcontent.setFormat(mimetype)
-        linkcontent.image.data = file
-    else:
-        linkid = content.invokeFactory(type_name='File', id=linkid,
-                                       title=unicode(linkid))
-        linkcontent = content[linkid]
-        linkcontent.file = NamedBlobFile(contentType=mimetype, filename=unicode(linkid))
-        linkcontent.setFormat(mimetype)
-        linkcontent.file.data = file
+    linkid = content.invokeFactory(type_name='org.bccvl.content.dataset', id=linkid,
+                                   title=unicode(linkid))
+    linkcontent = content[linkid]
+    linkcontent.file = NamedBlobFile(contentType=mimetype, filename=unicode(linkid))
+    linkcontent.setFormat(mimetype)
+    linkcontent.file.data = file
+
     notify(ObjectModifiedEvent(linkcontent))
     return linkcontent
 
@@ -208,6 +191,6 @@ def store_results(experiment, outdir):
     for fname in os.listdir(outdir):
         mtr = getToolByName(ds, 'mimetypes_registry')
         mtype = guess_mimetype(fname, outdir, mtr)
-        addFile(ds,
-                filename=os.path.join(outdir, fname),
-                mimetype=mtype)
+        addDataset(ds,
+                   filename=os.path.join(outdir, fname),
+                   mimetype=mtype)
