@@ -20,6 +20,7 @@ from plone.namedfile.file import NamedBlobFile
 from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 from plone.dexterity.utils import createContentInContainer
+import transaction
 
 
 def check_r_libs_path(rootpath):
@@ -235,6 +236,8 @@ def store_results(experiment, outdir):
     create a new DataSet under experiment and store all files found in outdir
     within this dataset
     """
+    # start a new transaction to avoid conflicterrors
+    transaction.commit()
     # TODO: maybe use rfc822 date format?
     title = u'%s - result %s' % (experiment.title, datetime.now().isoformat())
     ds = createContentInContainer(experiment,
