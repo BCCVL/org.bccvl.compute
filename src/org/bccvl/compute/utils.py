@@ -96,7 +96,7 @@ def init_work_env(rootpath):
     return path
 
 # TODO: ensure all file write/remove actions happen within tmp_dir (prefix check?)
-def prepare_data(path, names, climateitem, futureitem, occurenceitem, absenceitem):
+def prepare_data(path, names, climateitem, futureitem, occurrenceitem, absenceitem):
     # put datafiles onto filesystem
     # Current climate Data
     dest = open(os.path.join(path, 'enviro', climateitem.file.filename), 'w') # dexterity file has no filename
@@ -111,14 +111,14 @@ def prepare_data(path, names, climateitem, futureitem, occurenceitem, absenceite
         shutil.copyfileobj(src, dest)
         dest.close()
     # Species data
-    destfolder = os.path.join(path, 'species', occurenceitem.id)
+    destfolder = os.path.join(path, 'species', occurrenceitem.id)
     os.mkdir(destfolder)  # should not exist
-    if occurenceitem is not None and IDataset.providedBy(occurenceitem):
-        dest = open(os.path.join(destfolder, occurenceitem.file.filename), 'w')
-        src = occurenceitem.file.open('r')
+    if occurrenceitem is not None and IDataset.providedBy(occurrenceitem):
+        dest = open(os.path.join(destfolder, occurrenceitem.file.filename), 'w')
+        src = occurrenceitem.file.open('r')
         shutil.copyfileobj(src, dest)
         dest.close()
-    # FIXME: again assumes same id as for occurence
+    # FIXME: again assumes same id as for occurrence
     if absenceitem is not None and IDataset.providedBy(absenceitem):
         dest = open(os.path.join(destfolder, absenceitem.file.filename), 'w')
         src = absenceitem.file.open('r')

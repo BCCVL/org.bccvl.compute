@@ -16,7 +16,7 @@
 .libPaths("{{ rlibdir }}")
 wd = "{{ workdir }}"
 species = "{{ species }}"
-occur.data = "{{ occurence }}"
+occur.data = "{{ occurrence }}"
 bkgd.data = {{ '"%s"' % background if background else "NULL" }}
 enviro.data.names = {{ strvector(enviro['names']) }}
 enviro.data.current = {{ strvector(enviro['data']) }}

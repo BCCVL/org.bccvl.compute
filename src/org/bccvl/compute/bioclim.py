@@ -39,7 +39,7 @@ def write_bioclim_config(rootpath, path, species):
         'rlibdir': check_r_libs_path(rootpath),
         'workdir': path,
         'species': species,
-        'occurence': os.path.join(path, 'species', species, 'occur.csv'),
+        'occurrence': os.path.join(path, 'species', species, 'occur.csv'),
         'background': bkgdata,
         'enviro': {
             'names': names,
@@ -81,7 +81,7 @@ def execute(experiment):
     names = ["bioclim_01", "bioclim_04", "bioclim_05",
              "bioclim_06", "bioclim_12", "bioclim_15",
              "bioclim_16", "bioclim_17"]
-    occurence = uuidToObject(experiment.species_occurrence_dataset)
+    occurrence = uuidToObject(experiment.species_occurrence_dataset)
     absence = uuidToObject(experiment.species_absence_dataset)
     climate = uuidToObject(experiment.environmental_dataset)
     future = uuidToObject(experiment.climate_dataset)
@@ -89,9 +89,9 @@ def execute(experiment):
         future = {}
     try:
         path = init_work_env(rootpath)
-        prepare_data(path, names, climate, future, occurence, absence)
-        # FIXME: assumes, occurence and absence use the same id
-        script = write_bioclim_config(rootpath, path, occurence.id)
+        prepare_data(path, names, climate, future, occurrence, absence)
+        # FIXME: assumes, occurrence and absence use the same id
+        script = write_bioclim_config(rootpath, path, occurrence.id)
         scriptout = script + "out"
         cmd = ['R', 'CMD', 'BATCH', '--no-save', '--no-restore', script, scriptout]
         ret = call(cmd, shell=False)
