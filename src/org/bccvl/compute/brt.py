@@ -1,54 +1,18 @@
 import os
 import os.path
 from subprocess import call
-from org.bccvl.compute.utils import (prepare_data, init_work_env,
-                                     check_r_libs_path, store_results)
+from org.bccvl.compute.utils import (prepare_data,
+                                     init_work_env,
+                                     store_results,
+                                     get_sdm_params)
 import shutil
 from pkg_resources import resource_string
-import glob
 from plone.app.uuid.utils import uuidToObject
 from jinja2 import Template
 
 
-def get_datapath_for_glob(path, match):
-    flist = list(glob.glob(os.path.join(path,  'enviro', match)))
-    if len(flist):
-        return flist[0]
-    return None
-
-
 def write_brt_config(rootpath, path, species):
-    names = ["bioclim_01", "bioclim_04", "bioclim_05",
-             "bioclim_06", "bioclim_12", "bioclim_15",
-             "bioclim_16", "bioclim_17"]
-
-    # FIXME: hardcoded date
-    currentfolder = get_datapath_for_glob(path, 'current*')
-    futurefolder = get_datapath_for_glob(path, '*2085')
-    curdata = [os.path.join(currentfolder, name + ".tif") for name in names]
-    futdata = None
-    if futurefolder:
-        futdata = [os.path.join(futurefolder, name + ".tif") for name in names]
-    bkgdata = None
-    if os.path.exists(os.path.join(path, 'species', species, 'bkgd.csv')):
-        bkgdata = os.path.join(path, 'species', species, 'bkgd.csv')
-
-    params = {
-        'rlibdir': check_r_libs_path(rootpath),
-        'workdir': path,
-        'species': species,
-        'occurrence': os.path.join(path, 'species', species, 'occur.csv'),
-        'background': bkgdata,
-        'enviro': {
-            'names': names,
-            'data': curdata,
-            'type': ["continuous" for i in xrange(0, len(names))],
-            },
-        'future': {
-            'data': futdata
-            }
-        }
-
+    params = get_sdm_params(rootpath, path, species)
     brt_config = resource_string('org.bccvl.compute', 'rscripts/brt.init.R')
     tmpl = Template(brt_config)
     script = tmpl.render(params) + resource_string('org.bccvl.compute', 'rscripts/bioclim.R')
@@ -76,31 +40,46 @@ def execute(experiment):
 
     """
     rootpath = os.environ.get('WORKER_DIR') or os.enivron['HOME']
-    names = ["bioclim_01", "bioclim_04", "bioclim_05",
-             "bioclim_06", "bioclim_12", "bioclim_15",
-             "bioclim_16", "bioclim_17"]
     occurrence = uuidToObject(experiment.species_occurrence_dataset)
     absence = uuidToObject(experiment.species_absence_dataset)
     climate = uuidToObject(experiment.environmental_dataset)
     future = uuidToObject(experiment.climate_dataset)
+    result = None
+    rout = None
     if future is None:
         future = {}
     try:
         path = init_work_env(rootpath)
-        prepare_data(path, names, climate, future, occurrence, absence)
+        result = os.path.join(path, 'output_brt')
+        rout = os.path.join(path, 'brt.Rout')
+        prepare_data(path, climate, future, occurrence, absence)
         # FIXME: assumes, occurrence and absence use the same id
-        script = write_brt_config(rootpath, path, occurrence.id)
+        # FIXME: species id should come from somewhere else
+        script = write_brt_config(rootpath, path, occurrence.__parent__.id)
         # TODO: use script and scriptout instead of hardcoded brt.Rout etc...
         scriptout = script + "out"
         cmd = ['R', 'CMD', 'BATCH', '--no-save', '--no-restore', script, scriptout]
         ret = call(cmd, shell=False)
         # TODO: check ret for error
         # TODO: make sure script returns proper error codes
-        shutil.move(os.path.join(path, 'brt.Rout'),
-                    os.path.join(path, 'output_brt'))
-        store_results(experiment, os.path.join(path, 'output_brt'))
+    except Exception, e:
+        # This is really bad we have to do something with the exception
+        pass
+    # let's try and capture some results
+    try:
+        # the script went fine or not. Grab whatever is left and store it as result
+        if result is None:
+            # we couldn't even create the work env
+            return
+        if not os.path.exists(result):
+            # something went wrong with the script, try to capture at least .Rout
+            os.mkdir(result)
+        if os.path.exists(rout):
+            # move rout to result folder
+            shutil.move(rout, result)
+            store_results(experiment, result)
     finally:
-        # TODO: capture detailed error message to report to user
+        # hopefully all went well and we can remove our work folder
         if os.path.exists(path):
             shutil.rmtree(path)
 
