@@ -11,8 +11,22 @@ from plone.app.uuid.utils import uuidToObject
 from jinja2 import Template
 
 
-def write_brt_config(rootpath, path, species):
+def write_brt_config(rootpath, path, species, experiment):
     params = get_sdm_params(rootpath, path, species)
+
+    brt_params = experiment.paraterers_brt
+    params['tree_complexity'] = brt_params.tree_complexity
+    params['learning_rate'] = brt_params.learning_rate
+    params['bag_fraction'] = brt_params.bag_fraction
+    #params['var_monotone'] = brt_params.var_monotone
+    params['n_folds'] = brt_params.n_folds
+    params['prev_stratify'] = brt_params.prev_stratify and "TRUE" or "FALSE"
+    params['family'] = brt_params.family
+    params['n_trees'] = brt_params.n_trees
+    params['max_trees'] = brt_params.max_trees
+    params['tolerance_method'] = brt_params.tolerance_method
+    params['tolerance_value'] = brt_params.tolerance_value
+
     brt_config = resource_string('org.bccvl.compute', 'rscripts/brt.init.R')
     tmpl = Template(brt_config)
     script = tmpl.render(params) + resource_string('org.bccvl.compute', 'rscripts/bioclim.R')
@@ -55,7 +69,7 @@ def execute(experiment):
         prepare_data(path, climate, future, occurrence, absence)
         # FIXME: assumes, occurrence and absence use the same id
         # FIXME: species id should come from somewhere else
-        script = write_brt_config(rootpath, path, occurrence.__parent__.id)
+        script = write_brt_config(rootpath, path, occurrence.__parent__.id, experiment)
         # TODO: use script and scriptout instead of hardcoded brt.Rout etc...
         scriptout = script + "out"
         cmd = ['R', 'CMD', 'BATCH', '--no-save', '--no-restore', script, scriptout]
