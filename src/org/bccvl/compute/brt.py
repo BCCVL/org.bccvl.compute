@@ -14,7 +14,7 @@ from jinja2 import Template
 def write_brt_config(rootpath, path, species, experiment):
     params = get_sdm_params(rootpath, path, species)
 
-    brt_params = experiment.paraterers_brt
+    brt_params = experiment.parameters_brt
     params['tree_complexity'] = brt_params.tree_complexity
     params['learning_rate'] = brt_params.learning_rate
     params['bag_fraction'] = brt_params.bag_fraction
