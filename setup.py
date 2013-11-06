@@ -28,6 +28,7 @@ setup(
     install_requires=[
         'setuptools',  # distribute
         'Jinja2',
+        'fabric',
     ],
     entry_points="""
     # -*- Entry points: -*-
