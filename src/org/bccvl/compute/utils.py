@@ -95,6 +95,7 @@ class WorkEnv(object):
         self.tmpimport = None
         self.tmpscript = None
         self.scriptname = None
+        self.rootpath = os.environ.get('WORKER_DIR') or os.enivron['HOME']
 
     def create_workdir(self, root=''):
         '''
@@ -285,10 +286,12 @@ class WorkEnvLocal(WorkEnv):
 
     def create_workdir(self, root=''):
         # FIXME: remove this one
-        workdir = '/tmp/rwork'
-        if os.path.exists(workdir):
-            shutil.rmtree(workdir)
-        os.mkdir(workdir)
+        # workdir = '/tmp/rwork'
+        # if os.path.exists(workdir):
+        #     shutil.rmtree(workdir)
+        # os.mkdir(workdir)
+
+        workdir = mkdtemp(dir=self.rootpath)
         return workdir
 
     def move_data(self, type, src, dest):
