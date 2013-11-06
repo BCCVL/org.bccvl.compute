@@ -7,7 +7,7 @@
 """
 import os
 import os.path
-from tempfile import mkdtemp
+from tempfile import mkdtemp, mkstemp
 from org.bccvl.site.content.dataset import IDataset
 from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
@@ -21,232 +21,311 @@ from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 from plone.dexterity.utils import createContentInContainer
 import transaction
-
-
-def check_r_libs_path(rootpath):
-    """
-    Create and return path to R library folder relative to given rootpath.
-    If folder does not exist it will be created.
-
-    :param rootpath: The top level folder to look for R/library sub-folder.
-    :type rootpath: str
-
-    :returns: full path to R library folder
-    :rtype: str
-
-
-    A little example how to use it
-    >>> from tempfile import mkdtemp
-    >>> import os.path
-    >>> import shutil
-    >>> root = mkdtemp()
-    >>> path = check_r_libs_path(root)
-    >>> path == os.path.join(root, 'R', 'library')
-    True
-    >>> os.path.isdir(path)
-    True
-    We have to clean up at the end.
-    >>> shutil.rmtree(path)
-
-    """
-    path = os.path.join(rootpath, 'R', 'library')
-    if not os.path.exists(path):
-        os.makedirs(path)
-    return path
-
-
-def init_work_env(rootpath):
-    """Prepare the folder structure for an R job.
-
-    This method creates a new temporary work folder in rootpath, and
-    creates all subfolders within it.
-
-    :param rootpath: The work folder to put all data files and execute
-    the R script within.
-    :type rootpath: str
-
-    :param species: The name of the sub-folder to hold the species data.
-    :type species: str
-
-    :returns: Full path to newly created work folder.
-    :rtype: str
-
-    A little example how to use it
-    >>> from tempfile import mkdtemp
-    >>> import os.path
-    >>> import shutil
-    >>> root = mkdtemp()
-    >>> path = init_work_env(root)
-    >>> os.path.isdir(path)
-    True
-    >>> os.path.isdir(os.path.join(path, 'species'))
-    True
-    >>> os.path.isdir(os.path.join(path, 'enviro'))
-    True
-    >>> os.path.isdir(path)
-    We have to clean up at the end.
-    >>> shutil.rmtree(root)
-
-    """
-    check_r_libs_path(rootpath)
-    # FIXME: cleanup even if there is some serious error somewhere
-    path = mkdtemp(dir=rootpath)
-    os.makedirs(os.path.join(path, 'species'))
-    os.makedirs(os.path.join(path, 'enviro'))
-    # TODO: place data correctly
-    return path
-
-# TODO: ensure all file write/remove actions happen within tmp_dir (prefix check?)
-def prepare_data(path, climateitem, futureitem, occurrenceitem, absenceitem):
-    # put datafiles onto filesystem
-    # Current climate Data
-    dest = open(os.path.join(path, 'enviro', climateitem.file.filename), 'w') # dexterity file has no filename
-    if climateitem is not None and IDataset.providedBy(climateitem):
-        src = climateitem.file.open('r')
-        shutil.copyfileobj(src, dest)
-        dest.close()
-    # Future climate data
-    if futureitem is not None and IDataset.providedBy(futureitem):
-        dest = open(os.path.join(path, 'enviro', futureitem.file.filename), 'w') # dexterity file has no filename
-        src = futureitem.file.open('r')
-        shutil.copyfileobj(src, dest)
-        dest.close()
-    # Species data
-    # TODO: get the species id from somewhere
-    destfolder = os.path.join(path, 'species', occurrenceitem.__parent__.id)
-    os.mkdir(destfolder)  # should not exist
-    if occurrenceitem is not None and IDataset.providedBy(occurrenceitem):
-        #dest = open(os.path.join(destfolder, occurrenceitem.file.filename), 'w')
-        #FIXME: get_sdm_params expects "occur.csv"
-        dest = open(os.path.join(destfolder, "occur.csv"), 'w')
-        src = occurrenceitem.file.open('r')
-        shutil.copyfileobj(src, dest)
-        dest.close()
-    # FIXME: again assumes same id as for occurrence
-    if absenceitem is not None and IDataset.providedBy(absenceitem):
-        #dest = open(os.path.join(destfolder, absenceitem.file.filename), 'w')
-        #FIXME: get_sdm_params expects "bkgd.csv"
-        dest = open(os.path.join(destfolder, "bkgd.csv"), 'w')
-        src = absenceitem.file.open('r')
-        shutil.copyfileobj(src, dest)
-        dest.close()
-    # unzip enviro data
-    for zipfn in glob.glob(os.path.join(path, 'enviro', '*.zip')):
-        with zipfile.ZipFile(zipfn) as curzip:
-            curzip.extractall(path=os.path.join(path, 'enviro'))
-        os.remove(zipfn)
-
-
-def get_datapath_for_glob(path, match):
-    flist = list(glob.glob(os.path.join(path,  'enviro', match)))
-    if len(flist):
-        return flist[0]
-    return None
-
-
-def get_sdm_params(rootpath, path, species):
-    # rootpath ... the worker home dir
-    # path     ... the work dir
-        # TODO: hardcoded list of bioclim variables
-    names = ["bioclim_01", "bioclim_04", "bioclim_05",
-             "bioclim_06", "bioclim_12", "bioclim_15",
-             "bioclim_16", "bioclim_17"]
-    # TODO: hardcoded sub-folder name in current climate data
-    currentfolder = get_datapath_for_glob(path, 'current*')
-    # TODO: hardcoded year for future projection
-    futurefolder = get_datapath_for_glob(path, '*2085')
-    # TODO: hardcoded file ending for raster data
-    curdata = [os.path.join(currentfolder, name + ".tif") for name in names]
-    futdata = None
-    if futurefolder:
-        # TODO: hardcoded file ending for raster data
-        futdata = [os.path.join(futurefolder, name + ".tif") for name in names]
-    bkgdata = None
-    # TODO: assumes that prep data stores files bkgd.csv and occur.csv
-    if os.path.exists(os.path.join(path, 'species', species, 'bkgd.csv')):
-        bkgdata = os.path.join(path, 'species', species, 'bkgd.csv')
-
-    params = {
-        'rlibdir': check_r_libs_path(rootpath),
-        'workdir': path,
-        'species': species,
-        'occurrence': os.path.join(path, 'species', species, 'occur.csv'),
-        'background': bkgdata,
-        'enviro': {
-            'names': names,
-            'data': curdata,
-            'type': ["continuous" for i in xrange(0, len(names))],
-            },
-        'future': {
-            'data': futdata
-            }
-        }
-    return params
-
-
-# TODO: replace all stuff below with a transmogrifier pipeline
-def addDataset(content, filename, file=None, mimetype='application/octet-stream'):
-    normalizer = getUtility(IFileNameNormalizer)
-    linkid = normalizer.normalize(os.path.basename(filename))
-    if linkid in content:
-        return content[linkid]
-    if file is None:
-        # TODO: add IStorage adapter for urllib.addinfourl see:
-        # plone.namedfile-2.0.2-py2.7.egg/plone/namedfile/file.py:382: _setData(...)
-        file = open(filename)
-    linkid = content.invokeFactory(type_name='org.bccvl.content.dataset', id=linkid,
-                                   title=unicode(linkid))
-    linkcontent = content[linkid]
-    linkcontent.file = NamedBlobFile(contentType=mimetype, filename=unicode(linkid))
-    linkcontent.setFormat(mimetype)
-    linkcontent.file.data = file
-
-    notify(ObjectModifiedEvent(linkcontent))
-    return linkcontent
-
-
+from xmlrpclib import ServerProxy
+from collective.transmogrifier.transmogrifier import Transmogrifier
 from datetime import datetime
-import mimetypes
-
-# register a few mimetypes
-mimetypes.add_type('text/plain', '.rascii')
-mimetypes.add_type('text/plain', '.rout')
-mimetypes.add_type('application/octet-stream', '.rdata')
-mimetypes.add_type('image/geotiff', '.geotiff')
 
 
-def guess_mimetype(name, path='', mtr=None):
-    # 1. try mimetype registry
-    mtype =  None
-    if mtr is not None:
-        mtype = mtr.lookupExtension(name)
-        if mtype is not None:
-            return mtype.normalized()
-        # TODO: maybe try mtr(filecontents) to use MTRs mime magic
-    if mtype is None:
-        mtype = mimetypes.guess_type(name)
-        # TODO: add mime magic here https://github.com/ahupp/python-magic/blob/master/magic.py
-        if mtype is not (None, None):
-            return mtype[0]
-    return 'application/octet-stream'
+from StringIO import StringIO
+from fabric import api
+from fabric import tasks
+from fabric import state
+
+DATA_MOVER = 'http://127.0.0.1:6543/data_mover'
+
+##TASKS:
 
 
-def store_results(experiment, outdir):
-    """
-    create a new DataSet under experiment and store all files found in outdir
-    within this dataset
-    """
-    # start a new transaction to avoid conflicterrors
-    transaction.commit()
-    # TODO: maybe use rfc822 date format?
-    title = u'%s - result %s' % (experiment.title, datetime.now().isoformat())
-    ds = createContentInContainer(experiment,
-                                  'gu.repository.content.RepositoryItem',
-                                  title=title)
-    # TODO: store experiment config here as well
-    for fname in os.listdir(outdir):
-        mtr = getToolByName(ds, 'mimetypes_registry')
-        mtype = guess_mimetype(fname, outdir, mtr)
-        addDataset(ds,
-                   filename=os.path.join(outdir, fname),
-                   mimetype=mtype)
+def create_tmpdir(root=''):
+    '''
+    Create a new temporary directory on target hosts
+    '''
+    result = api.run("mktemp -d -t rworkdir {}".format(root),
+                     pty=False, combine_stderr=False, quiet=True)
+    return result
+
+
+def mkdir(dir):
+    '''
+    '''
+    result = api.run("mkdir {}".format(dir),
+                     pty=False, combine_stderr=False, quiet=True)
+    return result
+
+
+def cleanup_tmp(tmpdir):
+    if not tmpdir or tmpdir in ('/'):
+        raise ValueError("Invalid dir to clean up.", tmpdir)
+    result = api.run("rm -fr {}".format(tmpdir),
+                     pty=False, combine_stderr=False, quiet=True)
+    return result
+
+
+def unpack(destdir, filename):
+    result = api.run("unzip -d '{}' {}".format(destdir, filename),
+                     pty=False, combine_stderr=False, quiet=True)
+    return result
+
+
+def run_script(cmd):
+    result = api.run(cmd, pty=False, combine_stderr=False, quiet=True)
+    return result
+    # from fabric.operations import local
+    # result = local(cmd, capture=True)
+    # return result
+
+
+def get_files_list(dir):
+    result = api.run('find "{}" -type f'.format(dir),
+                     pty=False, combine_stderr=False, quiet=True)
+    return result
+
+
+## JOB-UTILS:
+##    use fabric tasks to do stuff
+class WorkEnv(object):
+
+    def __init__(self, host):
+        self.host = host
+        self.workdir = None
+        self.inputdir = None
+        self.scriptdir = None
+        self.outputdir = None
+        self.jobs = []
+        self.tmpimport = None
+        self.tmpscript = None
+        self.scriptname = None
+
+    def create_workdir(self, root=''):
+        '''
+
+        '''
+        result = tasks.execute(create_tmpdir, root, hosts=[self.host])
+        workdir = result['localhost']
+        # TODO: check result status
+        # workdir.failed=bool
+        # workdir.succeeded=bool
+        # workdir.return_code= int
+        return workdir
+
+    def mkdir(self, dir):
+        result = tasks.execute(mkdir, dir, hosts=[self.host])
+        return result[self.host]
+
+    def cleanup(self):
+        if self.tmpimport:
+            shutil.rmtree(self.tmpimport)
+        if self.tmpscript:
+            os.remove(self.tmpscript)
+        result = tasks.execute(cleanup_tmp, self.workdir, hosts=[self.host])
+        return result[self.host]
+
+    def unpack(self, destdir, filename):
+        result = tasks.execute(unpack, destdir, filename, hosts=[self.host])
+        return result[self.host]
+
+    def move_data(self, type, src, dest):
+        s = ServerProxy(DATA_MOVER)
+        job = s.move(src, dest)
+        self.jobs.append({'type': type,
+                          'filename': dest['path'],
+                          'status': job})
+
+    def move_input_data(self, type, datasetitem):
+        if datasetitem is None or not IDataset.providedBy(datasetitem):
+            return
+        destname = '/'.join((self.inputdir, datasetitem.file.filename))
+        src = {'type': 'url',
+               'url': '{}/@@download/file/{}'.format(datasetitem.absolute_url(),
+                                                     datasetitem.file.filename)}
+        dest = {'host': 'plone', 'path': destname}
+        self.move_data(type, src, dest)
+
+    def wait_for_data_mover(self):
+        import time
+        stillgoing = True
+        s = ServerProxy(DATA_MOVER)
+        while stillgoing:
+            time.sleep(1)
+            stillgoing = False
+            for job in self.jobs:
+                job['status'] = s.check_move_status(job['status']['id'])
+                if job['status'] in ('PENDING', 'IN_PROGRESS'):
+                    stillgoing = True
+                    break
+
+    def unpack_enviro_data(self):
+        for job in self.jobs:
+            if job['type'] in ('current', 'future'):
+                dirname, _ = os.path.splitext(os.path.basename(job['filename']))
+                destdir = '/'.join((self.inputdir, dirname))
+                self.unpack(destdir, job['filename'])
+
+    def move_script(self, script):
+        scriptfile, self.tmpscript = mkstemp()
+        os.write(scriptfile, script)
+        os.close(scriptfile)
+        self.scriptname = '/'.join((self.scriptdir, 'sdm.R'))
+        src = {'host': 'plone',
+               'path': self.tmpscript}
+        dest = {'host': 'plone',
+                'path': self.scriptname}
+        self.move_data('script', src, dest)
+
+    def execute_script(self):
+        scriptout = os.path.join(self.outputdir,
+                                 os.path.basename(self.scriptname + 'out'))
+
+        # R --slave --vanilla -f $in_R --args $in_data > $out_data
+        # R --slave --vanilla -f $in_R --args $in_data $out_data
+        # -> Galaxy ... pass parameters as cli params
+        # -> XQTL (Molgenis) ... wrap r-script with common init code, and provide special API to access parameters (maybe loaded from file in init wrapper?)
+        cmd = 'R CMD BATCH --vanilla --slave "{}" "{}"'.format(self.scriptname, scriptout)
+        result = tasks.execute(run_script, cmd, hosts=[self.host])
+        return result[self.host]
+
+    def move_output_data(self):
+        result = tasks.execute(get_files_list, self.outputdir, hosts=[self.host])
+        files = [l for l in result[self.host].split('\n') if l]
+        self.tmpimport = mkdtemp()
+        for file in files:
+            destname = '/'.join((self.tmpimport, file[len(self.outputdir) + 1:]))
+            src = {'host': 'plone',
+                   'path': file}
+            dest = {'host': 'plone',
+                    'path': destname}
+            self.move_data('output', src, dest)
+
+    def import_output(self, experiment) :
+        # try to avoid DB conflicts by committing first
+        transaction.commit()
+        # create result container which will be context for transmogrify import
+        # TODO: maybe use rfc822 date format?
+        title = u'%s - result %s' % (experiment.title, datetime.now().isoformat())
+        ds = createContentInContainer(experiment,
+                                      'gu.repository.content.RepositoryItem',
+                                      title=title)
+        # start transmogrify
+
+        #transmogrify.dexterity.schemaupdater needs a REQUEST on context????
+        from ZPublisher.HTTPResponse import HTTPResponse
+        from ZPublisher.HTTPRequest import HTTPRequest
+        import sys
+        response = HTTPResponse(stdout=sys.stdout)
+        env = {'SERVER_NAME':'fake_server',
+               'SERVER_PORT':'80',
+               'REQUEST_METHOD':'GET'}
+        request = HTTPRequest(sys.stdin, env, response)
+        # Set values from original request
+        # original_request = kwargs.get('original_request')
+        # if original_request:
+        #     for k,v in original_request.items():
+        #       request.set(k, v)
+        ds.REQUEST = request
+
+        transmogrifier = Transmogrifier(ds)
+        transmogrifier(u'org.bccvl.compute.resultimport',
+                       resultsource={'path': self.tmpimport})
+
+        # cleanup fake request
+        del ds.REQUEST
+
+    def prepare_work_env(self, climateitem, occurrenceitem, absenceitem):
+        self.workdir = self.create_workdir()
+        self.inputdir = '/'.join((self.workdir, 'input'))
+        self.scriptdir = '/'.join((self.workdir, 'script'))
+        self.outputdir = '/'.join((self.workdir, 'output'))
+        self.mkdir(self.inputdir)
+        self.mkdir(self.scriptdir)
+        self.mkdir(self.outputdir)
+        self.move_input_data('current', climateitem)
+        self.move_input_data('occurrence', occurrenceitem)
+        self.move_input_data('absence', absenceitem)
+
+    def get_sdm_params(self):
+        # TODO: hardcoded list of bioclim variables
+        names = ["bioclim_01", "bioclim_04", "bioclim_05",
+                 "bioclim_06", "bioclim_12", "bioclim_15",
+                 "bioclim_16", "bioclim_17"]
+        params = {
+            'scriptdir': self.workdir,
+            'inputdir': self.inputdir,
+            'outputdir': self.outputdir,
+            'occurrence': None,
+            'background': None,
+            'enviro': {
+                'names': names,
+                'data': None,
+                'type': ["continuous" for i in xrange(0, len(names))],
+                },
+            'tails': 'both',
+            }
+        for job in self.jobs:
+            if job['type'] == 'current':
+                # FIXME: hardcoded zip path name
+                zipdir, _ = os.path.splitext(os.path.basename(job['filename']))
+                currentfolder = '/'.join((self.inputdir, zipdir, 'current.76to05'))
+                params['enviro']['data'] = [os.path.join(currentfolder, name + ".tif") for name in names]
+            elif job['type'] == 'occurrence':
+                params['occurrence'] = job['filename']
+            elif job['type'] == 'absence':
+                params['background'] = job['filename']
+        return params
+
+    def execute(self, script):
+        self.move_script(script)
+        self.wait_for_data_mover()
+        self.unpack_enviro_data()
+        self.execute_script()
+        self.move_output_data()
+        self.wait_for_data_mover()
+
+
+class WorkEnvLocal(WorkEnv):
+
+    def create_workdir(self, root=''):
+        # FIXME: remove this one
+        workdir = '/tmp/rwork'
+        if os.path.exists(workdir):
+            shutil.rmtree(workdir)
+        os.mkdir(workdir)
+        return workdir
+
+    def move_data(self, type, src, dest):
+        if src.get('host', None):
+            print "copy", src['path'], dest['path']
+            shutil.copyfile(src['path'], dest['path'])
+        elif src['type'] == 'host':
+            shutil.copyfile(src['path'], dest['path'])
+        elif src['type'] == 'blob':
+            srcfile = src['file']
+            destfile = open(dest['path'], 'w')
+            shutil.copyfileobj(srcfile, destfile)
+        job = {'status': 'COMPLETED'}
+        self.jobs.append({'type': type,
+                          'filename': dest['path'],
+                          'status': job})
+
+    def move_input_data(self, type, datasetitem):
+        if datasetitem is None or not IDataset.providedBy(datasetitem):
+            return
+        destname = '/'.join((self.inputdir, datasetitem.file.filename))
+        src = {'type': 'blob',
+               'file': datasetitem.file.open()}
+        dest = {'host': 'plone', 'path': destname}
+        self.move_data(type, src, dest)
+
+    def wait_for_data_mover(self):
+        # all local copy no wait here
+        pass
+
+    def move_script(self, script):
+        scriptfile, self.tmpscript = mkstemp()
+        os.write(scriptfile, script)
+        os.close(scriptfile)
+        self.scriptname = '/'.join((self.scriptdir, 'sdm.R'))
+        src = {'host': 'plone',
+               'path': self.tmpscript}
+        dest = {'host': 'plone',
+                'path': self.scriptname}
+        self.move_data('script', src, dest)

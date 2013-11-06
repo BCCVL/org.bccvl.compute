@@ -1,0 +1,20 @@
+<configure
+        xmlns="http://namespaces.zope.org/zope"
+        xmlns:plone="http://namespaces.plone.org/plone"
+        xmlns:transmogrifier="http://namespaces.plone.org/transmogrifier"
+        i18n_domain="org.bccvl"
+        >
+
+    <utility
+       component=".transmogrify.ResultSource"
+       name="org.bccvl.compute.transmogrify.resultsource"
+       />
+
+    <transmogrifier:registerConfig
+      name="org.bccvl.compute.resultimport"
+      title="Import Compute result"
+      description="Import datasets from compute output"
+      configuration="import_result.cfg"
+      />
+
+</configure>

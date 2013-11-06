@@ -13,22 +13,18 @@
   {%- endif -%}
 {%- endmacro %}
 
-.libPaths("{{ rlibdir }}")
-wd = "{{ workdir }}"
-species = "{{ species }}"
+#define the working directory
+scriptdir = normalizePath("{{ scriptdir }}")
+inputdir =  normalizePath("{{ inputdir }}")
+outputdir =  normalizePath("{{ outputdir }}")
+
+# define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
 occur.data = "{{ occurrence }}"
+#define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
 bkgd.data = {{ '"%s"' % background if background else "NULL" }}
-enviro.data.names = {{ strvector(enviro['names']) }}
+
 enviro.data.current = {{ strvector(enviro['data']) }}
 enviro.data.type = {{ strvector(enviro['type']) }}
-enviro.data.future = {{ strvector(future['data']) }}
-
-model.bioclim = FALSE
-project.bioclim = FALSE
-evaluate.bioclim = FALSE #boolean to evaluate BIOCLIM algorithm
-model.brt = TRUE #boolean to run Boosted regression tree algorithm
-project.brt = TRUE #boolean to project Boosted regression tree algorithm
-evaluate.brt = TRUE #boolean to evaluate Boosted regression tree algorithm
 
 brt.fold.vector = NULL #a fold vector to be read in for cross validation with offsets
 brt.tree.complexity = {{ tree_complexity }} #sets the complexity of individual trees
@@ -58,3 +54,7 @@ brt.keep.fold.fit = FALSE #Logical. allows the predicted values for observations
 dismo.eval.method = c("ODP", "TNR", "FPR", "FNR", "NPP", "MCR", "OR")
 # and vice versa
 biomod.models.eval.meth = c("KAPPA", "TSS", "ROC", "FAR", "SR", "ACCURACY", "BIAS", "POD", "CSI", "ETS")
+
+# model accuracy statistics - combine stats from dismo and biomod2 for consistent output
+model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
+# TODO: these functions are used to evaluate the model ... configurable?
