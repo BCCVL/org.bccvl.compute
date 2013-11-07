@@ -31,7 +31,7 @@ from fabric import api
 from fabric import tasks
 from fabric import state
 
-DATA_MOVER = 'http://127.0.0.1:6543/data_mover'
+DATA_MOVER = 'http://127.0.0.1:10700/data_mover'
 
 ##TASKS:
 
