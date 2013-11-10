@@ -52,6 +52,8 @@ def execute(experiment, workenv=WorkEnv):
     absence = uuidToObject(experiment.species_absence_dataset)
     climate = uuidToObject(experiment.environmental_dataset)
     try:
+        from org.bccvl.compute.utils import WorkEnvLocal
+        workenv = WorkEnvLocal
         env = workenv('localhost')
         env.prepare_work_env(climate, occurrence, absence)
         params = env.get_sdm_params()
