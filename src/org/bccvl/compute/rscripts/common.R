@@ -1,3 +1,6 @@
+if (!file.exists(Sys.getenv("R_LIBS_USER"))) {
+    dir.create(Sys.getenv("R_LIBS_USER"), recursive=TRUE);
+}
 .libPaths(Sys.getenv("R_LIBS_USER"))
 # set CRAN mirror in case we need to download something
 # TODO: this should be done on demand or on user basis...
