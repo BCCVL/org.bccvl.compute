@@ -1,5 +1,4 @@
 
-
 ######################################################################################
 # model accuracy helpers
 ######################################################################################
@@ -428,6 +427,33 @@ calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
     }
 }
 
+# function to create HTML file with accuracy measures
+# need to install and read in the following packages:
+#install.packages(c("R2HTML", "png"))
+#library(R2HTML) 
+#library(png)
+generateHTML = function(sp.name) {
+
+	# read in model outputs
+	auccurve = readPNG(paste(outputdir, "/AUC.png", sep=""))
+	accuracystats = read.csv(paste(outputdir, "/combined.modelEvaluation.csv", sep=""),	row.names=c(1))
+
+	# create the output file 
+	target = HTMLInitFile(outdir=outputdir, filename=paste(sp.name,"_output", sep=""), BackGroundColor="#CCCCCC")
+
+		# add content
+		HTML(paste("<center><br><H1>Model Output for ", sp.name, sep=""), file=target)
+
+		HTML("<br><H2>AUC:ROC curve", file=target)
+		HTMLInsertGraph("AUC.png", file=target)
+
+		HTML("<br><H2>Accuracy measures",file=target)
+		HTML(accuracystats, file=target)
+
+	# close the file
+	HTMLEndFile()
+}
+
 ###############
 #
 # evaluate(p, a, model, x, tr, ...)
@@ -499,4 +525,8 @@ evaluate.model <- function(model.name, model.obj, occur, bkgd) {
 
     # calculate variable importance (like maxent, using decrease in AUC)
     calculatePermutationVarImpt(model.obj, model.eval, model.name)
+    
+    # create HTML file with accuracy measures
+    # TODO -> Fix the species name
+	generateHTML("default_species_name")
 } # end of evaluate.modol
