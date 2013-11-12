@@ -7,6 +7,11 @@ from org.bccvl.compute.utils import WorkEnv
 from plone.app.uuid.utils import uuidToObject
 from jinja2 import Template
 
+from zope.interface import moduleProvides, implementer, Interface
+from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
+from .interfaces import IComputeFunction
+
+moduleProvides(IComputeFunction)
 
 def generate_sdm_script(experiment, params):
     bioclim_config = resource_string('org.bccvl.compute', 'rscripts/bioclim.init.R')
@@ -52,6 +57,16 @@ def execute(experiment, workenv=WorkEnv):
     finally:
         env.cleanup()
 
+class IParametersBioclim(Interface):
+    pass
+
+@implementer(IParametersBioclim)
+class ParametersBioclim(object):
+    pass
+
+registerFactoryAdapter(IParametersBioclim, ParametersBioclim)
+
+parameters = IParametersBioclim
 
 if __name__ == '__main__':
     execute()
