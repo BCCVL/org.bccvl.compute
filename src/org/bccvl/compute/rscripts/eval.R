@@ -289,7 +289,7 @@ createMarginalResponseCurves <- function(out.model, model.name) {
 
         # allow each environmental variable to vary, keeping other variable values at average, and predict suitability
         for (j in 1:ncol(mean.values)) {
-            range.values = seq(min(model.values[,j]), max(model.values[,j]), length.out=100)
+            range.values = seq(min(model.values[,j], na.rm=TRUE), max(model.values[,j], na.rm=TRUE), length.out=100)
             temp.data = mean.values
             temp.data[,j] = range.values
             if (model.name == "brt") {
@@ -398,16 +398,24 @@ calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
         # create a copy of the occurrence and background environmental data
         sample.p = p.swd[,env.vars]
         sample.a = a.swd[,env.vars]
+		# check for and remove any NA's present in the data
+		no.na.sample.p = na.omit(sample.p); no.na.sample.a = na.omit(sample.a)
+		if (nrow(no.na.sample.p) != nrow(sample.p)) {
+			write(paste("calculatePermutationVarImpt(): NA's were removed from presence data!"), stdout())
+		}
+		if (nrow(no.na.sample.a) != nrow(sample.a)) {
+			write(paste("calculatePermutationVarImpt(): NA's were removed from absence data!"), stdout())
+		}
         # for each predictor variable
         for (v in 1:length(env.vars)) {
-            # resample from that variables' values, keeping other variable values the same, and
-            sample.p[,v] = sample(x=sample.p[,v], replace=FALSE)
-            sample.a[,v] = sample(x=sample.a[,v], replace=FALSE)
+			# resample from that variables' values, keeping other variable values the same 
+			no.na.sample.p[,v] = sample(x=no.na.sample.p[,v], replace=FALSE)
+			no.na.sample.a[,v] = sample(x=no.na.sample.a[,v], replace=FALSE)
             # re-evaluate model with sampled env values
             if (model.name == "brt") {
-                sample.eval = evaluate(p=sample.p, a=sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees)
+                sample.eval = evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees)
             } else {
-                sample.eval = evaluate(p=sample.p, a=sample.a, model=out.model)
+                sample.eval = evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model)
             }
             # get the new auc
             permvarimpt.out[v,"sample.auc"] = round(sample.eval@auc, digits=3)
