@@ -535,5 +535,5 @@ evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     
     # create HTML file with accuracy measures
     # TODO -> Fix the species name
-    generateHTML("default_species_name")
+    generateHTML()
 } # end of evaluate.modol
