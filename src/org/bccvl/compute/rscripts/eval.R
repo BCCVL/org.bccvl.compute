@@ -413,9 +413,9 @@ calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
 			no.na.sample.a[,v] = sample(x=no.na.sample.a[,v], replace=FALSE)
             # re-evaluate model with sampled env values
             if (model.name == "brt") {
-                sample.eval = evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees)
+                sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees)
             } else {
-                sample.eval = evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model)
+                sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model)
             }
             # get the new auc
             permvarimpt.out[v,"sample.auc"] = round(sample.eval@auc, digits=3)
@@ -508,9 +508,9 @@ generateHTML <- function() {
 evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     # evaluate model using dismo's evaluate
     if (model.name == "brt") {
-        model.eval = evaluate(p=occur, a=bkgd, model=model.obj, n.trees=model.obj$gbm.call$best.trees)
+        model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj, n.trees=model.obj$gbm.call$best.trees)
     } else {
-        model.eval = evaluate(p=occur, a=bkgd, model=model.obj)
+        model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj)
     }
     # need predictions and observed values to create confusion matrices for accuracy statistics
     model.fit = c(model.eval@presence, model.eval@absence)
