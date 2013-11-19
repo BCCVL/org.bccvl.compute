@@ -64,7 +64,7 @@ def get_biomod_params(param_object, params):
     params['nb_run_eval'] = param_object.nb_run_eval
     params['data_split'] = param_object.data_split
 #    params['y_weights'] = param_object.y_weights
-#    params['prevalence'] = param_object.prevalence
+    params['prevalence'] = param_object.prevalence
     params['var_import'] = param_object.var_import
     params['rescale_all_models'] = param_object.rescale_all_models
     params['do_full_models'] = param_object.do_full_models

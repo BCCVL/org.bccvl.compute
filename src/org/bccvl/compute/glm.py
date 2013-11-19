@@ -104,44 +104,44 @@ class IParametersGlm(IParametersBiomod):
         default='quadratic',
         vocabulary=glm_type_vocab,
     )
-    
+
     interaction_level = schema.Int(
         title=_(u'interaction level'),
         default=0,
     )
-    
+
     #myFormula = ...
-    
+
     test = schema.Choice(
         title=_(u'test'),
         vocabulary=glm_test_vocab,
         default='AIC',
     )
-    
+
     family = schema.Choice(
         title=_(u'family'),
         vocabulary=glm_family_vocab,
         default='binomial',
     )
-    
+
     mustart = schema.Decimal(
         title=_(u'mustart'),
         description=_(u'starting values for the vector of means'),
         default=Decimal('0.5'),
     )
-    
+
     control_epsilon = schema.Decimal(
         title=_(u'control: epsilon'),
         description=_(u'positive convergence tolerance e'),
         default=Decimal('1e-08'),
     )
-    
+
     control_maxit = schema.Int(
         title=_(u'control: maxit'),
         description=_(u'maximal number of IWLS iterations'),
         default=50,
     )
-    
+
     control_trace = schema.Bool(
         title=_(u'control: trace'),
         description=_(u'produce output for each iteration'),

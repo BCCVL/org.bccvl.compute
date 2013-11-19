@@ -10,7 +10,7 @@ options(repos=r)
 
 #script to run to develop distribution models
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("dismo","SDMTools", "gbm", "rgdal", "pROC", "R2HTML", "png") #list the libraries needed
+necessary=c("dismo","SDMTools", "gbm", "rgdal", "pROC", "R2HTML", "png", "biomod2") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -37,7 +37,7 @@ bccvl.species.read <- function(filename) {
 # function to save projection output raster
 saveModelProjection <- function(model.obj, projection.name) {
     filename = file.path(outputdir, paste(projection.name, '.tif', sep=""))
-    writeRaster(model.obj, filename, format="GTiff")
+    writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
 }
 
 # function to get model object

@@ -408,7 +408,7 @@ calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
 		}
         # for each predictor variable
         for (v in 1:length(env.vars)) {
-			# resample from that variables' values, keeping other variable values the same 
+			# resample from that variables' values, keeping other variable values the same
 			no.na.sample.p[,v] = sample(x=no.na.sample.p[,v], replace=FALSE)
 			no.na.sample.a[,v] = sample(x=no.na.sample.a[,v], replace=FALSE)
             # re-evaluate model with sampled env values
@@ -437,25 +437,26 @@ calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
 # function to create HTML file with accuracy measures
 # need to install and read in the following packages:
 #install.packages(c("R2HTML", "png"))
-#library(R2HTML) 
+#library(R2HTML)
 #library(png)
-generateHTML = function() {
+generateHTML <- function() {
 
     # read in model outputs
-    auccurve = readPNG(paste(outputdir, "/AUC.png", sep=""))
-    accuracystats = read.csv(paste(outputdir, "/combined.modelEvaluation.csv", sep=""),	row.names=c(1))
+    auccurve = readPNG(file.path(outputdir, "AUC.png"))
+    accuracystats <- read.csv(file.path(outputdir, "combined.modelEvaluation.csv"),
+                              row.names=c(1))
 
-    # create the output file 
+    # create the output file
     target = HTMLInitFile(outdir=outputdir, filename="results", BackGroundColor="#CCCCCC")
 
-        # add content
-        HTML("<center><br><H1>Model Output", file=target)
+    # add content
+    HTML("<center><br><H1>Model Output for ", file=target)
 
-        HTML("<br><H2>AUC:ROC curve", file=target)
-        HTMLInsertGraph("AUC.png", file=target)
+    HTML("<br><H2>AUC:ROC curve", file=target)
+    HTMLInsertGraph("AUC.png", file=target)
 
-        HTML("<br><H2>Accuracy measures",file=target)
-        HTML(accuracystats, file=target)
+    HTML("<br><H2>Accuracy measures",file=target)
+    HTML(accuracystats, file=target)
 
     # close the file
     HTMLEndFile()
@@ -532,8 +533,54 @@ evaluate.model <- function(model.name, model.obj, occur, bkgd) {
 
     # calculate variable importance (like maxent, using decrease in AUC)
     calculatePermutationVarImpt(model.obj, model.eval, model.name)
-    
+
     # create HTML file with accuracy measures
-    # TODO -> Fix the species name
     generateHTML()
 } # end of evaluate.modol
+
+
+# function to save evaluate output for BIOMOD2 models
+saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
+    # get and save the model evaluation statistics
+    # EMG these must specified during model creation with the arg "models.eval.meth"
+    evaluation = getModelsEvaluations(biomod.model)
+    write.csv(evaluation, file=file.path(outputdir, "biomod2.modelEvaluation.txt"))
+
+    # get the model predictions and observed values
+    predictions = getModelsPrediction(biomod.model)
+    obs = getModelsInputData(biomod.model, "resp.var");
+
+    # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+    combined.eval = sapply(model.accuracy, function(x){
+        return(my.Find.Optim.Stat(Stat = x, Fit = predictions, Obs = obs))
+    })
+    # save all the model accuracy statistics provided in both dismo and biomod2
+    rownames(combined.eval) <- c("Testing.data","Cutoff","Sensitivity", "Specificity")
+    write.csv(t(round(combined.eval, digits=3)), file=file.path(outputdir, "combined.modelEvaluation.csv"))
+
+    # save AUC curve
+    require(pROC, quietly=T)
+    roc1 <- roc(as.numeric(obs), as.numeric(predictions), percent=T)
+    png(file=file.path(outputdir, "pROC.png"))
+    plot(roc1, main=paste("AUC=",round(auc(roc1)/100,3),sep=""), legacy.axes=TRUE)
+    dev.off()
+
+    # get and save the variable importance estimates
+    variableImpt = getModelsVarImport(biomod.model)
+    if (!is.na(variableImpt)) {
+    #EMG Note this will throw a warning message if variables (array) are returned
+        write.csv(variableImpt, file=file.path(outputdir, "variableImportance.txt"))
+    } else {
+        message("VarImport argument not specified during model creation!")
+        #EMG must create the model with the arg "VarImport" != 0
+    }
+
+    # save response curves (Elith et al 2005)
+    png(file=file.path(outputdir, "mean_response_curves.png"))
+    test <- response.plot2(models = loaded.name,
+                           Data = getModelsInputData(biomod.model,"expl.var"),
+                           show.variables = getModelsInputData(biomod.model,"expl.var.names"), fixed.var.metric = "mean")
+     #, data_species = getModelsInputData(biomod.model,"resp.var"))
+     # EMG need to investigate why you would want to use this option - uses presence data only
+    dev.off()
+}

@@ -79,14 +79,14 @@ class IParametersANN(IParametersBiomod):
         default=5,
         required=False,
     )
-    
+
     rang = schema.Decimal(
         title=_(u'rang'),
         description=_(u'Initial random weights'),
         default=Decimal('0.1'),
         required=False,
     )
-    
+
     maxit = schema.Int(
         title=_(u'maxit'),
         description=_(u'Maximum number of iterations'),
