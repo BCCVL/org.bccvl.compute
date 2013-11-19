@@ -29,6 +29,7 @@ def generate_sdm_script(experiment, params):
     params['control_minbucket'] = cta_params.control_minbucket
     params['control_minsplit'] = cta_params.control_minsplit
     params['control_cp'] = cta_params.control_cp
+    params['control_cp'] = cta_params.control_cp
     params['control_maxdepth'] = cta_params.control_maxdepth
 
     cta_config = resource_string('org.bccvl.compute', 'rscripts/cta.init.R')
@@ -110,7 +111,8 @@ class IParametersCTA(IParametersBiomod):
     )
     control_maxdepth = schema.Int(
         title=_(u'maximum depth'),
-        description=_(u'maximum depth of any node of the final tree, with the root node counted as depth 0')
+        description=_(u'maximum depth of any node of the final tree, with the root node counted as depth 0'),
+        default=25,
     )
 
 field_property = lambda field_name: FieldProperty(IParametersCTA[field_name])

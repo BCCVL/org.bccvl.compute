@@ -58,7 +58,7 @@ def execute(experiment, workenv=WorkEnv):
         env.cleanup()
 
 class IParametersBioclim(Interface):
-    pass
+    """there are no user-configurable options"""
 
 @implementer(IParametersBioclim)
 class ParametersBioclim(object):
