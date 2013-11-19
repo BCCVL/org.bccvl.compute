@@ -439,17 +439,17 @@ calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
 #install.packages(c("R2HTML", "png"))
 #library(R2HTML) 
 #library(png)
-generateHTML = function(sp.name) {
+generateHTML = function() {
 
     # read in model outputs
     auccurve = readPNG(paste(outputdir, "/AUC.png", sep=""))
     accuracystats = read.csv(paste(outputdir, "/combined.modelEvaluation.csv", sep=""),	row.names=c(1))
 
     # create the output file 
-    target = HTMLInitFile(outdir=outputdir, filename=paste(sp.name,"_output", sep=""), BackGroundColor="#CCCCCC")
+    target = HTMLInitFile(outdir=outputdir, filename="results", BackGroundColor="#CCCCCC")
 
         # add content
-        HTML(paste("<center><br><H1>Model Output for ", sp.name, sep=""), file=target)
+        HTML("<center><br><H1>Model Output", file=target)
 
         HTML("<br><H2>AUC:ROC curve", file=target)
         HTMLInsertGraph("AUC.png", file=target)
@@ -535,5 +535,5 @@ evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     
     # create HTML file with accuracy measures
     # TODO -> Fix the species name
-    generateHTML("default_species_name")
+    generateHTML()
 } # end of evaluate.modol
