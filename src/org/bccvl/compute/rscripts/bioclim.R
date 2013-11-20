@@ -10,6 +10,36 @@
 ##
 ##  outputdir ... root folder for output data
 
+#define the working directory
+#scriptdir = normalizePath(bccvl.params$scriptdir)
+#inputdir =  normalizePath(bccvl.params$inputdir)
+#outputdir =  normalizePath(bccvl.params$outputdir)
+
+
+# extract params
+# define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
+occur.data = bccvl.params$occurrence
+#define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
+bkgd.data = bccvl.params$background
+#define the current enviro data to use
+enviro.data.current = bccvl.params$enviro$data
+#type in terms of continuous or categorical
+enviro.data.type = bccvl.params$enviro$type
+
+#additional parameters for projecting bioclim
+opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right tail of the percentile distribution ("both", "low", "high"
+opt.ext = NULL #an optional extent object to limit the prediction to a sub-region of 'x'
+
+
+# model accuracy statistics
+# these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R
+dismo.eval.method = c("ODP", "TNR", "FPR", "FNR", "NPP", "MCR", "OR")
+# and vice versa
+biomod.models.eval.meth = c("KAPPA", "TSS", "ROC", "FAR", "SR", "ACCURACY", "BIAS", "POD", "CSI", "ETS")
+# model accuracy statistics - combine stats from dismo and biomod2 for consistent output
+model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
+# TODO: these functions are used to evaluate the model ... configurable?
+
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
@@ -46,17 +76,17 @@ if (!all(enviro.data.type=="continuous")) {
     warning("bioclim not run because categorical data cannot be used")
 } else {
     # run bioclim with matrix of enviro data
-    bc = tryCatch(bioclim(x=occur[,names(current.climate.scenario)]), error=err.null)
+    bc = tryCatch(bioclim(x=occur[,names(current.climate.scenario)]), error=bccvl.err.null)
     if (!is.null(bc)) {
         # save out the model object
-        save(bc, file=file.path(outputdir, "model.object.RData"))
+        bccvl.save(bc, "model.object.RData")
         # predict for given climate scenario
         bioclim.proj = predict(bc, current.climate.scenario, tails=opt.tails)
         # save output
-        saveModelProjection(bioclim.proj, "current")
+        bccvl.saveModelProjection(bioclim.proj, "current")
         # evaluate model
         if (!is.null(bkgd)) {
-            evaluate.model('bioclim', bc, occur, bkgd)
+            bccvl.evaluate.model('bioclim', bc, occur, bkgd)
         }
     } else {
         write(paste("FAIL!", species, "Cannot create bioclim model object", sep=": "), stdout())

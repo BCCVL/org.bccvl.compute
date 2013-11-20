@@ -19,6 +19,7 @@ import glob
 from plone.namedfile.file import NamedBlobFile
 from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
+from decimal import Decimal
 from plone.dexterity.utils import createContentInContainer
 import transaction
 from xmlrpclib import ServerProxy
@@ -28,6 +29,7 @@ from plone.uuid.interfaces import IUUID
 from plone.app.uuid.utils import uuidToObject
 from org.bccvl.site.browser.xmlrpc import getbiolayermetadata
 from rdflib import Namespace
+import json
 BIOCLIM = Namespace(u'http://namespaces.bccvl.org.au/bioclim#')
 
 
@@ -35,6 +37,7 @@ from StringIO import StringIO
 from fabric import api
 from fabric import tasks
 from fabric import state
+from fabric import context_managers
 
 DATA_MOVER = 'http://127.0.0.1:10700/data_mover'
 
@@ -72,8 +75,10 @@ def unpack(destdir, filename):
     return result
 
 
-def run_script(cmd):
-    result = api.run(cmd, pty=False, combine_stderr=False, quiet=True)
+def run_script(cmd, workdir):
+    # TODO: are these fabric context_managers thread safe?
+    with context_managers.cd(workdir):
+        result = api.run(cmd, pty=False, combine_stderr=False, quiet=True)
     return result
     # from fabric.operations import local
     # result = local(cmd, capture=True)
@@ -84,6 +89,12 @@ def get_files_list(dir):
     result = api.run('find "{}" -type f'.format(dir),
                      pty=False, combine_stderr=False, quiet=True)
     return result
+
+
+def decimal_encoder(o):
+    if isinstance(o, Decimal):
+       return float(o)
+    raise TypeError(repr(o) + " is not JSON serializable")
 
 
 ## JOB-UTILS:
@@ -99,8 +110,9 @@ class WorkEnv(object):
         self.jobs = []
         self.tmpimport = None
         self.tmpscript = None
+        self.tmpparams = None
         self.scriptname = None
-        self.rootpath = os.environ.get('WORKER_DIR') or os.enivron['HOME']
+        self.rootpath = os.environ.get('WORKER_DIR') or os.environ['HOME']
 
     def create_workdir(self, root=''):
         '''
@@ -123,6 +135,8 @@ class WorkEnv(object):
             shutil.rmtree(self.tmpimport)
         if self.tmpscript:
             os.remove(self.tmpscript)
+        if self.tmpparams:
+            os.remove(self.tmpparams)
         result = tasks.execute(cleanup_tmp, self.workdir, hosts=[self.host])
         return result[self.host]
 
@@ -168,7 +182,7 @@ class WorkEnv(object):
                 destdir = '/'.join((self.inputdir, dirname))
                 self.unpack(destdir, job['filename'])
 
-    def move_script(self, script):
+    def move_script(self, script, params):
         scriptfile, self.tmpscript = mkstemp()
         os.write(scriptfile, script)
         os.close(scriptfile)
@@ -177,7 +191,17 @@ class WorkEnv(object):
                'path': self.tmpscript}
         dest = {'host': 'plone',
                 'path': self.scriptname}
-        self.move_data('script', src, dest, uuid=None)
+        self.move_data('script', src, dest, None)
+        paramsfile, self.tmpparams = mkstemp()
+        paramsfile = os.fdopen(paramsfile, 'w')
+        json.dump(params, paramsfile, default=decimal_encoder)
+        paramsfile.close()
+        self.paramsname = '/'.join((self.scriptdir, 'params.json'))
+        src = {'host': 'plone',
+               'path': self.tmpparams}
+        dest = {'host': 'plone',
+                'path': self.paramsname}
+        self.move_data('script', src, dest, None)
 
     def execute_script(self):
         scriptout = os.path.join(self.outputdir,
@@ -188,7 +212,7 @@ class WorkEnv(object):
         # -> Galaxy ... pass parameters as cli params
         # -> XQTL (Molgenis) ... wrap r-script with common init code, and provide special API to access parameters (maybe loaded from file in init wrapper?)
         cmd = 'R CMD BATCH --vanilla --slave "{}" "{}"'.format(self.scriptname, scriptout)
-        result = tasks.execute(run_script, cmd, hosts=[self.host])
+        result = tasks.execute(run_script, cmd, self.scriptdir, hosts=[self.host])
         return result[self.host]
 
     def move_output_data(self):
@@ -197,6 +221,9 @@ class WorkEnv(object):
         self.tmpimport = mkdtemp()
         for file in files:
             destname = '/'.join((self.tmpimport, file[len(self.outputdir) + 1:]))
+            destdir = os.path.dirname(destname)
+            if not os.path.exists(destdir):
+                os.makedirs(destdir)
             src = {'host': 'plone',
                    'path': file}
             dest = {'host': 'plone',
@@ -265,6 +292,7 @@ class WorkEnv(object):
                 'data': None,
                 'type': ["continuous" for i in xrange(0, len(names))],
                 },
+            # TODO: is this a generic sdm parameter?
             'tails': 'both',
             }
         for job in self.jobs:
@@ -280,11 +308,12 @@ class WorkEnv(object):
                 params['background'] = job['filename']
         return params
 
-    def execute(self, script):
-        self.move_script(script)
+    def execute(self, script, params):
+        self.move_script(script, params)
         self.wait_for_data_mover()
         self.unpack_enviro_data()
         self.execute_script()
+        import ipdb; ipdb.set_trace()
         self.move_output_data()
         self.wait_for_data_mover()
 
@@ -329,14 +358,3 @@ class WorkEnvLocal(WorkEnv):
     def wait_for_data_mover(self):
         # all local copy no wait here
         pass
-
-    def move_script(self, script):
-        scriptfile, self.tmpscript = mkstemp()
-        os.write(scriptfile, script)
-        os.close(scriptfile)
-        self.scriptname = '/'.join((self.scriptdir, 'sdm.R'))
-        src = {'host': 'plone',
-               'path': self.tmpscript}
-        dest = {'host': 'plone',
-                'path': self.scriptname}
-        self.move_data('script', src, dest, None)

@@ -1,40 +1,41 @@
 from pkg_resources import resource_string
 from org.bccvl.compute.utils import WorkEnv
 from plone.app.uuid.utils import uuidToObject
-from jinja2 import Template
 
 from zope.schema.vocabulary import SimpleVocabulary
 from zope.interface import moduleProvides, implementer, Interface
-from persistent import Persistent
 from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from decimal import Decimal
 from .interfaces import IComputeFunction
-
+from .biomod import IParametersBiomod, ParametersBiomod, get_biomod_params
 from org.bccvl.compute import MessageFactory as _
 
 moduleProvides(IComputeFunction)
 
-def generate_sdm_script(experiment, params):
-    glm_params = experiment.parameters_glm
-    params['type'] = glm_params.type
-    params['interaction_level'] = glm_params.interaction_level
-    params['test'] = glm_params.test
-    params['family'] = glm_params.family
-    params['mustart'] = glm_params.mustart
-    params['control_epsilon'] = glm_params.control_epsilon
-    params['control_maxit'] = glm_params.control_maxit
-    params['control_trace'] = glm_params.control_trace
 
-    glm_config = resource_string('org.bccvl.compute', 'rscripts/glm.init.R')
-    tmpl = Template(glm_config)
+def get_gam_params(experiment):
+    gam_params = experiment.parameters_gam
+    params = get_biomod_params(gam_params)
+    params.update({
+        'type': gam_params.type,
+        'interaction_level': gam_params.interaction_level,
+        'test': gam_params.test,
+        'family': gam_params.family,
+        'mustart': gam_params.mustart,
+        'control_epsilon': gam_params.control_epsilon,
+        'control_maxit': gam_params.control_maxit,
+        'control_trace': gam_params.control_trace
+    })
+    return params
+
+
+def generate_sdm_script():
     script = '\n'.join([
-        resource_string('org.bccvl.compute', 'rscripts/common.R'),
+        resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
         resource_string('org.bccvl.compute', 'rscripts/eval.R'),
-        tmpl.render(params),
-        resource_string('org.bccvl.compute', 'rscripts/glm.R'),
-        ])
+        resource_string('org.bccvl.compute', 'rscripts/gam.R')])
     return script
 
 
@@ -64,8 +65,9 @@ def execute(experiment, workenv=WorkEnv):
         env = workenv('localhost')
         env.prepare_work_env(climate, occurrence, absence)
         params = env.get_sdm_params()
-        script = generate_sdm_script(experiment, params)
-        env.execute(script)
+        params.update(get_gam_params(experiment))
+        script = generate_sdm_script()
+        env.execute(script, params)
         env.import_output(experiment)
     finally:
         env.cleanup()
@@ -95,6 +97,7 @@ glm_family_vocab = SimpleVocabulary.fromValues([
     'quasibinomial',
     'quasipoisson',
 ])
+
 
 class IParametersGlm(Interface):
     type = schema.Choice(
@@ -147,6 +150,7 @@ class IParametersGlm(Interface):
     )
 
 field_property = lambda field_name: FieldProperty(IParametersGlm[field_name])
+
 
 @implementer(IParametersGlm)
 class ParametersGlm(object):

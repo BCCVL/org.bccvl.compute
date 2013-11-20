@@ -1,15 +1,8 @@
-import os
-import os.path
-from subprocess import call
 from org.bccvl.compute.utils import WorkEnv
-import shutil
 from pkg_resources import resource_string
 from plone.app.uuid.utils import uuidToObject
-from jinja2 import Template
 
-from zope.schema.vocabulary import SimpleVocabulary
-from zope.interface import moduleProvides, implementer, Interface
-from persistent import Persistent
+from zope.interface import moduleProvides, implementer
 from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
@@ -21,19 +14,50 @@ from org.bccvl.compute import MessageFactory as _
 
 moduleProvides(IComputeFunction)
 
-def generate_sdm_script(experiment, params):
-    ann_params = experiment.parameters_ann
-    get_biomod_params(ann_params, params)
-    params['nbcv'] = ann_params.nbcv
-    params['rang'] = ann_params.rang
-    params['maxit'] = ann_params.maxit
+OUTPUTS = {
+    'files': {
+        '*.txt': {
+            'title': '',
+            'type': 'eval'},
+        '*_response_curves.png': {
+            'title': '',
+            'type': '???'},
+        '*.csv': {
+            'title': '',
+            'type': 'csv', },
+        'model.object.RData': {
+            'title': '',
+            'type': 'RData', },
+        'pROC.png': {
+            'title': '',
+            'type': '???', },
+        'sdm.Rout': {
+            'title': '',
+            'type': 'html'},
+        },
+    'archives': {
+        'all.zip': {
+            'files': ['all/*'],
+            'type': 'report'},
+        },
+    }
 
-    ann_config = resource_string('org.bccvl.compute', 'rscripts/ann.init.R')
-    tmpl = Template(ann_config)
+
+def get_ann_params(experiment):
+    ann_params = experiment.parameters_ann
+    params = get_biomod_params(ann_params)
+    params.update({
+        'nbcv': ann_params.nbcv,
+        'rang': ann_params.rang,
+        'maxit': ann_params.maxit,
+    })
+    return params
+
+
+def generate_sdm_script():
     script = '\n'.join([
-        resource_string('org.bccvl.compute', 'rscripts/common.R'),
+        resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
         resource_string('org.bccvl.compute', 'rscripts/eval.R'),
-        tmpl.render(params),
         resource_string('org.bccvl.compute', 'rscripts/ann.R')])
     return script
 
@@ -63,8 +87,9 @@ def execute(experiment, workenv=WorkEnv):
         env = workenv('localhost')
         env.prepare_work_env(climate, occurrence, absence)
         params = env.get_sdm_params()
-        script = generate_sdm_script(experiment, params)
-        env.execute(script)
+        params.update(get_ann_params(experiment))
+        script = generate_sdm_script()
+        env.execute(script, params)
         env.import_output(experiment)
     finally:
         env.cleanup()
@@ -95,6 +120,7 @@ class IParametersANN(IParametersBiomod):
     )
 
 field_property = lambda field_name: FieldProperty(IParametersANN[field_name])
+
 
 @implementer(IParametersANN)
 class ParametersANN(ParametersBiomod):

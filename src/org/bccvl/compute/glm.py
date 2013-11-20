@@ -1,11 +1,9 @@
 from pkg_resources import resource_string
 from org.bccvl.compute.utils import WorkEnv
 from plone.app.uuid.utils import uuidToObject
-from jinja2 import Template
 
-from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
-from zope.interface import moduleProvides, implementer, Interface
-from persistent import Persistent
+from zope.schema.vocabulary import SimpleVocabulary
+from zope.interface import moduleProvides, implementer
 from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
@@ -17,26 +15,57 @@ from org.bccvl.compute import MessageFactory as _
 
 moduleProvides(IComputeFunction)
 
-def generate_sdm_script(experiment, params):
-    glm_params = experiment.parameters_glm
-    get_biomod_params(glm_params, params)
-    params['type'] = glm_params.type
-    params['interaction_level'] = glm_params.interaction_level
-    params['test'] = glm_params.test
-    params['family'] = glm_params.family
-    params['mustart'] = glm_params.mustart
-    params['control_epsilon'] = glm_params.control_epsilon
-    params['control_maxit'] = glm_params.control_maxit
-    params['control_trace'] = glm_params.control_trace
 
-    glm_config = resource_string('org.bccvl.compute', 'rscripts/glm.init.R')
-    tmpl = Template(glm_config)
+OUTPUTS = {
+    'files': {
+        '*.txt': {
+            'title': '',
+            'type': 'eval'},
+        '*_response_curves.png': {
+            'title': '',
+            'type': '???'},
+        '*.csv': {
+            'title': '',
+            'type': 'csv', },
+        'model.object.RData': {
+            'title': '',
+            'type': 'RData', },
+        'pROC.png': {
+            'title': '',
+            'type': '???', },
+        'sdm.Rout': {
+            'title': '',
+            'type': 'html'},
+        },
+    'archives': {
+        'all.zip': {
+            'files': ['all/*'],
+            'type': 'report'},
+        },
+    }
+
+
+def get_glm_params(experiment):
+    glm_params = experiment.parameters_glm
+    params = get_biomod_params(glm_params)
+    params.update({
+        'type': glm_params.type,
+        'interaction_level': glm_params.interaction_level,
+        'test': glm_params.test,
+        'family': glm_params.family,
+        'mustart': glm_params.mustart,
+        'control_epsilon': glm_params.control_epsilon,
+        'control_maxit': glm_params.control_maxit,
+        'control_trace': glm_params.control_trace
+    })
+    return params
+
+
+def generate_sdm_script():
     script = '\n'.join([
-        resource_string('org.bccvl.compute', 'rscripts/common.R'),
+        resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
         resource_string('org.bccvl.compute', 'rscripts/eval.R'),
-        tmpl.render(params),
-        resource_string('org.bccvl.compute', 'rscripts/glm.R'),
-        ])
+        resource_string('org.bccvl.compute', 'rscripts/glm.R')])
     return script
 
 
@@ -66,8 +95,9 @@ def execute(experiment, workenv=WorkEnv):
         env = workenv('localhost')
         env.prepare_work_env(climate, occurrence, absence)
         params = env.get_sdm_params()
-        script = generate_sdm_script(experiment, params)
-        env.execute(script)
+        params.update(get_glm_params(experiment))
+        script = generate_sdm_script()
+        env.execute(script, params)
         env.import_output(experiment)
     finally:
         env.cleanup()
@@ -97,6 +127,7 @@ glm_family_vocab = SimpleVocabulary.fromValues([
     'quasibinomial',
     'quasipoisson',
 ])
+
 
 class IParametersGlm(IParametersBiomod):
     type = schema.Choice(
@@ -149,6 +180,7 @@ class IParametersGlm(IParametersBiomod):
     )
 
 field_property = lambda field_name: FieldProperty(IParametersGlm[field_name])
+
 
 @implementer(IParametersGlm)
 class ParametersGlm(ParametersBiomod):

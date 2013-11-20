@@ -2,7 +2,7 @@ import unittest2 as unittest
 from plone.app.uuid import utils
 from org.bccvl.site.content.experiment import Experiment
 from org.bccvl.site.content.dataset import Dataset
-from org.bccvl.site.browser.parameter import ParametersBRT
+from org.bccvl.compute.brt import ParametersBRT
 import os
 import pkg_resources
 from decimal import Decimal

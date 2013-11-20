@@ -59,12 +59,14 @@ class ParametersBiomod(Persistent):
     do_full_models = field_property('do_full_models')
 
 
-def get_biomod_params(param_object, params):
+def get_biomod_params(param_object):
     """modify the params dict"""
-    params['nb_run_eval'] = param_object.nb_run_eval
-    params['data_split'] = param_object.data_split
-#    params['y_weights'] = param_object.y_weights
-    params['prevalence'] = param_object.prevalence
-    params['var_import'] = param_object.var_import
-    params['rescale_all_models'] = param_object.rescale_all_models
-    params['do_full_models'] = param_object.do_full_models
+    return {
+        'nb_run_eval': param_object.nb_run_eval,
+        'data_split': param_object.data_split,
+        #'y_weights': param_object.y_weights,
+        'prevalence': param_object.prevalence,
+        'var_import': param_object.var_import,
+        'rescale_all_models': param_object.rescale_all_models,
+        'do_full_models': param_object.do_full_models
+        }
