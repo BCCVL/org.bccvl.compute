@@ -10,8 +10,9 @@ from org.bccvl.compute import MessageFactory as _
 
 
 biomod_prevalance_vocab = SimpleVocabulary.fromValues([
-    'NULL', 0, 1
+    None, 0, 1
 ])
+
 
 class IParametersBiomod(Interface):
     nb_run_eval = schema.Int(
@@ -29,7 +30,8 @@ class IParametersBiomod(Interface):
     prevalence = schema.Choice(
         title=_(u'weighted response weights'),
         vocabulary=biomod_prevalance_vocab,
-        default='NULL',
+        missing_value = '',
+        default=None,
     )
     var_import = schema.Int(
         title=_(u'resampling'),
@@ -49,6 +51,7 @@ class IParametersBiomod(Interface):
 
 field_property = lambda field_name: FieldProperty(IParametersBiomod[field_name])
 
+
 class ParametersBiomod(Persistent):
     nb_run_eval = field_property('nb_run_eval')
     data_split = field_property('data_split')
@@ -59,12 +62,14 @@ class ParametersBiomod(Persistent):
     do_full_models = field_property('do_full_models')
 
 
-def get_biomod_params(param_object, params):
+def get_biomod_params(param_object):
     """modify the params dict"""
-    params['nb_run_eval'] = param_object.nb_run_eval
-    params['data_split'] = param_object.data_split
-#    params['y_weights'] = param_object.y_weights
-#    params['prevalence'] = param_object.prevalence
-    params['var_import'] = param_object.var_import
-    params['rescale_all_models'] = param_object.rescale_all_models
-    params['do_full_models'] = param_object.do_full_models
+    return {
+        'nb_run_eval': param_object.nb_run_eval,
+        'data_split': param_object.data_split,
+        #'y_weights': param_object.y_weights,
+        'prevalence': param_object.prevalence,
+        'var_import': param_object.var_import,
+        'rescale_all_models': param_object.rescale_all_models,
+        'do_full_models': param_object.do_full_models
+        }

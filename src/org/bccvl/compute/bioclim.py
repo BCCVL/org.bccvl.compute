@@ -1,11 +1,6 @@
-import os
-import os.path
-import shutil
 from pkg_resources import resource_string
-from subprocess import call
 from org.bccvl.compute.utils import WorkEnv
 from plone.app.uuid.utils import uuidToObject
-from jinja2 import Template
 
 from zope.interface import moduleProvides, implementer, Interface
 from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
@@ -13,16 +8,49 @@ from .interfaces import IComputeFunction
 
 moduleProvides(IComputeFunction)
 
-def generate_sdm_script(experiment, params):
-    bioclim_config = resource_string('org.bccvl.compute', 'rscripts/bioclim.init.R')
-    tmpl = Template(bioclim_config)
+
+def generate_sdm_script():
     script = '\n'.join([
-        resource_string('org.bccvl.compute', 'rscripts/common.R'),
+        resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
         resource_string('org.bccvl.compute', 'rscripts/eval.R'),
-        tmpl.render(params),
         resource_string('org.bccvl.compute', 'rscripts/bioclim.R'),
         ])
     return script
+
+OUTPUTS = {
+    'files': {
+        'AUC.png': {
+            'title': 'AUC.png',
+            'type': '???'},
+        '*_response.png': {
+            'title': '',
+            'type': '???'},
+        '*.csv': {
+            'title': '',
+            'type': 'csv', },
+        'dismo.eval.object.RData': {
+            'title': '',
+            'type': 'RData', },
+        'model.object.RData': {
+            'title': '',
+            'type': 'RData', },
+        'results.html': {
+            'title': '',
+            'type': 'html', },
+        'sdm.Rout': {
+            'title': '',
+            'type': 'html'},
+        'current.tif': {
+            'title': '',
+            'type': 'GEOTiff',
+            },
+        },
+    'archives': {
+        'results.html.zip': {
+            'files': ['results.html', 'AUC.png'],
+            'type': 'report'},
+        },
+    }
 
 
 def execute(experiment, workenv=WorkEnv):
@@ -51,14 +79,17 @@ def execute(experiment, workenv=WorkEnv):
         env = workenv('localhost')
         env.prepare_work_env(climate, occurrence, absence)
         params = env.get_sdm_params()
-        script = generate_sdm_script(experiment, params)
-        env.execute(script)
+        script = generate_sdm_script()
+        env.execute(script, params)
+        # FIXME: import should run in an async callback.
         env.import_output(experiment)
     finally:
         env.cleanup()
 
+
 class IParametersBioclim(Interface):
     """there are no user-configurable options"""
+
 
 @implementer(IParametersBioclim)
 class ParametersBioclim(object):

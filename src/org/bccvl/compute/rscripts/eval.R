@@ -3,23 +3,21 @@
 ######################################################################################
 
 # function to save evaluate output
-saveModelEvaluation <- function(out.model, out.biomod.model) {
-    filename = file.path(outputdir, 'dismo.eval.object.RData')
+bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
     # save the 'dismo::ModelEvalution' object
-    save(out.model, file=filename)
+    bccvl.save(out.model, name="dismo.eval.object.RData")
     # save all the model accuracy statistics provided in both dismo and biomod2
     rownames(out.biomod.model) <- c("Testing.data", "Cutoff", "Sensitivity", "Specificity")
-    filename = file.path(outputdir, 'combined.modelEvaluation.csv')
-    write.csv(t(round(out.biomod.model, digits=3)), file=filename)
+    bccvl.write.csv(t(round(out.biomod.model, digits=3)), name="combined.modelEvaluation.csv")
     # EMG no guarantee these value are correct
 
     # save AUROC curve
-    png(file=file.path(outputdir, 'AUC.png'))
+    png(file=file.path(bccvl.params$outputdir, 'AUC.png'))
     plot(out.model, 'ROC');
     dev.off()
 }
 
-my.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thresh=NULL) {
+bccvl.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thresh=NULL) {
     if(length(unique(Obs)) == 1 | length(unique(Fit)) == 1){
         # warning("\nObserved or fited data contains only a value.. Evaluation Methods switched off\n",immediate.=T)
         # best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA
@@ -27,7 +25,7 @@ my.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thresh=N
         #best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA
     } #else {
     if(Stat != 'ROC'){
-        StatOptimum <- my.getStatOptimValue(Stat)
+        StatOptimum <- bccvl.getStatOptimValue(Stat)
         if(is.null(Fixed.thresh)){ # test a range of threshold to get the one giving the best score
             if(length(unique(Fit)) == 1){
                 valToTest <- unique(Fit)
@@ -48,7 +46,7 @@ my.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thresh=N
             valToTest <- Fixed.thresh
         }
 
-        calcStat <- sapply(lapply(valToTest, function(x){return(table(Fit>x,Obs))} ), my.calculate.stat, stat=Stat)
+        calcStat <- sapply(lapply(valToTest, function(x){return(table(Fit>x,Obs))} ), bccvl.calculate.stat, stat=Stat)
 
         # scal on 0-1 ladder.. 1 is the best
         calcStat <- 1 - abs(StatOptimum - calcStat)
@@ -58,7 +56,7 @@ my.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thresh=N
         cutoff <- median(valToTest[which(calcStat==best.stat)]) # if several values are selected
 
         misc <- table(Fit >= cutoff, Obs)
-        misc <- .contagency.table.check(misc)
+        misc <- bccvl.contagency.table.check(misc)
         true.pos <- misc['TRUE','1']
         true.neg <- misc['FALSE','0']
         specificity <- (true.neg * 100)/sum(misc[,'0'])
@@ -75,7 +73,7 @@ my.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thresh=N
     return(cbind(best.stat,cutoff,sensibility,specificity))
 }
 
-my.getStatOptimValue <- function(stat) {
+bccvl.getStatOptimValue <- function(stat) {
     if(stat == 'TSS') return(1)
     if(stat == 'KAPPA') return(1)
     if(stat == 'ACCURACY') return(1)
@@ -105,9 +103,9 @@ my.getStatOptimValue <- function(stat) {
     # if(stat == 'kappa') return(1) # same as KAPPA
 }
 
-my.calculate.stat <- function(Misc, stat='TSS') {
+bccvl.calculate.stat <- function(Misc, stat='TSS') {
     # Contagency table checking
-    Misc <- .contagency.table.check(Misc)
+    Misc <- bccvl.contagency.table.check(Misc)
 
     # Defining Classification index
     hits <- Misc['TRUE','1']
@@ -234,7 +232,7 @@ my.calculate.stat <- function(Misc, stat='TSS') {
     # }
 }
 
-.contagency.table.check <- function(Misc) {
+bccvl.contagency.table.check <- function(Misc) {
     # Contagency table checking
     if(dim(Misc)[1]==1) {
         if(row.names(Misc)[1]=="FALSE") {
@@ -264,7 +262,7 @@ my.calculate.stat <- function(Misc, stat='TSS') {
 
 # function to generate marginal (mean) response curves for dismo models
 # i.e., hold all but one predictor variable to its mean value and recalculate model predictions
-createMarginalResponseCurves <- function(out.model, model.name) {
+bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
    # get the enviromental variables and values used to create the model
     if (model.name == "brt") {
         model.values = matrix(out.model$data$x, ncol=length(out.model$var.names))
@@ -301,7 +299,7 @@ createMarginalResponseCurves <- function(out.model, model.name) {
 
             # create separate file for each response curve
             save.name = env.vars[j]
-            png(file=file.path(outputdir, paste(save.name, "_response.png", sep="")))
+            png(file=file.path(bccvl.params$outputdir, paste(save.name, "_response.png", sep="")))
             plot(range.values, new.predictions, ylim=c(0,1), xlab="", ylab="", main=save.name, type="l")
             rug(model.values[,j])
             dev.off()
@@ -313,7 +311,7 @@ createMarginalResponseCurves <- function(out.model, model.name) {
 
 # function to calculate variable importance values for dismo models based on biomod2's correlation between predictions
 # i.e., hold all but one predictor variable to its actual values, resample that one predictor and recalculate model predictions
-calculateVariableImpt <- function(out.model, model.name, num_samples) {
+bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples) {
     # EMG num_samples should be same as biomod.VarImport arg set in
     # 01.init.args.model.current.R
 
@@ -362,7 +360,7 @@ calculateVariableImpt <- function(out.model, model.name, num_samples) {
         # calculate mean variable importance, normalize to percentages, and write results
         varimpt.out[,num_samples+1] = round(rowMeans(varimpt.out, na.rm=TRUE), digits=3)
         varimpt.out[,num_samples+2] = round((varimpt.out[,num_samples+1]/sum(varimpt.out[,num_samples+1]))*100, digits=0)
-        write.csv(varimpt.out, file=file.path(outputdir, "biomod2_like_VariableImportance.csv"))
+        bccvl.write.csv(varimpt.out, name="biomod2_like_VariableImportance.csv")
     } else {
         write(paste(species, ": Cannot calculate variable importance for ", model.name, "object", sep=" "), stdout())
     }
@@ -370,7 +368,7 @@ calculateVariableImpt <- function(out.model, model.name, num_samples) {
 
 # function to calculate variable importance values for dismo models based on Maxent's decrease in AUC
 # i.e., hold all but one predictor variable to its original values, resample that one predictor and recalculate model AUC
-calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
+bccvl.calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
     # get the enviromental variables and values used to create the model
     # EMG this is duplicated from above, should be able to combine or find an easier way to determine
     if (model.name == "brt") {
@@ -401,21 +399,21 @@ calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
 		# check for and remove any NA's present in the data
 		no.na.sample.p = na.omit(sample.p); no.na.sample.a = na.omit(sample.a)
 		if (nrow(no.na.sample.p) != nrow(sample.p)) {
-			write(paste("calculatePermutationVarImpt(): NA's were removed from presence data!"), stdout())
+			write(paste("bccvl.calculatePermutationVarImpt(): NA's were removed from presence data!"), stdout())
 		}
 		if (nrow(no.na.sample.a) != nrow(sample.a)) {
-			write(paste("calculatePermutationVarImpt(): NA's were removed from absence data!"), stdout())
+			write(paste("bccvl.calculatePermutationVarImpt(): NA's were removed from absence data!"), stdout())
 		}
         # for each predictor variable
         for (v in 1:length(env.vars)) {
-			# resample from that variables' values, keeping other variable values the same 
+			# resample from that variables' values, keeping other variable values the same
 			no.na.sample.p[,v] = sample(x=no.na.sample.p[,v], replace=FALSE)
 			no.na.sample.a[,v] = sample(x=no.na.sample.a[,v], replace=FALSE)
             # re-evaluate model with sampled env values
             if (model.name == "brt") {
-                sample.eval = evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees)
+                sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees)
             } else {
-                sample.eval = evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model)
+                sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model)
             }
             # get the new auc
             permvarimpt.out[v,"sample.auc"] = round(sample.eval@auc, digits=3)
@@ -428,7 +426,7 @@ calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
             }
         }
         permvarimpt.out[,"percent"] = round((permvarimpt.out[,"change.auc"]/sum(permvarimpt.out[,"change.auc"]))*100, digits=0)
-        write.csv(permvarimpt.out, file=file.path(outputdir, "maxent_like_VariableImportance.csv"))
+        bccvl.write.csv(permvarimpt.out, name="maxent_like_VariableImportance.csv")
     } else {
         write(paste(species, ": Cannot calculate maxent-like variable importance for ", model.name, "object", sep=" "), stdout())
     }
@@ -437,25 +435,26 @@ calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
 # function to create HTML file with accuracy measures
 # need to install and read in the following packages:
 #install.packages(c("R2HTML", "png"))
-#library(R2HTML) 
+#library(R2HTML)
 #library(png)
-generateHTML = function() {
+bccvl.generateHTML <- function() {
 
     # read in model outputs
-    auccurve = readPNG(paste(outputdir, "/AUC.png", sep=""))
-    accuracystats = read.csv(paste(outputdir, "/combined.modelEvaluation.csv", sep=""),	row.names=c(1))
+    auccurve = readPNG(file.path(bccvl.params$outputdir, "AUC.png"))
+    accuracystats <- read.csv(file.path(bccvl.params$outputdir, "combined.modelEvaluation.csv"),
+                              row.names=c(1))
 
-    # create the output file 
-    target = HTMLInitFile(outdir=outputdir, filename="results", BackGroundColor="#CCCCCC")
+    # create the output file
+    target = HTMLInitFile(outdir=bccvl.params$outputdir, filename="results", BackGroundColor="#CCCCCC")
 
-        # add content
-        HTML("<center><br><H1>Model Output", file=target)
+    # add content
+    HTML("<center><br><H1>Model Output for ", file=target)
 
-        HTML("<br><H2>AUC:ROC curve", file=target)
-        HTMLInsertGraph("AUC.png", file=target)
+    HTML("<br><H2>AUC:ROC curve", file=target)
+    HTMLInsertGraph("AUC.png", file=target)
 
-        HTML("<br><H2>Accuracy measures",file=target)
-        HTML(accuracystats, file=target)
+    HTML("<br><H2>Accuracy measures",file=target)
+    HTML(accuracystats, file=target)
 
     # close the file
     HTMLEndFile()
@@ -504,12 +503,12 @@ generateHTML = function() {
 ###############
 
 ###evaluate the models and save the outputs
-evaluate.model <- function(model.name, model.obj, occur, bkgd) {
+bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     # evaluate model using dismo's evaluate
     if (model.name == "brt") {
-        model.eval = evaluate(p=occur, a=bkgd, model=model.obj, n.trees=model.obj$gbm.call$best.trees)
+        model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj, n.trees=model.obj$gbm.call$best.trees)
     } else {
-        model.eval = evaluate(p=occur, a=bkgd, model=model.obj)
+        model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj)
     }
     # need predictions and observed values to create confusion matrices for accuracy statistics
     model.fit = c(model.eval@presence, model.eval@absence)
@@ -517,23 +516,69 @@ evaluate.model <- function(model.name, model.obj, occur, bkgd) {
 
     # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
     model.combined.eval = sapply(model.accuracy, function(x){
-        return(my.Find.Optim.Stat(Stat=x, Fit=model.fit, Obs=model.obs))
+        return(bccvl.Find.Optim.Stat(Stat=x, Fit=model.fit, Obs=model.obs))
     })
     # save output
-    saveModelEvaluation(model.eval, model.combined.eval)
+    bccvl.saveModelEvaluation(model.eval, model.combined.eval)
 
     # create response curves
     if (model.name != "brt") { # TODO: doesn't work for brt?
-        createMarginalResponseCurves(model.obj, model.name)
+        bccvl.createMarginalResponseCurves(model.obj, model.name)
     }
 
     # calculate variable importance (like biomod2, using correlations between predictions)
-    calculateVariableImpt(model.obj, model.name, 3)
+    bccvl.calculateVariableImpt(model.obj, model.name, 3)
 
     # calculate variable importance (like maxent, using decrease in AUC)
-    calculatePermutationVarImpt(model.obj, model.eval, model.name)
-    
+    bccvl.calculatePermutationVarImpt(model.obj, model.eval, model.name)
+
     # create HTML file with accuracy measures
-    # TODO -> Fix the species name
-    generateHTML()
+    bccvl.generateHTML()
 } # end of evaluate.modol
+
+
+# function to save evaluate output for BIOMOD2 models
+bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
+    # get and save the model evaluation statistics
+    # EMG these must specified during model creation with the arg "models.eval.meth"
+    evaluation = getModelsEvaluations(biomod.model)
+    bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.txt")
+
+    # get the model predictions and observed values
+    predictions = getModelsPrediction(biomod.model)
+    obs = getModelsInputData(biomod.model, "resp.var");
+
+    # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+    combined.eval = sapply(model.accuracy, function(x){
+        return(bccvl.Find.Optim.Stat(Stat = x, Fit = predictions, Obs = obs))
+    })
+    # save all the model accuracy statistics provided in both dismo and biomod2
+    rownames(combined.eval) <- c("Testing.data","Cutoff","Sensitivity", "Specificity")
+    bccvl.write.csv(t(round(combined.eval, digits=3)), name="combined.modelEvaluation.csv")
+
+    # save AUC curve
+    require(pROC, quietly=T)
+    roc1 <- roc(as.numeric(obs), as.numeric(predictions), percent=T)
+    png(file=file.path(bccvl.params$outputdir, "pROC.png"))
+    plot(roc1, main=paste("AUC=",round(auc(roc1)/100,3),sep=""), legacy.axes=TRUE)
+    dev.off()
+
+    # get and save the variable importance estimates
+    variableImpt = getModelsVarImport(biomod.model)
+    if (!is.na(variableImpt)) {
+    #EMG Note this will throw a warning message if variables (array) are returned
+        bccvl.write.csv(variableImpt, name="variableImportance.txt")
+    } else {
+        message("VarImport argument not specified during model creation!")
+        #EMG must create the model with the arg "VarImport" != 0
+    }
+
+    # save response curves (Elith et al 2005)
+    png(file=file.path(bccvl.params$outputdir, "mean_response_curves.png"))
+    test <- response.plot2(models = loaded.name,
+                           Data = getModelsInputData(biomod.model,"expl.var"),
+                           show.variables = getModelsInputData(biomod.model,"expl.var.names"), fixed.var.metric = "mean")
+     #, data_species = getModelsInputData(biomod.model,"resp.var"))
+     # EMG need to investigate why you would want to use this option - uses presence data only
+    dev.off()
+}

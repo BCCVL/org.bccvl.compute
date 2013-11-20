@@ -1,15 +1,9 @@
-import os
-import os.path
-from subprocess import call
 from org.bccvl.compute.utils import WorkEnv
-import shutil
 from pkg_resources import resource_string
 from plone.app.uuid.utils import uuidToObject
-from jinja2 import Template
 
 from zope.schema.vocabulary import SimpleVocabulary
-from zope.interface import moduleProvides, implementer, Interface
-from persistent import Persistent
+from zope.interface import moduleProvides, implementer
 from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
@@ -21,23 +15,54 @@ from org.bccvl.compute import MessageFactory as _
 
 moduleProvides(IComputeFunction)
 
-def generate_sdm_script(experiment, params):
-    cta_params = experiment.parameters_cta
-    get_biomod_params(cta_params, params)
-    params['method'] = cta_params.method
-    params['control_xval'] = cta_params.control_xval
-    params['control_minbucket'] = cta_params.control_minbucket
-    params['control_minsplit'] = cta_params.control_minsplit
-    params['control_cp'] = cta_params.control_cp
-    params['control_cp'] = cta_params.control_cp
-    params['control_maxdepth'] = cta_params.control_maxdepth
 
-    cta_config = resource_string('org.bccvl.compute', 'rscripts/cta.init.R')
-    tmpl = Template(cta_config)
+OUTPUTS = {
+    'files': {
+        '*.txt': {
+            'title': '',
+            'type': 'eval'},
+        '*_response_curves.png': {
+            'title': '',
+            'type': '???'},
+        '*.csv': {
+            'title': '',
+            'type': 'csv', },
+        'model.object.RData': {
+            'title': '',
+            'type': 'RData', },
+        'pROC.png': {
+            'title': '',
+            'type': '???', },
+        'sdm.Rout': {
+            'title': '',
+            'type': 'html'},
+        },
+    'archives': {
+        'all.zip': {
+            'files': ['all/*'],
+            'type': 'report'},
+        },
+    }
+
+
+def get_cta_params(experiment):
+    cta_params = experiment.parameters_cta
+    params = get_biomod_params(cta_params)
+    params.update({
+        'method': cta_params.method,
+        'control_xval': cta_params.control_xval,
+        'control_minbucket': cta_params.control_minbucket,
+        'control_minsplit': cta_params.control_minsplit,
+        'control_cp': cta_params.control_cp,
+        'control_maxdepth': cta_params.control_maxdepth,
+    })
+    return params
+
+
+def generate_sdm_script():
     script = '\n'.join([
-        resource_string('org.bccvl.compute', 'rscripts/common.R'),
+        resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
         resource_string('org.bccvl.compute', 'rscripts/eval.R'),
-        tmpl.render(params),
         resource_string('org.bccvl.compute', 'rscripts/cta.R')])
     return script
 
@@ -67,13 +92,12 @@ def execute(experiment, workenv=WorkEnv):
         env = workenv('localhost')
         env.prepare_work_env(climate, occurrence, absence)
         params = env.get_sdm_params()
-        script = generate_sdm_script(experiment, params)
-        env.execute(script)
+        params.update(get_cta_params(experiment))
+        script = generate_sdm_script()
+        env.execute(script, params)
         env.import_output(experiment)
     finally:
         env.cleanup()
-
-
 
 ## Parameters
 
@@ -83,6 +107,7 @@ cta_method_vocab = SimpleVocabulary.fromValues([
     'exp',
     'poisson',
 ])
+
 
 class IParametersCTA(IParametersBiomod):
     method = schema.Choice(
@@ -116,6 +141,7 @@ class IParametersCTA(IParametersBiomod):
     )
 
 field_property = lambda field_name: FieldProperty(IParametersCTA[field_name])
+
 
 @implementer(IParametersCTA)
 class ParametersCTA(ParametersBiomod):

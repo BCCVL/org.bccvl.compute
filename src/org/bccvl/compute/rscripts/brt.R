@@ -10,6 +10,55 @@
 ##
 ##  outputdir ... root folder for output data
 
+#define the working directory
+#scriptdir = normalizePath(bccvl.params$scriptdir)
+#inputdir =  normalizePath(bccvl.params$inputdir)
+#outputdir =  normalizePath(bccvl.params$outputdir)
+
+
+# extract params
+# define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
+occur.data = bccvl.params$occurrence
+#define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
+bkgd.data = bccvl.params$background
+#define the current enviro data to use
+enviro.data.current = bccvl.params$enviro$data
+#type in terms of continuous or categorical
+enviro.data.type = bccvl.params$enviro$type
+
+brt.fold.vector = NULL #a fold vector to be read in for cross validation with offsets
+brt.tree.complexity = bccvl.params$tree_complexity #sets the complexity of individual trees
+brt.learning.rate = bccvl.params$learning_rate #sets the weight applied to individual trees
+brt.bag.fraction = bccvl.params$bag_fraction #sets the proportion of observations used in selecting variables
+#brt.site.weights = rep(1, nrow(data)) #allows varying weighting for sites
+#brt.var.monotone = rep(0, length(gbm.x)) #restricts responses to individual predictors to monotone
+brt.n.folds = bccvl.params$n_folds #number of folds
+brt.prev.stratify = bccvl.params$prev_stratify #prevalence stratify the folds - only for presence/absence data
+brt.family = bccvl.params$family #family - bernoulli (=binomial), poisson, laplace or gaussian
+brt.n.trees = bccvl.params$n_trees #number of initial trees to fit
+brt.step.size = brt.n.trees #numbers of trees to add at each cycle
+brt.max.trees = bccvl.params$max_trees #max number of trees to fit before stopping
+brt.tolerance.method = bccvl.params$tolerance_method #method to use in deciding to stop - "fixed" or "auto"
+brt.tolerance = bccvl.params$tolerance_value #tolerance value to use - if method == fixed is absolute, if auto is multiplier * total mean deviance
+brt.keep.data = FALSE #Logical. keep raw data in final model
+brt.plot.main = FALSE #Logical. plot hold-out deviance curve
+brt.plot.folds = FALSE #Logical. plot the individual folds as well
+brt.verbose = FALSE #Logical. control amount of screen reporting
+brt.silent = FALSE #Logical. to allow running with no output for simplifying model)
+brt.keep.fold.models = FALSE #Logical. keep the fold models from cross valiation
+brt.keep.fold.vector = FALSE #Logical. allows the vector defining fold membership to be kept
+brt.keep.fold.fit = FALSE #Logical. allows the predicted values for observations from cross-validation to be kept
+
+# model accuracy statistics
+# these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R
+dismo.eval.method = c("ODP", "TNR", "FPR", "FNR", "NPP", "MCR", "OR")
+# and vice versa
+biomod.models.eval.meth = c("KAPPA", "TSS", "ROC", "FAR", "SR", "ACCURACY", "BIAS", "POD", "CSI", "ETS")
+
+# model accuracy statistics - combine stats from dismo and biomod2 for consistent output
+model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
+
+
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
@@ -108,17 +157,17 @@ brt = tryCatch(
         silent = brt.silent,
         keep.fold.models = brt.keep.fold.models,
         keep.fold.vector = brt.keep.fold.vector,
-        keep.fold.fit = brt.keep.fold.fit), error = err.null)
+        keep.fold.fit = brt.keep.fold.fit), error = bccvl.err.null)
 if (!is.null(brt)) {
     #save out the model object
-    save(brt, file=file.path(outputdir, "model.object.RData"))
+    bccvl.save(brt, "model.object.RData")
     # NOTE the order of arguments in the predict function for brt; this is because
     # the function is defined outside of the dismo package
     # predict for CURRENT climate scenario
     brt.proj = predict(current.climate.scenario, brt, n.trees=brt$gbm.call$best.trees)
-    saveModelProjection(brt.proj, "current")
+    bccvl.saveModelProjection(brt.proj, "current")
     # evaluate model
-    evaluate.model('brt', brt, occur, bkgd)
+    bccvl.evaluate.model('brt', brt, occur, bkgd)
 } else {
     write(paste("FAIL!", species, "Cannot create brt model object", sep=": "), stdout())
 }
