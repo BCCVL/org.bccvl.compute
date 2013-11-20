@@ -313,7 +313,6 @@ class WorkEnv(object):
         self.wait_for_data_mover()
         self.unpack_enviro_data()
         self.execute_script()
-        import ipdb; ipdb.set_trace()
         self.move_output_data()
         self.wait_for_data_mover()
 
