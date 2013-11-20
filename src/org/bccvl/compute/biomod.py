@@ -10,8 +10,9 @@ from org.bccvl.compute import MessageFactory as _
 
 
 biomod_prevalance_vocab = SimpleVocabulary.fromValues([
-    'NULL', 0, 1
+    None, 0, 1
 ])
+
 
 class IParametersBiomod(Interface):
     nb_run_eval = schema.Int(
@@ -29,7 +30,8 @@ class IParametersBiomod(Interface):
     prevalence = schema.Choice(
         title=_(u'weighted response weights'),
         vocabulary=biomod_prevalance_vocab,
-        default='NULL',
+        missing_value = '',
+        default=None,
     )
     var_import = schema.Int(
         title=_(u'resampling'),
@@ -48,6 +50,7 @@ class IParametersBiomod(Interface):
     )
 
 field_property = lambda field_name: FieldProperty(IParametersBiomod[field_name])
+
 
 class ParametersBiomod(Persistent):
     nb_run_eval = field_property('nb_run_eval')
