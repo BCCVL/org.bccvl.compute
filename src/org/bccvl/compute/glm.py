@@ -146,6 +146,7 @@ class IParametersGlm(IParametersBiomod):
         title=_(u'control: trace'),
         description=_(u'produce output for each iteration'),
         default=False,
+        required=False,
     )
 
 field_property = lambda field_name: FieldProperty(IParametersGlm[field_name])
