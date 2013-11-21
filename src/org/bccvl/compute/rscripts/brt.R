@@ -164,7 +164,7 @@ if (!is.null(brt)) {
     # NOTE the order of arguments in the predict function for brt; this is because
     # the function is defined outside of the dismo package
     # predict for CURRENT climate scenario
-    brt.proj = predict(current.climate.scenario, brt, n.trees=brt$gbm.call$best.trees)
+    brt.proj = predict(current.climate.scenario, brt, n.trees=brt$gbm.call$best.trees, type="response")
     bccvl.saveModelProjection(brt.proj, "current")
     # evaluate model
     bccvl.evaluate.model('brt', brt, occur, bkgd)
