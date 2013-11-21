@@ -38,7 +38,7 @@ if (project.brt) {
     if (!is.null(brt.obj)) {
         # NOTE the order of arguments in the predict function for brt; this is because
         # the function is defined outside of the dismo package
-        brt.proj = predict(future.climate.scenario, brt.obj, n.trees=brt.obj$gbm.call$best.trees) # predict for given climate scenario
+        brt.proj = predict(future.climate.scenario, brt.obj, n.trees=brt.obj$gbm.call$best.trees, type="response") # predict for given climate scenario
         saveModelProjection(brt.proj, "brt", "future") # save output
     } else {
         write(paste("FAIL!", species, "Cannot load brt.obj from", wd, "output_brt", sep=": "), stdout())
