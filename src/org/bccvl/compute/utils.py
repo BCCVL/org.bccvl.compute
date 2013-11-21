@@ -230,7 +230,7 @@ class WorkEnv(object):
                     'path': destname}
             self.move_data('output', src, dest, uuid=None)
 
-    def import_output(self, experiment) :
+    def import_output(self, experiment):
         # try to avoid DB conflicts by committing first
         transaction.commit()
         # create result container which will be context for transmogrify import

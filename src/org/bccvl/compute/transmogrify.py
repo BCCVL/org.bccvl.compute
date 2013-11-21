@@ -14,16 +14,17 @@ from zope.component import getUtility
 from Products.CMFCore.utils import getToolByName
 
 
-
 # register a few mimetypes
 mimetypes.add_type('text/plain', '.rascii')
 mimetypes.add_type('text/plain', '.rout')
 mimetypes.add_type('application/octet-stream', '.rdata')
 mimetypes.add_type('image/geotiff', '.geotiff')
 
-def guess_mimetype(name, path='', mtr=None):
+
+def guess_mimetype(name, mtr=None):
     # 1. try mimetype registry
-    mtype =  None
+    name = os.path.basename(name)
+    mtype = None
     if mtr is not None:
         mtype = mtr.lookupExtension(name)
         if mtype is not None:
@@ -75,53 +76,58 @@ class ResultSource(object):
         self.pathkey = options.get('path-key', '_path').strip()
         self.fileskey = options.get('files-key', '_files').strip()
 
+    def createItem(self, fname):
+        # fname: full path to file
+        name = os.path.basename(fname)
+        mtr = getToolByName(self.context, 'mimetypes_registry')
+        normalizer = getUtility(IFileNameNormalizer)
+
+        mimetype = guess_mimetype(fname, mtr)
+        datasetid = normalizer.normalize(name)
+
+        genre, format = get_data_genre(name)
+
+        rdf = Graph()
+        rdf.add((rdf.identifier, DC['title'], Literal(name)))
+        rdf.add((rdf.identifier, RDF['type'], CVOCAB['Dataset']))
+        if genre is not None:
+            rdf.add((rdf.identifier, BCCPROP['datagenre'], genre))
+        if format is not None:
+            rdf.add((rdf.identifier, BCCPROP['format'], format))
+
+        return {
+            '_path': datasetid,
+            '_type': 'org.bccvl.content.dataset',
+            'title': unicode(name),
+            'file': {
+                'file': name,
+                'contentype': mimetype,
+                'filename': name
+                },
+            '_rdf': {
+                'file': 'rdf.ttl',
+                'contenttype': 'text/turtle',
+                },
+            '_files': {
+                name: {
+                    'data': open(fname).read()
+                },
+                'rdf.ttl': {
+                    'data': rdf.serialize(format='turtle')
+                    }
+                }
+            }
+
     def __iter__(self):
         # exhaust previous iterator
         for item in self.previous:
             yield item
 
-        mtr = getToolByName(self.context, 'mimetypes_registry')
-        normalizer = getUtility(IFileNameNormalizer)
-
         # start our own source
-        for fname in os.listdir(self.path):
-            if os.path.isdir(os.path.join(self.path, fname)):
-                # TODO: zip up folder and process zip file
-                continue
-
-            mimetype = guess_mimetype(fname, self.path, mtr)
-            datasetid = normalizer.normalize(fname)
-
-            genre, format = get_data_genre(fname)
-
-            rdf = Graph()
-            rdf.add((rdf.identifier, DC['title'], Literal(fname)))
-            rdf.add((rdf.identifier, RDF['type'], CVOCAB['Dataset']))
-            if genre is not None:
-                rdf.add((rdf.identifier, BCCPROP['datagenre'], genre))
-            if format is not None:
-                rdf.add((rdf.identifier, BCCPROP['format'], format))
-
-            item = {
-                '_path': datasetid,
-                '_type': 'org.bccvl.content.dataset',
-                'title': unicode(fname),
-                'file': {
-                    'file': fname,
-                    'contentype': mimetype,
-                    'filename': fname
-                    },
-                '_rdf': {
-                    'file': 'rdf.ttl',
-                    'contenttype': 'text/turtle',
-                    },
-                '_files': {
-                    fname: {
-                        'data': open(os.path.join(self.path, fname)).read()
-                        },
-                    'rdf.ttl': {
-                        'data': rdf.serialize(format='turtle')
-                        }
-                    }
-                }
-            yield item
+        for root, dirs, files in os.walk(self.path):
+            # use: del dirs['name'] to avoid traversing through subdir 'name'
+            # root is always full path underneath self.path
+            for name in files:
+                fname = os.path.join(self.path, root, name)
+                item = self.createItem(fname)
+                yield item
