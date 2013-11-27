@@ -1,6 +1,5 @@
-from org.bccvl.compute.utils import WorkEnv
+from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job
 from pkg_resources import resource_string
-from plone.app.uuid.utils import uuidToObject
 
 from zope.schema.vocabulary import SimpleVocabulary
 from zope.interface import moduleProvides, implementer
@@ -83,21 +82,12 @@ def execute(experiment, workenv=WorkEnv):
 
 
     """
-    occurrence = uuidToObject(experiment.species_occurrence_dataset)
-    absence = uuidToObject(experiment.species_absence_dataset)
-    climate = uuidToObject(experiment.environmental_dataset)
-    try:
-        from org.bccvl.compute.utils import WorkEnvLocal
-        workenv = WorkEnvLocal
-        env = workenv('localhost')
-        env.prepare_work_env(climate, occurrence, absence)
-        params = env.get_sdm_params()
-        params.update(get_cta_params(experiment))
-        script = generate_sdm_script()
-        env.execute(script, params)
-        env.import_output(experiment)
-    finally:
-        env.cleanup()
+    workenv = WorkEnvLocal
+    env = workenv('localhost')
+    params = env.get_sdm_params()
+    params.update(get_cta_params(experiment))
+    script = generate_sdm_script()
+    return queue_job(experiment, 'CTA', env, script, params)
 
 ## Parameters
 

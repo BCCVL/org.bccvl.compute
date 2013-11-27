@@ -1,12 +1,16 @@
 from pkg_resources import resource_string
-from org.bccvl.compute.utils import WorkEnv
-from plone.app.uuid.utils import uuidToObject
+from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job
 
 from zope.interface import moduleProvides, implementer, Interface
-from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
+# do this dynamically in site module?
+from z3c.form.object import registerFactoryAdapter
 from .interfaces import IComputeFunction
 
 moduleProvides(IComputeFunction)
+
+
+def get_bioclim_params(experiment):
+    return {}
 
 
 def generate_sdm_script():
@@ -14,7 +18,7 @@ def generate_sdm_script():
         resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
         resource_string('org.bccvl.compute', 'rscripts/eval.R'),
         resource_string('org.bccvl.compute', 'rscripts/bioclim.R'),
-        ])
+    ])
     return script
 
 OUTPUTS = {
@@ -42,15 +46,14 @@ OUTPUTS = {
             'type': 'html'},
         'current.tif': {
             'title': '',
-            'type': 'GEOTiff',
-            },
         },
+    },
     'archives': {
         'results.html.zip': {
             'files': ['results.html', 'AUC.png'],
             'type': 'report'},
-        },
-    }
+    },
+}
 
 
 def execute(experiment, workenv=WorkEnv):
@@ -69,25 +72,16 @@ def execute(experiment, workenv=WorkEnv):
 
 
     """
-    occurrence = uuidToObject(experiment.species_occurrence_dataset)
-    absence = uuidToObject(experiment.species_absence_dataset)
-    climate = uuidToObject(experiment.environmental_dataset)
-    # TODO: WORKER_DIR is gone
-    try:
-        from org.bccvl.compute.utils import WorkEnvLocal
-        workenv = WorkEnvLocal
-        env = workenv('localhost')
-        env.prepare_work_env(climate, occurrence, absence)
-        params = env.get_sdm_params()
-        script = generate_sdm_script()
-        env.execute(script, params)
-        # FIXME: import should run in an async callback.
-        env.import_output(experiment)
-    finally:
-        env.cleanup()
+    # TODO: CREATE WorkEnv in job
+    workenv = WorkEnvLocal
+    env = workenv('localhost')
+    params = get_bioclim_params(experiment)
+    script = generate_sdm_script()
+    return queue_job(experiment, 'Bioclim', env, script, params)
 
 
 class IParametersBioclim(Interface):
+
     """there are no user-configurable options"""
 
 

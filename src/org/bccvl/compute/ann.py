@@ -1,6 +1,5 @@
-from org.bccvl.compute.utils import WorkEnv
+from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job
 from pkg_resources import resource_string
-from plone.app.uuid.utils import uuidToObject
 
 from zope.interface import moduleProvides, implementer
 from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
@@ -78,22 +77,12 @@ def execute(experiment, workenv=WorkEnv):
 
 
     """
-    occurrence = uuidToObject(experiment.species_occurrence_dataset)
-    absence = uuidToObject(experiment.species_absence_dataset)
-    climate = uuidToObject(experiment.environmental_dataset)
-    try:
-        from org.bccvl.compute.utils import WorkEnvLocal
-        workenv = WorkEnvLocal
-        env = workenv('localhost')
-        env.prepare_work_env(climate, occurrence, absence)
-        params = env.get_sdm_params()
-        params.update(get_ann_params(experiment))
-        script = generate_sdm_script()
-        env.execute(script, params)
-        env.import_output(experiment)
-    finally:
-        env.cleanup()
-
+    workenv = WorkEnvLocal
+    env = workenv('localhost')
+    params = env.get_sdm_params()
+    params.update(get_ann_params(experiment))
+    script = generate_sdm_script()
+    return queue_job(experiment, 'ANN', env, script, params)
 
 ## Parameters
 

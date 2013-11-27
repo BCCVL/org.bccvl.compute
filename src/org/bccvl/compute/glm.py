@@ -1,6 +1,5 @@
 from pkg_resources import resource_string
-from org.bccvl.compute.utils import WorkEnv
-from plone.app.uuid.utils import uuidToObject
+from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job
 
 from zope.schema.vocabulary import SimpleVocabulary
 from zope.interface import moduleProvides, implementer
@@ -85,23 +84,12 @@ def execute(experiment, workenv=WorkEnv):
 
 
     """
-    occurrence = uuidToObject(experiment.species_occurrence_dataset)
-    absence = uuidToObject(experiment.species_absence_dataset)
-    climate = uuidToObject(experiment.environmental_dataset)
-    # TODO: WORKER_DIR is gone
-    try:
-        from org.bccvl.compute.utils import WorkEnvLocal
-        workenv = WorkEnvLocal
-        env = workenv('localhost')
-        env.prepare_work_env(climate, occurrence, absence)
-        params = env.get_sdm_params()
-        params.update(get_glm_params(experiment))
-        script = generate_sdm_script()
-        env.execute(script, params)
-        env.import_output(experiment)
-    finally:
-        env.cleanup()
-
+    workenv = WorkEnvLocal
+    env = workenv('localhost')
+    params = env.get_sdm_params()
+    params.update(get_glm_params(experiment))
+    script = generate_sdm_script()
+    return queue_job(experiment, 'GLM', env, script, params)
 
 ## parameters
 
