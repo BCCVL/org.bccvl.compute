@@ -67,7 +67,8 @@ def create_tmpdir(root=''):
     '''
     Create a new temporary directory on target hosts
     '''
-    result = api.run("mktemp -d -t rworkdir {}".format(root),
+#    result = api.run("mktemp -d -t rworkdir {}".format(root),
+    result = api.run("TMPDIR='{}' mktemp -d -t rworkdir.XXXXXX".format(root),
                      pty=False, combine_stderr=False, quiet=True)
     return result
 
