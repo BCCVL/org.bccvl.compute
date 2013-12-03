@@ -25,27 +25,27 @@ OUTPUTS = {
     'files': {
         'AUC.png': {
             'title': 'AUC.png',
-            'type': '???'},
+            'type': '???'}, # Area Under the Receiver Operating Characteristic Curve
         '*_response.png': {
-            'title': '',
+            'title': '',  # Marginal Response Curve per variable
             'type': '???'},
         '*.csv': {
             'title': '',
-            'type': 'csv', },
+            'type': 'csv', }, # Model accuracy statistics
         'dismo.eval.object.RData': {
             'title': '',
-            'type': 'RData', },
+            'type': 'RData', }, # dismo:ModelEvaluation object
         'model.object.RData': {
             'title': '',
-            'type': 'RData', },
+            'type': 'RData', }, # dismo SDM model object
         'results.html': {
             'title': '',
-            'type': 'html', },
+            'type': 'html', }, # Accuracy measures report
         'sdm.Rout': {
             'title': '',
-            'type': 'html'},
+            'type': 'html'}, # Log file
         'current.tif': {
-            'title': '',
+            'title': '', # current re projection
         },
     },
     'archives': {
@@ -56,7 +56,7 @@ OUTPUTS = {
 }
 
 
-def execute(experiment, workenv=WorkEnv):
+def execute(experiment, request=None, workenv=WorkEnv):
     """
     This function takes an experiment and executes.
 
@@ -73,8 +73,8 @@ def execute(experiment, workenv=WorkEnv):
 
     """
     # TODO: CREATE WorkEnv in job
-    workenv = WorkEnvLocal
-    env = workenv('localhost')
+    # workenv = WorkEnvLocal
+    env = workenv('localhost', request)
     params = get_bioclim_params(experiment)
     script = generate_sdm_script()
     return queue_job(experiment, 'Bioclim', env, script, params)

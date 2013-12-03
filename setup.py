@@ -27,7 +27,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'setuptools',  # distribute
-        'fabric',
+        'paramiko',
     ],
     entry_points="""
     # -*- Entry points: -*-

@@ -17,29 +17,32 @@ moduleProvides(IComputeFunction)
 
 OUTPUTS = {
     'files': {
-        '*.txt': {
+        'biomod2.modelEvaluation.txt': {
             'title': '',
-            'type': 'eval'},
+            'type': 'eval'},  # Model evaluation statistics
+        'variableImportance.txt': {
+            'title': '',
+            'type': 'eval'},  # variable importance estimates
         '*_response_curves.png': {
             'title': '',
-            'type': '???'},
+            'type': '???'}, # Marginal (mean) response curves per variable
         '*.csv': {
             'title': '',
-            'type': 'csv', },
+            'type': 'csv', }, # Model accuracy statistics
         'model.object.RData': {
             'title': '',
-            'type': 'RData', },
+            'type': 'RData', }, # biomod2 model ojebct
         'pROC.png': {
             'title': '',
-            'type': '???', },
+            'type': '???', }, # Area Under the Receiver Operating Characteristic Curve
         'sdm.Rout': {
             'title': '',
-            'type': 'html'},
+            'type': 'html'}, # Log file
         },
     'archives': {
         'all.zip': {
             'files': ['all/*'],
-            'type': 'report'},
+            'type': 'report'}, # all/*?????
         },
     }
 
@@ -68,7 +71,7 @@ def generate_sdm_script():
     return script
 
 
-def execute(experiment, workenv=WorkEnv):
+def execute(experiment, request=None, workenv=WorkEnv):
     """
     This function takes an experiment and executes.
 
@@ -84,10 +87,8 @@ def execute(experiment, workenv=WorkEnv):
 
 
     """
-    workenv = WorkEnvLocal
-    env = workenv('localhost')
-    params = env.get_sdm_params()
-    params.update(get_glm_params(experiment))
+    env = workenv('localhost', request)
+    params =  get_glm_params(experiment)
     script = generate_sdm_script()
     return queue_job(experiment, 'GLM', env, script, params)
 

@@ -12,6 +12,9 @@ from rdflib import RDF, URIRef, Literal
 from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
 from Products.CMFCore.utils import getToolByName
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 # register a few mimetypes
@@ -95,6 +98,7 @@ class ResultSource(object):
         if format is not None:
             rdf.add((rdf.identifier, BCCPROP['format'], format))
 
+        LOG.info("Ingest item: %s, %s", datasetid, name)
         return {
             '_path': datasetid,
             '_type': 'org.bccvl.content.dataset',
@@ -127,6 +131,7 @@ class ResultSource(object):
         for root, dirs, files in os.walk(self.path):
             # use: del dirs['name'] to avoid traversing through subdir 'name'
             # root is always full path underneath self.path
+            LOG.info("check file names: %s", ", ".join(files))
             for name in files:
                 fname = os.path.join(self.path, root, name)
                 item = self.createItem(fname)

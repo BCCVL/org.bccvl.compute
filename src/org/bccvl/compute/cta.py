@@ -66,7 +66,7 @@ def generate_sdm_script():
     return script
 
 
-def execute(experiment, workenv=WorkEnv):
+def execute(experiment, request=None, workenv=WorkEnv):
     """
     This function takes an experiment and executes.
 
@@ -82,10 +82,8 @@ def execute(experiment, workenv=WorkEnv):
 
 
     """
-    workenv = WorkEnvLocal
-    env = workenv('localhost')
-    params = env.get_sdm_params()
-    params.update(get_cta_params(experiment))
+    env = workenv('localhost', request)
+    params =  get_cta_params(experiment)
     script = generate_sdm_script()
     return queue_job(experiment, 'CTA', env, script, params)
 
