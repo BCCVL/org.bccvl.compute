@@ -230,20 +230,20 @@ class WorkEnv(object):
                 sleep(5)
         raise Exception("Datamover communication failed")
 
-
     def move_input_data(self, type, datasetinfo):
         # datasetinfo['filename']
         # datasetinfo['url']
         # TODO: do this check somewhere?
         # if datasetitem is None or not IDataset.providedBy(datasetitem):
         #     return
-        destname = '/'.join((self.inputdir, datasetinfo['filename']))
-        src = {'type': 'url',
-               'url': datasetinfo['url']}
-        dest = {'type': 'scp',
-                'host': self.src,
-                'path': destname}
-        self.move_data(type, src, dest, uuid=datasetinfo['uuid'])
+        for uuid, dsinfo in datasetinfo.items():
+            destname = '/'.join((self.inputdir, dsinfo['filename']))
+            src = {'type': 'url',
+                   'url': dsinfo['url']}
+            dest = {'type': 'scp',
+                    'host': self.src,
+                    'path': destname}
+            self.move_data(type, src, dest, uuid=uuid)
 
     def wait_for_data_mover(self):
         # TODO: Time_out, and failure handling
@@ -370,7 +370,7 @@ class WorkEnv(object):
         LOG.info('Import result finished for %s from %s', title, self.workdir)
 
     def get_sdm_params(self, experimentinfo):
-        names = experimentinfo['layers']
+        names = experimentinfo['layers'].keys()
         params = {
             'scriptdir': self.workdir,
             'inputdir': self.inputdir,
@@ -379,21 +379,30 @@ class WorkEnv(object):
             'background': None,
             'enviro': {
                 'names': names,
-                'data': None,
+                'data': [],
                 'type': ["continuous" for i in xrange(0, len(names))],
                 },
             # TODO: is this a generic sdm parameter?
             'tails': 'both',
             }
+        enviro_jobs = {}
         for job in self.jobs:
             if job['type'] == 'environment':
-                zipdir, _ = os.path.splitext(os.path.basename(job['filename']))
-                currentfolder = '/'.join((self.inputdir, zipdir))
-                params['enviro']['data'] = [os.path.join(currentfolder, experimentinfo['environment']['layers'][name]) for name in names]
+                enviro_jobs[job['uuid']] = job
             elif job['type'] == 'occurrence':
                 params['occurrence'] = job['filename']
             elif job['type'] == 'absence':
                 params['background'] = job['filename']
+        # TODO: this is kinda crappy and should be done differently
+        # build up enviro.data list
+        for layer in names:
+            dsuuid = experimentinfo['layers'][layer]
+            zipdir, _ = os.path.splitext(os.path.basename(enviro_jobs[dsuuid]['filename']))
+            currentfolder = '/'.join((self.inputdir, zipdir))
+            expmd = experimentinfo['environment'][dsuuid]
+            filename = os.path.join(currentfolder,
+                                    expmd['layers'][layer])
+            params['enviro']['data'].append(filename)
         return params
 
     def start_script(self):
@@ -530,7 +539,7 @@ def run_job(context, env):
 
 
 
-
+# TODO: use getDatasetMetadat from xmlrpc package. (remove getbiolayermetadata in getExperimentInfo)
 def getDataSetInfo(datasetitem):
     # TODO: filename might be None, and then this job fails miserably
     dsfilename = datasetitem.file.filename
@@ -549,25 +558,29 @@ def getDataSetInfo(datasetitem):
 def getExperimentInfo(experiment):
     datasets = {
         'occurrence': {
-            'uuid': experiment.species_occurrence_dataset
+            experiment.species_occurrence_dataset: {}
         },
         'absence': {
-            'uuid': experiment.species_absence_dataset
+            experiment.species_absence_dataset:  {}
         },
         'environment': {
-            'uuid': experiment.environmental_dataset
         }
     }
+    # collect uuids for layer datasets
+    for item in experiment.environmental_layers.values():
+        if item not in datasets['environment']:
+            datasets['environment'][item] = {}
+
     for dsitem in ('occurrence', 'absence', 'environment'):
-        dsobj = uuidToObject(datasets[dsitem]['uuid'])
-        datasets[dsitem].update(getDataSetInfo(dsobj))
+        for uuid in datasets[dsitem].keys():
+            dsobj = uuidToObject(uuid)
+            datasets[dsitem][uuid].update(getDataSetInfo(dsobj))
     # layerinfo
-    envobj = uuidToObject(datasets['environment']['uuid'])
-    datasets['environment']['layers'] = getbiolayermetadata(envobj)
-    # TODO: hardcoded list of bioclim variables
-    datasets['layers'] = [BIOCLIM['B01'], BIOCLIM['B04'], BIOCLIM['B05'],
-                 BIOCLIM['B06'], BIOCLIM['B12'], BIOCLIM['B15'],
-                 BIOCLIM['B16'], BIOCLIM['B17']]
+    for uuid, dsinfo in datasets['environment'].items():
+        envobj = uuidToObject(uuid)
+        dsinfo['layers'] = getbiolayermetadata(envobj)
+    # layers to run the sdm against
+    datasets['layers'] = experiment.environmental_layers
     return datasets
 
 
@@ -623,7 +636,7 @@ def queue_job(experiment, jobid, env, script, params):
             'step': 0,
             'task': u'Queued'}
         queue = queues['']
-        queue.quotas['default'].size = 3
+        queue.quotas['default'].size = 4
         # agent size:
         for dispagent in queue.dispatchers.values():
             if 'main' in dispagent:
@@ -704,7 +717,6 @@ def finish_job_queue(context, result):
             # newstate = u'Completed'
         else:
 
-            # import ipdb; ipdb.set_trace()
             ex, env = result.value.args
             # where do I get env from?
         env.cleanup_remote()
