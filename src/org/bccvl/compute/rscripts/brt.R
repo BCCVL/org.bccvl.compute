@@ -131,8 +131,7 @@ brt.data = rbind(occur,bkgd)
 # setup the data as needed
 brt.data$pa = c(rep(1,nrow(occur)),rep(0,nrow(bkgd)))
 # run the algorithm
-brt = tryCatch(
-    gbm.step(
+brt <- gbm.step(
         data=brt.data,
         gbm.x=which(names(brt.data) %in% names(current.climate.scenario)),
         gbm.y=which(names(brt.data)=='pa'),
@@ -157,17 +156,14 @@ brt = tryCatch(
         silent = brt.silent,
         keep.fold.models = brt.keep.fold.models,
         keep.fold.vector = brt.keep.fold.vector,
-        keep.fold.fit = brt.keep.fold.fit), error = bccvl.err.null)
-if (!is.null(brt)) {
-    #save out the model object
-    bccvl.save(brt, "model.object.RData")
-    # NOTE the order of arguments in the predict function for brt; this is because
-    # the function is defined outside of the dismo package
-    # predict for CURRENT climate scenario
-    brt.proj = predict(current.climate.scenario, brt, n.trees=brt$gbm.call$best.trees, type="response")
-    bccvl.saveModelProjection(brt.proj, "current")
-    # evaluate model
-    bccvl.evaluate.model('brt', brt, occur, bkgd)
-} else {
-    write(paste("FAIL!", species, "Cannot create brt model object", sep=": "), stdout())
-}
+        keep.fold.fit = brt.keep.fold.fit)
+
+#save out the model object
+bccvl.save(brt, "model.object.RData")
+# NOTE the order of arguments in the predict function for brt; this is because
+# the function is defined outside of the dismo package
+# predict for CURRENT climate scenario
+brt.proj = predict(current.climate.scenario, brt, n.trees=brt$gbm.call$best.trees, type="response")
+bccvl.saveModelProjection(brt.proj, "current")
+# evaluate model
+bccvl.evaluate.model('brt', brt, occur, bkgd)

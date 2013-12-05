@@ -76,19 +76,15 @@ if (!all(enviro.data.type=="continuous")) {
     warning("bioclim not run because categorical data cannot be used")
 } else {
     # run bioclim with matrix of enviro data
-    bc = tryCatch(bioclim(x=occur[,names(current.climate.scenario)]), error=bccvl.err.null)
-    if (!is.null(bc)) {
-        # save out the model object
-        bccvl.save(bc, "model.object.RData")
-        # predict for given climate scenario
-        bioclim.proj = predict(bc, current.climate.scenario, tails=opt.tails)
-        # save output
-        bccvl.saveModelProjection(bioclim.proj, "current")
-        # evaluate model
-        if (!is.null(bkgd)) {
-            bccvl.evaluate.model('bioclim', bc, occur, bkgd)
-        }
-    } else {
-        write(paste("FAIL!", species, "Cannot create bioclim model object", sep=": "), stdout())
+    bc = bioclim(x=occur[,names(current.climate.scenario)])
+    # save out the model object
+    bccvl.save(bc, "model.object.RData")
+    # predict for given climate scenario
+    bioclim.proj = predict(bc, current.climate.scenario, tails=opt.tails)
+    # save output
+    bccvl.saveModelProjection(bioclim.proj, "current")
+    # evaluate model
+    if (!is.null(bkgd)) {
+        bccvl.evaluate.model('bioclim', bc, occur, bkgd)
     }
 } # end if continuous

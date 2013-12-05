@@ -191,28 +191,24 @@ myBiomodModelOut.ann <-
                     do.full.models    = biomod.do.full.models,
                     #modeling.id       = biomod.modeling.id
                     )
-if (!is.null(myBiomodModelOut.ann)) {
-    #save out the model object
-    bccvl.save(myBiomodModelOut.ann, name="model.object.RData")
-    # predict for current climate scenario
-    ann.proj.c <-
-        BIOMOD_Projection(modeling.output     = myBiomodModelOut.ann,
-                          new.env             = current.climate.scenario,
-                          proj.name           = 'all',  #basename(enviro.data.current), {{ species }}
-                          xy.new.env          = biomod.xy.new.env,
-                          selected.models     = 'all',  # biomod.selected.models, {{ species }}
-                          binary.meth         = biomod.binary.meth,
-                          filtered.meth       = biomod.filtered.meth,
-                          #compress            = biomod.compress,
-                          build.clamping.mask = biomod.build.clamping.mask,
-                          silent              = opt.biomod.silent,
-                          do.stack            = opt.biomod.do.stack,
-                          keep.in.memory      = opt.biomod.keep.in.memory,
-                          output.format       = opt.biomod.output.format)
-    # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
-    # evaluate model
-    ann.loaded.model = BIOMOD_LoadModels(myBiomodModelOut.ann, models="ANN") # load model
-    bccvl.saveBIOMODModelEvaluation(ann.loaded.model, myBiomodModelOut.ann)
-} else {
-    write(paste("FAIL!", species, "Cannot create ann model object", sep=": "), stdout())
-}
+#save out the model object
+bccvl.save(myBiomodModelOut.ann, name="model.object.RData")
+# predict for current climate scenario
+ann.proj.c <-
+    BIOMOD_Projection(modeling.output     = myBiomodModelOut.ann,
+                      new.env             = current.climate.scenario,
+                      proj.name           = 'all',  #basename(enviro.data.current), {{ species }}
+                      xy.new.env          = biomod.xy.new.env,
+                      selected.models     = 'all',  # biomod.selected.models, {{ species }}
+                      binary.meth         = biomod.binary.meth,
+                      filtered.meth       = biomod.filtered.meth,
+                      #compress            = biomod.compress,
+                      build.clamping.mask = biomod.build.clamping.mask,
+                      silent              = opt.biomod.silent,
+                      do.stack            = opt.biomod.do.stack,
+                      keep.in.memory      = opt.biomod.keep.in.memory,
+                      output.format       = opt.biomod.output.format)
+# output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
+# evaluate model
+ann.loaded.model = BIOMOD_LoadModels(myBiomodModelOut.ann, models="ANN") # load model
+bccvl.saveBIOMODModelEvaluation(ann.loaded.model, myBiomodModelOut.ann)

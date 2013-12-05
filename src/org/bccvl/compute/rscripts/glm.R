@@ -209,25 +209,23 @@ myBiomodModelOut.glm <-
                     #modeling.id = biomod.modeling.id
                     )
 	# model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
-if (!is.null(myBiomodModelOut.glm)) {
-    #save out the model object
-    bccvl.save(myBiomodModelOut.glm, name="model.object.RData")
-    # predict for current climate scenario
-    glm.proj.c <-
-        BIOMOD_Projection(modeling.output=myBiomodModelOut.glm,
-                          new.env=current.climate.scenario,
-                          proj.name           = 'all',  #basename(enviro.data.current), {{ species }}
-                          xy.new.env = biomod.xy.new.env,
-                          selected.models     = 'all',  # biomod.selected.models, {{ species }}
-                          binary.meth = biomod.binary.meth,
-                          filtered.meth = biomod.filtered.meth,
-                          #compress = biomod.compress,
-                          build.clamping.mask = biomod.build.clamping.mask,
-                          silent = opt.biomod.silent,
-                          do.stack = opt.biomod.do.stack,
-                          keep.in.memory = opt.biomod.keep.in.memory,
-                          output.format = opt.biomod.output.format)
-    # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
-    glm.loaded.model = BIOMOD_LoadModels(myBiomodModelOut.glm, models="GLM")
-    bccvl.saveBIOMODModelEvaluation(glm.loaded.model, myBiomodModelOut.glm) 	# save output
-}
+#save out the model object
+bccvl.save(myBiomodModelOut.glm, name="model.object.RData")
+# predict for current climate scenario
+glm.proj.c <-
+    BIOMOD_Projection(modeling.output=myBiomodModelOut.glm,
+                      new.env=current.climate.scenario,
+                      proj.name           = 'all',  #basename(enviro.data.current), {{ species }}
+                      xy.new.env = biomod.xy.new.env,
+                      selected.models     = 'all',  # biomod.selected.models, {{ species }}
+                      binary.meth = biomod.binary.meth,
+                      filtered.meth = biomod.filtered.meth,
+                      #compress = biomod.compress,
+                      build.clamping.mask = biomod.build.clamping.mask,
+                      silent = opt.biomod.silent,
+                      do.stack = opt.biomod.do.stack,
+                      keep.in.memory = opt.biomod.keep.in.memory,
+                      output.format = opt.biomod.output.format)
+# output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
+glm.loaded.model = BIOMOD_LoadModels(myBiomodModelOut.glm, models="GLM")
+bccvl.saveBIOMODModelEvaluation(glm.loaded.model, myBiomodModelOut.glm) 	# save output
