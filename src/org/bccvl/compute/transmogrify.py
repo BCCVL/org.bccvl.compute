@@ -4,7 +4,7 @@ import os.path
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from zope.interface import implementer, provider
-from org.bccvl.site.namespace import BCCPROP, BCCVOCAB
+from org.bccvl.site.namespace import BCCPROP, BCCVOCAB, BIOCLIM
 from gu.plone.rdf.namespace import CVOCAB
 from ordf.graph import Graph
 from ordf.namespace import DC

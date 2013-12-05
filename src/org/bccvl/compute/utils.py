@@ -19,11 +19,9 @@ from datetime import datetime
 from plone.uuid.interfaces import IUUID
 from plone.app.uuid.utils import uuidToObject
 from org.bccvl.site.browser.xmlrpc import getbiolayermetadata
-from rdflib import Namespace
 import json
 from zc.async.job import Job
 from zc.async import local
-from copy import deepcopy
 from plone.app.async.interfaces import IAsyncService
 from plone.app.async.service import job_success_callback, job_failure_callback
 from twisted.python.failure import Failure
@@ -31,8 +29,6 @@ from time import sleep
 from pkg_resources import resource_filename
 import transaction
 import transaction.interfaces
-
-BIOCLIM = Namespace(u'http://namespaces.bccvl.org.au/bioclim#')
 
 import paramiko
 
