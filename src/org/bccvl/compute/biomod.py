@@ -38,11 +38,11 @@ class IParametersBiomod(Interface):
         description=_(u'number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model'),
         default=0,
     )
-    rescale_all_models = schema.Bool(
-        title=_(u'rescale all models'),
-        description=_(u'scale all model prediction with a bionomial GLM?'),
-        default=True,
-    )
+    # rescale_all_models = schema.Bool(
+    #     title=_(u'rescale all models'),
+    #     description=_(u'scale all model prediction with a bionomial GLM?'),
+    #     default=False,
+    # )
     do_full_models = schema.Bool(
         title=_(u'do full models'),
         description=_(u'calibrate & evaluate models with the whole dataset?'),
@@ -70,6 +70,6 @@ def get_biomod_params(param_object):
         #'y_weights': param_object.y_weights,
         'prevalence': param_object.prevalence,
         'var_import': param_object.var_import,
-        'rescale_all_models': param_object.rescale_all_models,
+        'rescale_all_models': False,  # param_object.rescale_all_models,
         'do_full_models': param_object.do_full_models
         }
