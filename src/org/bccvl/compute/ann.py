@@ -2,7 +2,7 @@ from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job
 from pkg_resources import resource_string
 
 from zope.interface import moduleProvides, implementer
-from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
+from z3c.form.object import registerFactoryAdapter  # do this dynamically in site module?
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from decimal import Decimal
@@ -106,14 +106,12 @@ class IParametersANN(IParametersBiomod):
         required=False,
     )
 
-field_property = lambda field_name: FieldProperty(IParametersANN[field_name])
-
 
 @implementer(IParametersANN)
 class ParametersANN(ParametersBiomod):
-    nbcv = field_property('nbcv')
-    rang = field_property('rang')
-    maxit = field_property('maxit')
+    nbcv = FieldProperty(IParametersANN['nbcv'])
+    rang = FieldProperty(IParametersANN['rang'])
+    maxit = FieldProperty(IParametersANN['maxit'])
 
 registerFactoryAdapter(IParametersANN, ParametersANN)
 

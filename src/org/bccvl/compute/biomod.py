@@ -49,17 +49,15 @@ class IParametersBiomod(Interface):
         default=True,
     )
 
-field_property = lambda field_name: FieldProperty(IParametersBiomod[field_name])
-
 
 class ParametersBiomod(Persistent):
-    nb_run_eval = field_property('nb_run_eval')
-    data_split = field_property('data_split')
-#    y_weights = field_property('y_weights')
-    prevalence = field_property('prevalence')
-    var_import = field_property('var_import')
-    rescale_all_models = field_property('rescale_all_models')
-    do_full_models = field_property('do_full_models')
+    nb_run_eval = FieldProperty(IParametersBiomod['nb_run_eval'])
+    data_split = FieldProperty(IParametersBiomod['data_split'])
+    # y_weights = FieldProperty(IParametersBiomod['y_weights'])
+    prevalence = FieldProperty(IParametersBiomod['prevalence'])
+    var_import = FieldProperty(IParametersBiomod['var_import'])
+    #rescale_all_models = FieldProperty(IParametersBiomod['rescale_all_models'])
+    do_full_models = FieldProperty(IParametersBiomod['do_full_models'])
 
 
 def get_biomod_params(param_object):

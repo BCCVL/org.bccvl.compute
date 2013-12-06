@@ -169,19 +169,17 @@ class IParametersGlm(IParametersBiomod):
         required=False,
     )
 
-field_property = lambda field_name: FieldProperty(IParametersGlm[field_name])
-
 
 @implementer(IParametersGlm)
 class ParametersGlm(ParametersBiomod):
-    type = field_property('type')
-    interaction_level = field_property('interaction_level')
-    test = field_property('test')
-    family = field_property('family')
-    mustart = field_property('mustart')
-    control_epsilon = field_property('control_epsilon')
-    control_maxit = field_property('control_maxit')
-    control_trace = field_property('control_trace')
+    type = FieldProperty(IParametersGlm['type'])
+    interaction_level = FieldProperty(IParametersGlm['interaction_level'])
+    test = FieldProperty(IParametersGlm['test'])
+    family = FieldProperty(IParametersGlm['family'])
+    mustart = FieldProperty(IParametersGlm['mustart'])
+    control_epsilon = FieldProperty(IParametersGlm['control_epsilon'])
+    control_maxit = FieldProperty(IParametersGlm['control_maxit'])
+    control_trace = FieldProperty(IParametersGlm['control_trace'])
 
 registerFactoryAdapter(IParametersGlm, ParametersGlm)
 

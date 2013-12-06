@@ -128,17 +128,15 @@ class IParametersCTA(IParametersBiomod):
         default=25,
     )
 
-field_property = lambda field_name: FieldProperty(IParametersCTA[field_name])
-
 
 @implementer(IParametersCTA)
 class ParametersCTA(ParametersBiomod):
-    method = field_property('method')
-    control_xval = field_property('control_xval')
-    control_minbucket = field_property('control_minbucket')
-    control_minsplit = field_property('control_minsplit')
-    control_cp = field_property('control_cp')
-    control_maxdepth = field_property('control_maxdepth')
+    method = FieldProperty(IParametersCTA['method'])
+    control_xval = FieldProperty(IParametersCTA['control_xval'])
+    control_minbucket = FieldProperty(IParametersCTA['control_minbucket'])
+    control_minsplit = FieldProperty(IParametersCTA['control_minsplit'])
+    control_cp = FieldProperty(IParametersCTA['control_cp'])
+    control_maxdepth = FieldProperty(IParametersCTA['control_maxdepth'])
 
 registerFactoryAdapter(IParametersCTA, ParametersCTA)
 
