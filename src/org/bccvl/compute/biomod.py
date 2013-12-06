@@ -71,5 +71,8 @@ def get_biomod_params(param_object):
         'prevalence': param_object.prevalence,
         'var_import': param_object.var_import,
         'rescale_all_models': False,  # param_object.rescale_all_models,
-        'do_full_models': param_object.do_full_models
+        'do_full_models': param_object.do_full_models,
+        'selected_models': 'all',
+        'modeling_id': 'bccvl',
+        'species': 'species',
         }
