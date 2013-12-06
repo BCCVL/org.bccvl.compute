@@ -409,7 +409,7 @@ class WorkEnv(object):
         # R --slave --vanilla -f $in_R --args $in_data $out_data
         # -> Galaxy ... pass parameters as cli params
         # -> XQTL (Molgenis) ... wrap r-script with common init code, and provide special API to access parameters (maybe loaded from file in init wrapper?)
-        cmd = 'nohup /bin/bash --login {} R CMD BATCH --vanilla --slave "{}" "{}" </dev/null >/dev/null 2>&1 &'.format(self.wrapname, self.scriptname, scriptout)
+        cmd = 'nohup /bin/bash --login {} R CMD BATCH --vanilla "{}" "{}" </dev/null >/dev/null 2>&1 &'.format(self.wrapname, self.scriptname, scriptout)
         code, result = self.ssh.run_script(cmd, self.scriptdir)
         LOG.info("Remoe Job started %s", result)
         return result
