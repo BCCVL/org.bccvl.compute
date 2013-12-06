@@ -35,7 +35,8 @@ def guess_mimetype(name, mtr=None):
         # TODO: maybe try mtr(filecontents) to use MTRs mime magic
     if mtype is None:
         mtype = mimetypes.guess_type(name)
-        # TODO: add mime magic here https://github.com/ahupp/python-magic/blob/master/magic.py
+        # TODO: add mime magic here
+        # https://github.com/ahupp/python-magic/blob/master/magic.py
         if mtype is not (None, None):
             return mtype[0]
     return 'application/octet-stream'
@@ -58,6 +59,11 @@ def get_data_genre(fname):
     return None, None
 
 
+def addLayerInfo(graph, experiment):
+    for layer in experiment.environmental_layers.keys():
+        graph.add((graph.identifier, BIOCLIM['bioclimVariable'], layer))
+
+
 @provider(ISectionBlueprint)
 @implementer(ISection)
 class ResultSource(object):
@@ -71,7 +77,8 @@ class ResultSource(object):
 
         self.path = options['path'].strip()
         if self.path is None or not os.path.isdir(self.path):
-            raise Exception('Directory ({}) does not exists.'.format(str(self.path)))
+            raise Exception(
+                'Directory ({}) does not exists.'.format(str(self.path)))
 
         # add path prefix to imported content
         self.prefix = options.get('prefix', '').strip().strip(os.sep)
@@ -95,6 +102,8 @@ class ResultSource(object):
         rdf.add((rdf.identifier, RDF['type'], CVOCAB['Dataset']))
         if genre is not None:
             rdf.add((rdf.identifier, BCCPROP['datagenre'], genre))
+            if genre == BCCVOCAB['DataGenreSD']:
+                addLayerInfo(rdf, self.context)
         if format is not None:
             rdf.add((rdf.identifier, BCCPROP['format'], format))
 
@@ -107,20 +116,20 @@ class ResultSource(object):
                 'file': name,
                 'contentype': mimetype,
                 'filename': name
-                },
+            },
             '_rdf': {
                 'file': 'rdf.ttl',
                 'contenttype': 'text/turtle',
-                },
+            },
             '_files': {
                 name: {
                     'data': open(fname).read()
                 },
                 'rdf.ttl': {
                     'data': rdf.serialize(format='turtle')
-                    }
                 }
             }
+        }
 
     def __iter__(self):
         # exhaust previous iterator
