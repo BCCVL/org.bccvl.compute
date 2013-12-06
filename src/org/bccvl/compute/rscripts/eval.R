@@ -541,12 +541,12 @@ bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
 bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     # get and save the model evaluation statistics
     # EMG these must specified during model creation with the arg "models.eval.meth"
-    evaluation = getModelsEvaluations(biomod.model)
+    evaluation = get_evaluations(biomod.model)
     bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.txt")
 
     # get the model predictions and observed values
-    predictions = getModelsPrediction(biomod.model)
-    obs = getModelsInputData(biomod.model, "resp.var");
+    predictions = get_predictions(biomod.model, eval_data=FALSE)
+    obs = get_predictions(biomod.model, "resp.var");
 
     # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
     combined.eval = sapply(model.accuracy, function(x){
@@ -564,7 +564,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     dev.off()
 
     # get and save the variable importance estimates
-    variableImpt = getModelsVarImport(biomod.model)
+    variableImpt = get_variables_importance(biomod.model)
     if (!is.na(variableImpt)) {
     #EMG Note this will throw a warning message if variables (array) are returned
         bccvl.write.csv(variableImpt, name="variableImportance.txt")
@@ -576,8 +576,9 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     # save response curves (Elith et al 2005)
     png(file=file.path(bccvl.params$outputdir, "mean_response_curves.png"))
     test <- response.plot2(models = loaded.name,
-                           Data = getModelsInputData(biomod.model,"expl.var"),
-                           show.variables = getModelsInputData(biomod.model,"expl.var.names"), fixed.var.metric = "mean")
+                           Data = get_predictions(biomod.model,"expl.var"),
+                           show.variables = get_predictions(biomod.model,"expl.var.names"),
+                           fixed.var.metric = "mean")
      #, data_species = getModelsInputData(biomod.model,"resp.var"))
      # EMG need to investigate why you would want to use this option - uses presence data only
     dev.off()
