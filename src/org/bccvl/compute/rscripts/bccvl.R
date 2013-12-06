@@ -12,7 +12,7 @@ options(repos=r)
 
 #script to run to develop distribution models
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("rjson", "dismo","SDMTools", "gbm", "rgdal", "pROC", "R2HTML", "png", "biomod2") #list the libraries needed
+necessary=c("tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "pROC", "R2HTML", "png", "biomod2") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -62,10 +62,24 @@ bccvl.write.csv <- function(robj, name, outputdir=bccvl.params$outputdir) {
 }
 
 # function to get model object
-bccvl.getModelObject <- function(model.name, inputdir=bccvl.params$inputdir) {
-    filename = file.path(inputdir, paste(model.name, '.RData', sep=""))
-    model.obj = tryCatch(get(load(file=filename)), error = err.null)
-    return (model.obj)
+bccvl.getModelObject <- function(model.file=bccvl.params$inputmodel) {
+    return (get(load(file=model.file)))
+}
+
+# convert all .gri/.grd found in folder to gtiff
+bccvl.grdtogtiff <- function(folder) {
+    grdfiles <- list.files(path=folder,
+                           pattern="^.*\\.gri")
+    for (grdfile in grdfiles) {
+        # get grid file name
+        grdfile <- file_path_sans_ext(grdfile)
+        # read grid raster
+        grd <- raster(file.path(folder,grdfile))
+        # write raster as geotiff
+        bccvl.saveModelProjection(grd, grdfile, folder)
+        # remove grd files
+        #file.remove(file.path(folder, paste(grdfile, c("grd","gri"), sep=".")))
+    }
 }
 
 ############################################################
@@ -78,7 +92,7 @@ bccvl.getModelObject <- function(model.name, inputdir=bccvl.params$inputdir) {
 # model are the same as the ones used to create the model object
 #    model.obj     ... model to project
 #    climatelayers ... climate data to project onto
-bccvl.checkModelLayers = function(model.obj, climatelayers) {
+bccvl.checkModelLayers <- function(model.obj, climatelayers) {
     message("Checking environmental layers used for projection")
     # get the names of the environmental layers from the original model
     if (inherits(model.obj, "DistModel")) {

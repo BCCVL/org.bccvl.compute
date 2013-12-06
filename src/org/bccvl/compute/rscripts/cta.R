@@ -40,9 +40,11 @@ biomod.VarImport = bccvl.params$var_import # default 0; number of resampling of 
 biomod.models.eval.meth = c("KAPPA", "TSS", "ROC" ,"FAR", "SR", "ACCURACY", "BIAS", "POD", "CSI", "ETS") #vector of evaluation metrics
 biomod.rescal.all.models = bccvl.params$rescale_all_models #if true, all model prediction will be scaled with a binomial GLM
 biomod.do.full.models = bccvl.params$do_full_models #if true, models calibrated and evaluated with the whole dataset are done; ignored if DataSplitTable is filled
-biomod.modeling.id = bccvl.params$species  #character, the ID (=name) of modeling procedure. A random number by default
+biomod.modeling.id = bccvl.params$modeling_id # bccvl.params$species  #character, the ID (=name) of modeling procedure. A random number by default
 # biomod.DataSplitTable = NULL #a matrix, data.frame or a 3D array filled with TRUE/FALSE to specify which part of data must be used for models calibration (TRUE) and for models validation (FALSE). Each column correspund to a "RUN". If filled, args NbRunEval, DataSplit and do.full.models will be ignored
 # EMG Need to test whether a NULL values counts as an argument
+biomod.species.name = bccvl.params$species # used for various path and file name generation
+projection.name = "current"  #basename(enviro.data.current)
 
 # model-specific arguments to create a biomod model
 cta.BiomodOptions <- list(
@@ -66,7 +68,7 @@ cta.BiomodOptions <- list(
 #new.env #a set of explanatory variables onto which models will be projected; must match variable names used to build the models
 #proj.name #a character defining the projection name (a new folder will be created with this name)
 biomod.xy.new.env = NULL #optional coordinates of new.env data. Ignored if new.env is a rasterStack
-#biomod.selected.models = "{{ species }}"'all' #'all' when all models have to be used to render projections or a subset vector of modeling.output models computed (eg, = grep('RF', getModelsBuiltModels(myBiomodModelOut)))
+biomod.selected.models = bccvl.params$selected_models #'all' when all models have to be used to render projections or a subset vector of modeling.output models computed (eg, = grep('RF', getModelsBuiltModels(myBiomodModelOut)))
 # EMG If running one model at a time, this parameter becomes irrevelant
 biomod.binary.meth = NULL #a vector of a subset of models evaluation method computed in model creation
 biomod.filtered.meth = NULL #a vector of a subset of models evaluation method computed in model creation
@@ -140,7 +142,7 @@ formatBiomodData = function() {
         BIOMOD_FormatingData(resp.var =  biomod.data.pa,
                              expl.var  = stack(current.climate.scenario),
                              resp.xy   = biomod.data,
-                             resp.name = 'all')  # TODO: resp.name -> species name
+                             resp.name = biomod.species.name)
     return(myBiomodData)
 }
 
@@ -208,7 +210,7 @@ myBiomodModelOut.cta <-
                     SaveObj = TRUE,
                     rescal.all.models = biomod.rescal.all.models,
                     do.full.models = biomod.do.full.models,
-                    #modeling.id = biomod.modeling.id
+                    modeling.id = biomod.modeling.id
                     )
 #save out the model object
 bccvl.save(myBiomodModelOut.cta, name="model.object.RData")
@@ -216,9 +218,9 @@ bccvl.save(myBiomodModelOut.cta, name="model.object.RData")
 cta.proj.c <-
     BIOMOD_Projection(modeling.output=myBiomodModelOut.cta,
                       new.env=current.climate.scenario,
-                      proj.name= 'all', #basename(enviro.data.current), {{ species }}
+                      proj.name= projection.name,
                       xy.new.env = biomod.xy.new.env,
-                      selected.models = 'all', # biomod.selected.models, {{ species }}
+                      selected.models = biomod.selected.models,
                       binary.meth = biomod.binary.meth,
                       filtered.meth = biomod.filtered.meth,
                       #compress = biomod.compress,
@@ -227,6 +229,12 @@ cta.proj.c <-
                       do.stack = opt.biomod.do.stack,
                       keep.in.memory = opt.biomod.keep.in.memory,
                       output.format = opt.biomod.output.format)
+# convert projection output from grd to gtiff
+bccvl.grdtogtiff(file.path(getwd(),
+                           biomod.species.name,
+                           paste("proj", projection.name, sep="_")))
+
+
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
 cta.loaded.model = BIOMOD_LoadModels(myBiomodModelOut.cta, models="CTA") # load model
 bccvl.saveBIOMODModelEvaluation(cta.loaded.model, myBiomodModelOut.cta) 	# save output

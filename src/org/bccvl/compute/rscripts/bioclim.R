@@ -29,6 +29,7 @@ enviro.data.type = bccvl.params$enviro$type
 #additional parameters for projecting bioclim
 opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right tail of the percentile distribution ("both", "low", "high"
 opt.ext = NULL #an optional extent object to limit the prediction to a sub-region of 'x'
+projection.name = "current"
 
 
 # model accuracy statistics
@@ -82,7 +83,7 @@ if (!all(enviro.data.type=="continuous")) {
     # predict for given climate scenario
     bioclim.proj = predict(bc, current.climate.scenario, tails=opt.tails)
     # save output
-    bccvl.saveModelProjection(bioclim.proj, "current")
+    bccvl.saveModelProjection(bioclim.proj, projection.name)
     # evaluate model
     if (!is.null(bkgd)) {
         bccvl.evaluate.model('bioclim', bc, occur, bkgd)

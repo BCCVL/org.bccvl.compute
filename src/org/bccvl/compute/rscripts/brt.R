@@ -48,6 +48,7 @@ brt.silent = FALSE #Logical. to allow running with no output for simplifying mod
 brt.keep.fold.models = FALSE #Logical. keep the fold models from cross valiation
 brt.keep.fold.vector = FALSE #Logical. allows the vector defining fold membership to be kept
 brt.keep.fold.fit = FALSE #Logical. allows the predicted values for observations from cross-validation to be kept
+projection.name = "current"
 
 # model accuracy statistics
 # these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R
@@ -164,6 +165,6 @@ bccvl.save(brt, "model.object.RData")
 # the function is defined outside of the dismo package
 # predict for CURRENT climate scenario
 brt.proj = predict(current.climate.scenario, brt, n.trees=brt$gbm.call$best.trees, type="response")
-bccvl.saveModelProjection(brt.proj, "current")
+bccvl.saveModelProjection(brt.proj, projection.name)
 # evaluate model
 bccvl.evaluate.model('brt', brt, occur, bkgd)
