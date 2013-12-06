@@ -1,46 +1,88 @@
-###############
-#
-# predict(object, x, ext=NULL, filename="", progress='text', ...)
-#
-# object A fitted model of class Bioclim, Domain, MaxEnt, ConvexHull, or Mahalanobis (classes that inherit from DistModel)
-# x A Raster* object or a data.frame
-# ext An extent object to limit the prediction to a sub-region of 'x'. Or an object that can be coerced to an Extent object by extent; such as a Raster* or Spatial* object
-# filename Output filename for a new raster; if NA the result is not written to a file but returned with the RasterLayer object, in the data slot
-# progress Character. Valid values are "" (no progress bar), "text" and "windows" (on that platform only)
-# ... Additional model specific arguments. And additional arguments for file writing as for writeRaster
-#
-# For maxent models, there is an additional argument 'args' used to pass arguments (options) to the maxent software.
-# For bioclim models, there is an additional argument 'tails' which you can use to ignore the left or right tail of the percentile distribution for a variable.
-# For geoDist models, there is an additional argument fun that allows you to use your own (inverse) distance function, and argument scale=1 that allows you to scale
-# the values (distances smaller than this value become one, and the others are divided by this value before computing the inverse distance).
-# For spatial predictions with BRT, randomForest, etc., see 'predict' in the Raster package
-#
-###############
 
+# bccvl.params$future$data ... list of file names with climate variables
+# bccvl.params$inputmodel ... sdm model
+# bccvl.params$inputdir ... folder with all input data
+# bccvl.params$outputdir ... folder to store output files
 
+# dismo:
+#   bccvl.params$tails ... predict (tails)
+# biomod:
+#   bccvl.params$species ... used to generate output files and folders
+#   bccvl.params$selected_models ... which models to use
+#   bccvl.params$compress ... not used
 
+# dismo places outputfiles in outputdir
+# biomod places outputfiles in subfolders in outputdir
 
+projection.name <- "future"
 
-###project the models onto FUTURE climate and save raster files
-if (project.bioclim) {
-    bioclim.obj = getModelObject("bioclim")	# get the model object
-    if (!is.null(bioclim.obj)) {
-        bioclim.proj = predict(bioclim.obj, future.climate.scenario, tails=opt.tails)	# predict for given climate scenario
-        saveModelProjection(bioclim.proj, "bioclim", "future") # save output
-    } else {
-        write(paste("FAIL!", species, "Cannot load bioclim.obj from", wd, "output_bioclim", sep=": "), stdout())
-    }
-} # end if bioclim
+future.climate.scenario <- stack(bccvl.params$future$data)
 
+# load model
+model.obj <- bccvl.getModelObject(bccvl.params$inputmodel)
 
-if (project.brt) {
-    brt.obj = getModelObject("brt") # get the model object
-    if (!is.null(brt.obj)) {
-        # NOTE the order of arguments in the predict function for brt; this is because
-        # the function is defined outside of the dismo package
-        brt.proj = predict(future.climate.scenario, brt.obj, n.trees=brt.obj$gbm.call$best.trees, type="response") # predict for given climate scenario
-        saveModelProjection(brt.proj, "brt", "future") # save output
-    } else {
-        write(paste("FAIL!", species, "Cannot load brt.obj from", wd, "output_brt", sep=": "), stdout())
-    }
+# filter out unused layers from future.climate.scenario
+predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario)
+
+# do projection
+if (inherits(model.obj, "DistModel")) {
+    # dismo package
+    opt.tails <- bccvl.params$tails
+    opt.ext <- NULL
+    model.proj <- predict(model.obj,
+                          predictors,
+                          tails=opt.tails,
+                          ext=opt.ext)
+    bccvl.saveModelProjection(model.proj, projection.name)
+} else if (inherits(model.obj, "gbm")) {
+    # brt package)
+    model.proj <- predict(predictors,
+                          model.obj,
+                          n.trees=model.obj$gbm.call$best.trees,
+                          type="response")
+    bccvl.saveModelProjection(model.proj, projection.name)
+} else if (inherits(model.obj, "BIOMOD.models.out")) {
+    # expect additional model data in input folder.
+    # for biomod to find it we'll have to change wd
+    setwd(bccvl.params$inputdir) # TODO: get foldername from bccvl.params$inputmodel
+
+    biomod.xy.new.env <- NULL
+    biomod.selected.models <- bccvl.params$selected_models
+    biomod.binary.meth <- NULL
+    biomod.filtered.meth <- NULL
+    biomod.compress <- bccvl.params$compress
+    biomod.build.clamping.mask <- TRUE
+    biomod.species.name <- bccvl.params$species
+    opt.biomod.silent <- FALSE
+    opt.biomod.do.stack <- TRUE
+    opt.biomod.keep.in.memory <- TRUE
+    opt.biomod.output.format <- NULL
+
+    model.proj <- BIOMOD_Projection(modeling.output=model.obj,
+                                    new.env=predictors,
+                                    proj.name=projection.name,
+                                    xy.new.env=biomod.xy.new.env,
+                                    selected.models=biomod.selected.models,
+                                    binary.meth=biomod.binary.meth,
+                                    filtered.meth=biomod.filtered.meth,
+                                    # compress=biomod.compress, # .. Null not accepted
+                                    build.clamping.mask=biomod.build.clamping.mask,
+                                    silent=opt.biomod.silent,
+                                    do.stack=opt.biomod.do.stack,
+                                    keep.in.memory=opt.biomod.keep.in.memory,
+                                    output.format=opt.biomod.output.format)
+    # save projection to output folder
+    # move proj_folder
+    projinput <- file.path(getwd(),
+                           biomod.species.name,
+                           paste("proj", projection.name, sep="_"))
+    projoutput <- file.path(bccvl.params$outputdir,
+                            biomod.species.name,
+                            paste("proj", projection.name, sep="_"))
+    # create top level dir
+    dir.create(file.path(bccvl.params$outputdir, biomod.species.name))
+    # move proj_future folder to output folder
+    file.rename(projinput, projoutput)
+    # convert grd files to tif
+    bccvl.grdtogtiff(projoutput)
 }
