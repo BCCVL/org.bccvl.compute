@@ -320,7 +320,7 @@ class WorkEnv(object):
                     'path': destname}
             self.move_data('output', src, dest, uuid=None)
 
-    def import_output(self, experiment, jobid):
+    def import_output(self, experiment, jobid, OUTPUTS):
         # create result container which will be context for transmogrify import
         # TODO: maybe use rfc822 date format?
         title = u'%s - %s %s' % (experiment.title, jobid, datetime.now().isoformat())
@@ -352,7 +352,8 @@ class WorkEnv(object):
                 ds.REQUEST = request
                 transmogrifier = Transmogrifier(ds)
                 transmogrifier(u'org.bccvl.compute.resultimport',
-                              resultsource={'path': self.tmpimport})
+                              resultsource={'path': self.tmpimport,
+                                            'outputmap': OUTPUTS})
                 # cleanup fake request
                 del ds.REQUEST
                 transaction.commit()
@@ -475,7 +476,7 @@ def create_workenv(experimentinfo, env, script, params):
         #env.close()
 
 
-def get_outputs(context, jobid, env):
+def get_outputs(context, jobid, env, OUTPUTS):
     # TODO: result of previous job might be a zc.twist.Failure
     try:
         #LOG.info("getting outputs for %s", env.workdir)
@@ -483,7 +484,7 @@ def get_outputs(context, jobid, env):
         env.wait_for_data_mover()
         transaction.commit()  # start fresh
         transaction.begin()   # and sync state
-        env.import_output(context, jobid)
+        env.import_output(context, jobid, OUTPUTS)
         transaction.commit()  # does this help?
         return env
     except Exception as e:
@@ -580,7 +581,7 @@ def getExperimentInfo(experiment):
     return datasets
 
 
-def job_run(context, experimentinfo, jobid, env, script, params):
+def job_run(context, experimentinfo, jobid, env, script, params, OUTPUTS):
     endstate = 'Failed'
     try:
         status = local.getLiveAnnotation('bccvl.status')
@@ -596,7 +597,7 @@ def job_run(context, experimentinfo, jobid, env, script, params):
         # local.setLiveAnnotation('bccvl.status', status, job=main_job)
         status['task'] = 'Retrieving'
         local.setLiveAnnotation('bccvl.status', status)
-        get_outputs(context, jobid, env)
+        get_outputs(context, jobid, env, OUTPUTS)
         endstate = 'Completed'
     except Exception as e:
         # TODO: set job status and return value
@@ -618,14 +619,14 @@ def job_run(context, experimentinfo, jobid, env, script, params):
 #     queue = queues[queue_name]
 #     return queue.put(job)
 
-def queue_job(experiment, jobid, env, script, params):
+def queue_job(experiment, jobid, env, script, params, OUTPUTS):
     try:
         async = getUtility(IAsyncService)
         queues = async.getQueues()
 
         experimentinfo = getExperimentInfo(experiment)
 
-        run_job = async.wrapJob((job_run, experiment, (experimentinfo, jobid, env, script, params), {}))
+        run_job = async.wrapJob((job_run, experiment, (experimentinfo, jobid, env, script, params, OUTPUTS), {}))
         run_job.jobid = jobid
         run_job.quota_names = ('default', )
         run_job.annotations['bccvl.status'] = {
@@ -638,6 +639,8 @@ def queue_job(experiment, jobid, env, script, params):
             if 'main' in dispagent:
                 dispagent['main'].size = 2
         return queue.put(run_job)
+
+
 
         # Twisted worker needs sepcial agent in plone and twisted worker
         run_job = Job(job_run, experimentinfo, env, script, params)

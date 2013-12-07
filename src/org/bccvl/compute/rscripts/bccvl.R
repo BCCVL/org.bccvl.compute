@@ -78,7 +78,7 @@ bccvl.grdtogtiff <- function(folder) {
         # write raster as geotiff
         bccvl.saveModelProjection(grd, grdfile, folder)
         # remove grd files
-        #file.remove(file.path(folder, paste(grdfile, c("grd","gri"), sep=".")))
+        file.remove(file.path(folder, paste(grdfile, c("grd","gri"), sep=".")))
     }
 }
 

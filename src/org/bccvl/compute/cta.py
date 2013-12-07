@@ -7,41 +7,17 @@ from z3c.form.object import registerFactoryAdapter # do this dynamically in site
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from decimal import Decimal
-from .biomod import IParametersBiomod, ParametersBiomod, get_biomod_params
+from .biomod import (IParametersBiomod,
+                     ParametersBiomod,
+                     get_biomod_params,
+                     BIOMOD_OUTPUTS)
 from .interfaces import IComputeFunction
 
 from org.bccvl.compute import MessageFactory as _
 
+OUTPUTS = BIOMOD_OUTPUTS
+
 moduleProvides(IComputeFunction)
-
-
-OUTPUTS = {
-    'files': {
-        '*.txt': {
-            'title': '',
-            'type': 'eval'},
-        '*_response_curves.png': {
-            'title': '',
-            'type': '???'},
-        '*.csv': {
-            'title': '',
-            'type': 'csv', },
-        'model.object.RData': {
-            'title': '',
-            'type': 'RData', },
-        'pROC.png': {
-            'title': '',
-            'type': '???', },
-        'sdm.Rout': {
-            'title': '',
-            'type': 'html'},
-        },
-    'archives': {
-        'all.zip': {
-            'files': ['all/*'],
-            'type': 'report'},
-        },
-    }
 
 
 def get_cta_params(experiment):
@@ -83,9 +59,9 @@ def execute(experiment, request=None, workenv=WorkEnv):
 
     """
     env = workenv('localhost', request)
-    params =  get_cta_params(experiment)
+    params = get_cta_params(experiment)
     script = generate_sdm_script()
-    return queue_job(experiment, 'CTA', env, script, params)
+    return queue_job(experiment, 'CTA', env, script, params, OUTPUTS)
 
 ## Parameters
 

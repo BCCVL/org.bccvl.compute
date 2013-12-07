@@ -7,44 +7,17 @@ from z3c.form.object import registerFactoryAdapter # do this dynamically in site
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from decimal import Decimal
-from .biomod import IParametersBiomod, ParametersBiomod, get_biomod_params
+from .biomod import (IParametersBiomod,
+                     ParametersBiomod,
+                     get_biomod_params,
+                     BIOMOD_OUTPUTS)
 from .interfaces import IComputeFunction
 
 from org.bccvl.compute import MessageFactory as _
 
+OUTPUTS = BIOMOD_OUTPUTS
+
 moduleProvides(IComputeFunction)
-
-
-OUTPUTS = {
-    'files': {
-        'biomod2.modelEvaluation.txt': {
-            'title': '',
-            'type': 'eval'},  # Model evaluation statistics
-        'variableImportance.txt': {
-            'title': '',
-            'type': 'eval'},  # variable importance estimates
-        '*_response_curves.png': {
-            'title': '',
-            'type': '???'}, # Marginal (mean) response curves per variable
-        '*.csv': {
-            'title': '',
-            'type': 'csv', }, # Model accuracy statistics
-        'model.object.RData': {
-            'title': '',
-            'type': 'RData', }, # biomod2 model ojebct
-        'pROC.png': {
-            'title': '',
-            'type': '???', }, # Area Under the Receiver Operating Characteristic Curve
-        'sdm.Rout': {
-            'title': '',
-            'type': 'html'}, # Log file
-        },
-    'archives': {
-        'all.zip': {
-            'files': ['all/*'],
-            'type': 'report'}, # all/*?????
-        },
-    }
 
 
 def get_glm_params(experiment):
@@ -88,9 +61,9 @@ def execute(experiment, request=None, workenv=WorkEnv):
 
     """
     env = workenv('localhost', request)
-    params =  get_glm_params(experiment)
+    params = get_glm_params(experiment)
     script = generate_sdm_script()
-    return queue_job(experiment, 'GLM', env, script, params)
+    return queue_job(experiment, 'GLM', env, script, params, OUTPUTS)
 
 ## parameters
 

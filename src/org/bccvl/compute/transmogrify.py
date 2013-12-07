@@ -1,6 +1,7 @@
 from datetime import datetime
 import mimetypes
 import os.path
+import glob
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from zope.interface import implementer, provider
@@ -12,6 +13,7 @@ from rdflib import RDF, URIRef, Literal
 from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
 from Products.CMFCore.utils import getToolByName
+from zipfile import ZipFile, ZIP_DEFLATED
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -42,21 +44,24 @@ def guess_mimetype(name, mtr=None):
     return 'application/octet-stream'
 
 
-def get_data_genre(fname):
-    fname = fname.lower()
-    if fname.endswith('.rdata'):
-        if 'eval' in fname:
-            return BCCVOCAB['DataGenreSDMEval'], BCCVOCAB['DataSetFormatRDATA']
-        return BCCVOCAB['DataGenreSD'], BCCVOCAB['DataSetFormatRDATA']
-    if fname.endswith('.csv'):
-        return BCCVOCAB['DataGenreSDMEval'], BCCVOCAB['DataSetFormatCSV']
-    if fname.endswith('.tif'):
-        return BCCVOCAB['DataGenreFP'], BCCVOCAB['DataSetFormatGTiff']
-    if fname.endswith('.rout'):
-        return BCCVOCAB['DataGenreLog'], BCCVOCAB['DataSetFormatText']
-    if fname.endswith('.png'):
-        return BCCVOCAB['DataGenreSDMEval'], BCCVOCAB['DataSetFormatPNG']
-    return None, None
+GENRE_MAP = {
+    None: BCCVOCAB['DataGenreUnknown'],
+    'eval':  BCCVOCAB['DataGenreSDMEval'],
+    'model':  BCCVOCAB['DataGenreSD'],
+    'log':  BCCVOCAB['DataGenreLog'],
+    'projection': BCCVOCAB['DataGenreFP']}
+
+# TODO: replace BCCVOCAB with something standard (NFO? mime type onto?)
+FORMAT_MAP = {
+    None: BCCVOCAB['DataSetFormatUnknown'],
+    'RData': BCCVOCAB['DataSetFormatRDATA'],
+    'csv': BCCVOCAB['DataSetFormatCSV'],
+    'GTiff': BCCVOCAB['DataSetFormatGTiff'],
+    'txt': BCCVOCAB['DataSetFormatText'],
+    'html': BCCVOCAB['DataSetFormatHTML'],
+    'png': BCCVOCAB['DataSetFormatPNG'],
+    'zip': BCCVOCAB['DataSetFormatZIP'], # need a way to describe contained data (if e.g. biomod sdm where everything is RData, or layers with all GTiff, asc(gz), ...)
+}
 
 
 def addLayerInfo(graph, experiment):
@@ -74,6 +79,7 @@ class ResultSource(object):
         self.name = name
         self.options = options
         self.previous = previous
+        self.outputmap = options.get('outputmap')
 
         self.path = options['path'].strip()
         if self.path is None or not os.path.isdir(self.path):
@@ -86,8 +92,9 @@ class ResultSource(object):
         self.pathkey = options.get('path-key', '_path').strip()
         self.fileskey = options.get('files-key', '_files').strip()
 
-    def createItem(self, fname):
+    def createItem(self, fname, info):
         # fname: full path to file
+        # info: 'title', 'type'
         name = os.path.basename(fname)
         mtr = getToolByName(self.context, 'mimetypes_registry')
         normalizer = getUtility(IFileNameNormalizer)
@@ -95,17 +102,22 @@ class ResultSource(object):
         mimetype = guess_mimetype(fname, mtr)
         datasetid = normalizer.normalize(name)
 
-        genre, format = get_data_genre(name)
+        # genre, format = get_data_genre(name)
 
         rdf = Graph()
         rdf.add((rdf.identifier, DC['title'], Literal(name)))
         rdf.add((rdf.identifier, RDF['type'], CVOCAB['Dataset']))
-        if genre is not None:
-            rdf.add((rdf.identifier, BCCPROP['datagenre'], genre))
-            if genre == BCCVOCAB['DataGenreSD']:
+        genre = info.get('type', None)
+        if genre:
+            genreuri = GENRE_MAP.get(genre, None)
+            if genreuri:
+                rdf.add((rdf.identifier, BCCPROP['datagenre'],
+                         genreuri))
+            if genreuri == BCCVOCAB['DataGenreSD']:
                 addLayerInfo(rdf, self.context)
+        format = info.get('format', None)
         if format is not None:
-            rdf.add((rdf.identifier, BCCPROP['format'], format))
+            rdf.add((rdf.identifier, BCCPROP['format'], FORMAT_MAP[format]))
 
         LOG.info("Ingest item: %s, %s", datasetid, name)
         return {
@@ -136,12 +148,38 @@ class ResultSource(object):
         for item in self.previous:
             yield item
 
-        # start our own source
+        # build list of available files
+        filelist = set()
         for root, dirs, files in os.walk(self.path):
-            # use: del dirs['name'] to avoid traversing through subdir 'name'
-            # root is always full path underneath self.path
-            LOG.info("check file names: %s", ", ".join(files))
             for name in files:
-                fname = os.path.join(self.path, root, name)
-                item = self.createItem(fname)
+                filelist.add(os.path.join(self.path, root, name))
+
+        # import defined files:
+        for fileglob, filedef in self.outputmap['files'].items():
+            for fname in glob.glob(os.path.join(self.path, fileglob)):
+                item = self.createItem(fname, filedef)
                 yield item
+                filelist.discard(fname)
+
+        # import archives
+        for archname, archdef in self.outputmap['archives'].items():
+            # create archive
+            farchname = os.path.join(self.path, archname)
+            with ZipFile(farchname, 'w', ZIP_DEFLATED) as zipf:
+                for fileglob in archdef['files']:
+                    absglob = os.path.join(self.path, fileglob)
+                    for fname in glob.glob(absglob):
+                        zipf.write(fname, os.path.relpath(fname, self.path))
+                        # discard all archived file from filelist
+                        filelist.discard(fname)
+            # create item of archive
+            item = self.createItem(farchname, archdef)
+            yield item
+
+        # still something left?
+        LOG.info("check file names: %s", ", ".join(files))
+        for fname in filelist:
+            LOG.info("Importing undefined item %s", fname)
+            item = self.createItem(fname, {})
+            # TODO: what output info do I want here?
+            yield item

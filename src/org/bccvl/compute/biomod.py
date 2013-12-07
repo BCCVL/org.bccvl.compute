@@ -8,6 +8,42 @@ from zope.schema.fieldproperty import FieldProperty
 
 from org.bccvl.compute import MessageFactory as _
 
+BIOMOD_OUTPUTS = {
+    'files': {
+        'sdm.Rout': {
+            'title': 'Log file',
+            'type': 'log',
+            'format': 'txt',
+        },
+        '*.txt': {
+            'title': 'Model Evaluation',
+            'type': 'eval',
+            'format': 'txt',
+        },
+        'species/proj_current/proj_current_ClampingMask.tif': {
+            'title': 'Clamping Mask',
+            'type': 'projection',
+            'format': 'GTiff',
+        },
+        'species/proj_current/proj_current_species.tif': {
+            'title': 'Projection to current',
+            'type': 'projection',
+            'format': 'GTiff',
+        },
+    },
+    'archives': {
+        'model.object.RData.zip': {
+            'files': ['model.object.RData',
+                      'species/.BIOMOD_DATA/bccvl/*',
+                      'species/models/bccvl/*',
+                      ],
+            'title': 'R SDM Model object',
+            'type': 'model',
+            'format': 'zip',
+        },
+    },
+}
+
 
 biomod_prevalance_vocab = SimpleVocabulary.fromValues([
     None, 0, 1

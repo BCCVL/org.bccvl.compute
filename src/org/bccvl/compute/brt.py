@@ -14,38 +14,8 @@ from org.bccvl.compute import MessageFactory as _
 
 moduleProvides(IComputeFunction)
 
-
-OUTPUTS = {
-    'files': {
-        'AUC.png': {
-            'title': 'AUC.png',
-            'type': '???'},
-        '*.csv': {
-            'title': '',
-            'type': 'csv', },
-        'dismo.eval.object.RData': {
-            'title': '',
-            'type': 'RData', },
-        'model.object.RData': {
-            'title': '',
-            'type': 'RData', },
-        'results.html': {
-            'title': '',
-            'type': 'html', },
-        'sdm.Rout': {
-            'title': '',
-            'type': 'html'},
-        'current.tif': {
-            'title': '',
-            'type': 'GEOTiff',
-            },
-        },
-    'archives': {
-        'results.html.zip': {
-            'files': ['results.html', 'AUC.png'],
-            'type': 'report'},
-        },
-    }
+from .bioclim import DISMO_OUTPUTS
+OUTPUTS = DISMO_OUTPUTS
 
 
 def get_brt_params(experiment):
@@ -92,7 +62,7 @@ def execute(experiment, request=None, workenv=WorkEnv):
     env = workenv('localhost', request)
     params = get_brt_params(experiment)
     script = generate_sdm_script()
-    return queue_job(experiment, 'BRT', env, script, params)
+    return queue_job(experiment, 'BRT', env, script, params, OUTPUTS)
 
 
 ## Parameters

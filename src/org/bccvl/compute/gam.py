@@ -8,8 +8,13 @@ from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from decimal import Decimal
 from .interfaces import IComputeFunction
-from .biomod import get_biomod_params
+from .biomod import (IParametersBiomod,
+                     ParametersBiomod,
+                     get_biomod_params,
+                     BIOMOD_OUTPUTS)
 from org.bccvl.compute import MessageFactory as _
+
+OUTPUTS = BIOMOD_OUTPUTS
 
 moduleProvides(IComputeFunction)
 
@@ -57,7 +62,7 @@ def execute(experiment, request=None, workenv=WorkEnv):
     env = workenv('localhost', request)
     params = get_gam_params(experiment)
     script = generate_sdm_script()
-    return queue_job(experiment, 'GAM', env, script, params)
+    return queue_job(experiment, 'GAM', env, script, params, OUTPUTS)
 
 ## parameters
 
@@ -85,7 +90,7 @@ glm_family_vocab = SimpleVocabulary.fromValues([
 ])
 
 
-class IParametersGlm(Interface):
+class IParametersGlm(IParametersBiomod):
     type = schema.Choice(
         title=_(u'type'),
         default='quadratic',
@@ -137,7 +142,7 @@ class IParametersGlm(Interface):
 
 
 @implementer(IParametersGlm)
-class ParametersGlm(object):
+class ParametersGlm(ParametersBiomod):
     type = FieldProperty(IParametersGlm['type'])
     interaction_level = FieldProperty(IParametersGlm['interaction_level'])
     test = FieldProperty(IParametersGlm['test'])
