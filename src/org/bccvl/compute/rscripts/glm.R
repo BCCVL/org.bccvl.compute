@@ -69,7 +69,7 @@ glm.BiomodOptions <- list(
 #new.env #a set of explanatory variables onto which models will be projected; must match variable names used to build the models
 #proj.name #a character defining the projection name (a new folder will be created with this name)
 biomod.xy.new.env = NULL #optional coordinates of new.env data. Ignored if new.env is a rasterStack
-#biomod.selected.models = "{{ species }}"'all' #'all' when all models have to be used to render projections or a subset vector of modeling.output models computed (eg, = grep('_RF', getModelsBuiltModels(myBiomodModelOut)))
+biomod.selected.models = bccvl.params$selcted_models #'all' when all models have to be used to render projections or a subset vector of modeling.output models computed (eg, = grep('_RF', getModelsBuiltModels(myBiomodModelOut)))
 # EMG If running one model at a time, this parameter becomes irrevelant
 biomod.binary.meth = NULL #a vector of a subset of models evaluation method computed in model creation
 biomod.filtered.meth = NULL #a vector of a subset of models evaluation method computed in model creation
