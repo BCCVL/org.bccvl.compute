@@ -1,5 +1,7 @@
+"""
+"""
 from pkg_resources import resource_string
-from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job, getDatasetInfo, getdatasetparams
+from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
 
 from zope.interface import moduleProvides, implementer, Interface
 # do this dynamically in site module?
@@ -16,7 +18,8 @@ moduleProvides(IComputeFunction)
 def get_sdm_params(experiment):
     # TODO: make list/single value detection possible
     #       currently all files are treated as multi select here
-    # TODO: make sure param names here match field names in schema and variables in R-srript
+    # TODO: make sure param names here match field names in schema and
+    #       variables in R-srript
     params = {'layers': experiment.environmental_layers,
               'occurrence': {},
               'background': {},
@@ -124,13 +127,12 @@ def execute(experiment, request=None, workenv=WorkEnv):
     # workenv = WorkEnvLocal
     env = workenv('localhost', request)
     params = get_sdm_params(experiment)
-    params.update( get_bioclim_params(experiment))
+    params.update(get_bioclim_params(experiment))
     script = generate_sdm_script()
     return queue_job(experiment, 'Bioclim', env, script, params, OUTPUTS)
 
 
 class IParametersBioclim(Interface):
-
     """there are no user-configurable options"""
 
 
