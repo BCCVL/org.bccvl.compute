@@ -8,6 +8,7 @@ from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from decimal import Decimal
 from .interfaces import IComputeFunction
+from .bioclim import get_sdm_params
 from .biomod import (IParametersBiomod,
                      ParametersBiomod,
                      get_biomod_params,
@@ -21,7 +22,8 @@ moduleProvides(IComputeFunction)
 
 def get_gam_params(experiment):
     gam_params = experiment.parameters_gam
-    params = get_biomod_params(gam_params)
+    params = get_sdm_params(experiment)
+    params.update(get_biomod_params(gam_params))
     params.update({
         'type': gam_params.type,
         'interaction_level': gam_params.interaction_level,

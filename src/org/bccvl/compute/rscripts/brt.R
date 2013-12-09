@@ -18,13 +18,13 @@
 
 # extract params
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
-occur.data = bccvl.params$occurrence
+occur.data = bccvl.params$occurrence[1]
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
-bkgd.data = bccvl.params$background
+bkgd.data = bccvl.params$background[1]
 #define the current enviro data to use
-enviro.data.current = bccvl.params$enviro$data
+enviro.data.current = bccvl.params$environment
 #type in terms of continuous or categorical
-enviro.data.type = bccvl.params$enviro$type
+enviro.data.type = bccvl.params$environmenttype
 
 brt.fold.vector = NULL #a fold vector to be read in for cross validation with offsets
 brt.tree.complexity = bccvl.params$tree_complexity #sets the complexity of individual trees

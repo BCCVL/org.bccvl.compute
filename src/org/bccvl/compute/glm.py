@@ -7,6 +7,7 @@ from z3c.form.object import registerFactoryAdapter # do this dynamically in site
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from decimal import Decimal
+from .bioclim import get_sdm_params
 from .biomod import (IParametersBiomod,
                      ParametersBiomod,
                      get_biomod_params,
@@ -22,7 +23,8 @@ moduleProvides(IComputeFunction)
 
 def get_glm_params(experiment):
     glm_params = experiment.parameters_glm
-    params = get_biomod_params(glm_params)
+    params = get_sdm_params(experiment)
+    params.update(get_biomod_params(glm_params))
     params.update({
         'type': glm_params.type,
         'interaction_level': glm_params.interaction_level,

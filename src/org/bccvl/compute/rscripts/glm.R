@@ -18,13 +18,13 @@
 
 # extract params
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
-occur.data = bccvl.params$occurrence
+occur.data = bccvl.params$occurrence[1]
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
-bkgd.data = bccvl.params$background
+bkgd.data = bccvl.params$background[1]
 #define the current enviro data to use
-enviro.data.current = bccvl.params$enviro$data
+enviro.data.current = bccvl.params$environment
 #type in terms of continuous or categorical
-enviro.data.type = bccvl.params$enviro$type
+enviro.data.type = bccvl.params$environmenttype
 
 
 ############### BIOMOD2 Models ###############
@@ -69,7 +69,7 @@ glm.BiomodOptions <- list(
 #new.env #a set of explanatory variables onto which models will be projected; must match variable names used to build the models
 #proj.name #a character defining the projection name (a new folder will be created with this name)
 biomod.xy.new.env = NULL #optional coordinates of new.env data. Ignored if new.env is a rasterStack
-biomod.selected.models = bccvl.params$selcted_models #'all' when all models have to be used to render projections or a subset vector of modeling.output models computed (eg, = grep('_RF', getModelsBuiltModels(myBiomodModelOut)))
+biomod.selected.models = bccvl.params$selected_models #'all' when all models have to be used to render projections or a subset vector of modeling.output models computed (eg, = grep('_RF', getModelsBuiltModels(myBiomodModelOut)))
 # EMG If running one model at a time, this parameter becomes irrevelant
 biomod.binary.meth = NULL #a vector of a subset of models evaluation method computed in model creation
 biomod.filtered.meth = NULL #a vector of a subset of models evaluation method computed in model creation
@@ -217,9 +217,9 @@ bccvl.save(myBiomodModelOut.glm, name="model.object.RData")
 glm.proj.c <-
     BIOMOD_Projection(modeling.output=myBiomodModelOut.glm,
                       new.env=current.climate.scenario,
-                      proj.name           = projection.name,  #basename(enviro.data.current), {{ species }}
+                      proj.name  = projection.name,  #basename(enviro.data.current), {{ species }}
                       xy.new.env = biomod.xy.new.env,
-                      selected.models     = biomod.selected.models,
+                      selected.models = biomod.selected.models,
                       binary.meth = biomod.binary.meth,
                       filtered.meth = biomod.filtered.meth,
                       #compress = biomod.compress,

@@ -7,6 +7,7 @@ from z3c.form.object import registerFactoryAdapter # do this dynamically in site
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from decimal import Decimal
+from .bioclim import get_sdm_params
 from .biomod import (IParametersBiomod,
                      ParametersBiomod,
                      get_biomod_params,
@@ -22,7 +23,8 @@ moduleProvides(IComputeFunction)
 
 def get_cta_params(experiment):
     cta_params = experiment.parameters_cta
-    params = get_biomod_params(cta_params)
+    params = get_sdm_params(experiment)
+    params.update(get_biomod_params(cta_params))
     params.update({
         'method': cta_params.method,
         'control_xval': cta_params.control_xval,

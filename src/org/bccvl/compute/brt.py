@@ -9,7 +9,7 @@ from zope import schema
 from zope.schema.fieldproperty import FieldProperty
 from decimal import Decimal
 from .interfaces import IComputeFunction
-
+from .bioclim import get_sdm_params
 from org.bccvl.compute import MessageFactory as _
 
 moduleProvides(IComputeFunction)
@@ -20,7 +20,8 @@ OUTPUTS = DISMO_OUTPUTS
 
 def get_brt_params(experiment):
     brt_params = experiment.parameters_brt
-    return {
+    params = get_sdm_params(experiment)
+    params.update({
         'tree_complexity': brt_params.tree_complexity,
         'learning_rate': brt_params.learning_rate,
         'bag_fraction': brt_params.bag_fraction,
@@ -32,7 +33,8 @@ def get_brt_params(experiment):
         'max_trees': brt_params.max_trees,
         'tolerance_method': brt_params.tolerance_method,
         'tolerance_value': brt_params.tolerance_value
-    }
+    })
+    return params
 
 
 def generate_sdm_script():

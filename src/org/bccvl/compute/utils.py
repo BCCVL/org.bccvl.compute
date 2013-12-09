@@ -226,20 +226,20 @@ class WorkEnv(object):
                 sleep(5)
         raise Exception("Datamover communication failed")
 
-    def move_input_data(self, type, datasetinfo):
+    def move_input_data(self, type, dsinfo):
         # datasetinfo['filename']
         # datasetinfo['url']
         # TODO: do this check somewhere?
         # if datasetitem is None or not IDataset.providedBy(datasetitem):
         #     return
-        for uuid, dsinfo in datasetinfo.items():
-            destname = '/'.join((self.inputdir, dsinfo['filename']))
-            src = {'type': 'url',
-                   'url': dsinfo['url']}
-            dest = {'type': 'scp',
-                    'host': self.src,
-                    'path': destname}
-            self.move_data(type, src, dest, uuid=uuid)
+        # TODO: take care of non unique destination names ... dataset uuid?
+        destname = '/'.join((self.inputdir, dsinfo['filename']))
+        src = {'type': 'url',
+               'url': dsinfo['url']}
+        dest = {'type': 'scp',
+                'host': self.src,
+                'path': destname}
+        self.move_data(type, src, dest, uuid=dsinfo['uuid'])
 
     def wait_for_data_mover(self):
         # TODO: Time_out, and failure handling
@@ -270,7 +270,7 @@ class WorkEnv(object):
 
     def unpack_enviro_data(self):
         for job in self.jobs:
-            if job['type'] in ('environment', 'future'):
+            if job['filename'].endswith('.zip'):
                 dirname, _ = os.path.splitext(os.path.basename(job['filename']))
                 destdir = '/'.join((self.inputdir, dirname))
                 self.unpack(destdir, job['filename'])
@@ -367,39 +367,66 @@ class WorkEnv(object):
         LOG.info('Import result finished for %s from %s', title, self.workdir)
 
     def get_sdm_params(self, experimentinfo):
-        names = experimentinfo['layers'].keys()
+        names = experimentinfo.get('layers', {}).keys()
         params = {
             'scriptdir': self.workdir,
             'inputdir': self.inputdir,
             'outputdir': self.outputdir,
-            'occurrence': None,
-            'background': None,
-            'enviro': {
-                'names': names,
-                'data': [],
-                'type': ["continuous" for i in xrange(0, len(names))],
-                },
+            # TODO: all the parameters below must go into sdm modules
+            'environmenttype': ["continuous" for i in xrange(0, len(names))],
+            # 'enviro': {
+            #     'names': names,
+            #     'data': [],
+            #     'type':
+            #     },
             # TODO: is this a generic sdm parameter?
             'tails': 'both',
             }
-        enviro_jobs = {}
+        # TODO:  split experimentinfo / params so that params is part of experimentinfo and contais only parameters passed no to script. experimentinfo itself will be a container for info about experiment (incl. parameters)
+        jobbyuid = {}
         for job in self.jobs:
-            if job['type'] == 'environment':
-                enviro_jobs[job['uuid']] = job
-            elif job['type'] == 'occurrence':
-                params['occurrence'] = job['filename']
-            elif job['type'] == 'absence':
-                params['background'] = job['filename']
-        # TODO: this is kinda crappy and should be done differently
+            if job['type'] not in params:
+                params[job['type']] = [] # TODO: document ... job['type'] is name of parameter
+            #params[job['type']].append(job)
+            jobbyuid[job['uuid']] = job
         # build up enviro.data list
+        # TODO: find layernames in case we extracted a zip
+        #       code assumes we have layers, to associate, but
+        #       this code should do generic unzip file replacement
+        zipfile = set()
         for layer in names:
             dsuuid = experimentinfo['layers'][layer]
-            zipdir, _ = os.path.splitext(os.path.basename(enviro_jobs[dsuuid]['filename']))
+            zipdir, _ = os.path.splitext(os.path.basename(jobbyuid[dsuuid]['filename']))
             currentfolder = '/'.join((self.inputdir, zipdir))
-            expmd = experimentinfo['environment'][dsuuid]
+            expmd = experimentinfo[jobbyuid[dsuuid]['type']][dsuuid]
             filename = os.path.join(currentfolder,
                                     expmd['layers'][layer])
-            params['enviro']['data'].append(filename)
+            params[jobbyuid[dsuuid]['type']].append(filename)
+            zipfile.add(dsuuid)
+        if 'layersperdataset' in experimentinfo:
+            for paramname in experimentinfo['datasetkeys']:
+                dslist = {}
+                for job in self.jobs:
+                    if job['type'] != paramname:
+                        continue
+                    expmd = experimentinfo[job['type']][job['uuid']]
+                    if not 'layers' in expmd or not expmd['layers']:
+                        continue
+                    zipfile.add(job['uuid'])
+                    zipdir, _ = os.path.splitext(os.path.basename(job['filename']))
+                    currentfolder = '/'.join((self.inputdir, zipdir))
+                    for layer in experimentinfo['layersperdataset']:
+                        filename = os.path.join(currentfolder,
+                                                expmd['layers'][layer])
+                        if job['uuid'] not in dslist:
+                            dslist[job['uuid']] = []
+                        dslist[job['uuid']].append(filename)
+                if dslist:
+                    params[paramname] = dslist.values()
+        for job in self.jobs:
+            if job['uuid'] in zipfile:
+                continue
+            params[job['type']].append(job['filename'])
         return params
 
     def start_script(self):
@@ -448,7 +475,18 @@ class WorkEnv(object):
         return retval
 
 
-def create_workenv(experimentinfo, env, script, params):
+def getdatasetparams(uuid):
+    dsobj = uuidToObject(uuid)
+    if dsobj is None:
+        return {}
+    dsinfo = getDatasetInfo(dsobj)
+    dsinfo['uuid'] = uuid
+    # TODO: not all datasets have layers
+    dsinfo['layers'] = getbiolayermetadata(dsobj)
+    return dsinfo
+
+
+def create_workenv(env, script, params):
     try:
         env.workdir = env.create_workdir()
         env.inputdir = '/'.join((env.workdir, 'input'))
@@ -457,10 +495,17 @@ def create_workenv(experimentinfo, env, script, params):
         env.mkdir(env.inputdir)
         env.mkdir(env.scriptdir)
         env.mkdir(env.outputdir)
-        env.move_input_data('environment', experimentinfo['environment'])
-        env.move_input_data('occurrence', experimentinfo['occurrence'])
-        env.move_input_data('absence', experimentinfo['absence'])
-        params.update(env.get_sdm_params(experimentinfo))
+        # TODO: this supports files only in top level dict
+        for dskey in params['datasetkeys']:
+            for dsinfo in params[dskey].values():
+                if 'url' in dsinfo:
+                    # TODO: no guarantee that inputfile name is unique
+                    #       use dataset uuid?
+                    env.move_input_data(dskey, dsinfo)
+        # env.move_input_data('environment', experimentinfo['environment'])
+        # env.move_input_data('occurrence', experimentinfo['occurrence'])
+        # env.move_input_data('absence', experimentinfo['absence'])
+        params.update(env.get_sdm_params(params))
         env.move_script(script, params)
         env.wait_for_data_mover()
         env.unpack_enviro_data()
@@ -499,7 +544,7 @@ def get_outputs(context, jobid, env, OUTPUTS):
         #env.close()
 
 
-def run_job(context, env):
+def run_job(env):
     # TODO: result of previous job might be a zc.twist.Failure
     try:
         env.start_script()
@@ -537,7 +582,7 @@ def run_job(context, env):
 
 
 # TODO: use getDatasetMetadat from xmlrpc package. (remove getbiolayermetadata in getExperimentInfo)
-def getDataSetInfo(datasetitem):
+def getDatasetInfo(datasetitem):
     # TODO: filename might be None, and then this job fails miserably
     dsfilename = datasetitem.file.filename
     if dsfilename is None:
@@ -552,47 +597,18 @@ def getDataSetInfo(datasetitem):
     }
 
 
-def getExperimentInfo(experiment):
-    datasets = {
-        'occurrence': {
-            experiment.species_occurrence_dataset: {}
-        },
-        'absence': {
-            experiment.species_absence_dataset:  {}
-        },
-        'environment': {
-        }
-    }
-    # collect uuids for layer datasets
-    for item in experiment.environmental_layers.values():
-        if item not in datasets['environment']:
-            datasets['environment'][item] = {}
-
-    for dsitem in ('occurrence', 'absence', 'environment'):
-        for uuid in datasets[dsitem].keys():
-            dsobj = uuidToObject(uuid)
-            datasets[dsitem][uuid].update(getDataSetInfo(dsobj))
-    # layerinfo
-    for uuid, dsinfo in datasets['environment'].items():
-        envobj = uuidToObject(uuid)
-        dsinfo['layers'] = getbiolayermetadata(envobj)
-    # layers to run the sdm against
-    datasets['layers'] = experiment.environmental_layers
-    return datasets
-
-
-def job_run(context, experimentinfo, jobid, env, script, params, OUTPUTS):
+def job_run(context, jobid, env, script, params, OUTPUTS):
     endstate = 'Failed'
     try:
         status = local.getLiveAnnotation('bccvl.status')
         status['taks'] = 'Transferring'
         local.setLiveAnnotation('bccvl.status', status)
         #Queued,Completed,Failed,Transfering,Running,Retrieving
-        create_workenv(experimentinfo, env, script, params)
+        create_workenv(env, script, params)
         status['task'] = 'Running'
         local.setLiveAnnotation('bccvl.status', status)
         # local.setLiveAnnotation('bccvl.status', status, job=main_job)
-        run_job(experimentinfo, env)
+        run_job(env)
         # status['task'] = newstate
         # local.setLiveAnnotation('bccvl.status', status, job=main_job)
         status['task'] = 'Retrieving'
@@ -612,21 +628,12 @@ def job_run(context, experimentinfo, jobid, env, script, params, OUTPUTS):
         local.setLiveAnnotation('bccvl.status', status)
 
 
-# def queue_next2(queue_name, job, result):
-#     import ipdb; ipdb.set_trace()
-#     from zc.async.interfaces import KEY
-#     queues = job._p_jar.root()[KEY]
-#     queue = queues[queue_name]
-#     return queue.put(job)
-
 def queue_job(experiment, jobid, env, script, params, OUTPUTS):
     try:
         async = getUtility(IAsyncService)
         queues = async.getQueues()
 
-        experimentinfo = getExperimentInfo(experiment)
-
-        run_job = async.wrapJob((job_run, experiment, (experimentinfo, jobid, env, script, params, OUTPUTS), {}))
+        run_job = async.wrapJob((job_run, experiment, (jobid, env, script, params, OUTPUTS), {}))
         run_job.jobid = jobid
         run_job.quota_names = ('default', )
         run_job.annotations['bccvl.status'] = {
@@ -661,6 +668,11 @@ def queue_job(experiment, jobid, env, script, params, OUTPUTS):
         env.cleanup()
         env.cleanup_remote()
         raise e
+
+
+
+# TODO: the more parallel code below should work again after fixing the
+#       threading issue with 4store datamanagers
 
 
 

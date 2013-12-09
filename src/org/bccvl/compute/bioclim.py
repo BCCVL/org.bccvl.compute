@@ -1,5 +1,5 @@
 from pkg_resources import resource_string
-from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job
+from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job, getDatasetInfo, getdatasetparams
 
 from zope.interface import moduleProvides, implementer, Interface
 # do this dynamically in site module?
@@ -7,6 +7,30 @@ from z3c.form.object import registerFactoryAdapter
 from .interfaces import IComputeFunction
 
 moduleProvides(IComputeFunction)
+
+# dsinfo:
+#    environment: ... list of datasets to compute:
+#      dstc: ... dsinfo + layerinfo to use
+
+
+def get_sdm_params(experiment):
+    # TODO: make list/single value detection possible
+    #       currently all files are treated as multi select here
+    # TODO: make sure param names here match field names in schema and variables in R-srript
+    params = {'layers': experiment.environmental_layers,
+              'occurrence': {},
+              'background': {},
+              'environment': {}}
+    uuid = experiment.species_occurrence_dataset
+    params['occurrence'][uuid] = getdatasetparams(uuid)
+    uuid = experiment.species_absence_dataset
+    params['background'][uuid] = getdatasetparams(uuid)
+    for uuid in experiment.environmental_layers.values():
+        # TODO: There might be the same uuid multiple times
+        params['environment'][uuid] = getdatasetparams(uuid)
+    # TODO Get rid of datasetkey (atl east out of paramete space)
+    params['datasetkeys'] = ('occurrence', 'background', 'environment')
+    return params
 
 
 def get_bioclim_params(experiment):
@@ -99,7 +123,8 @@ def execute(experiment, request=None, workenv=WorkEnv):
     # TODO: CREATE WorkEnv in job
     # workenv = WorkEnvLocal
     env = workenv('localhost', request)
-    params = get_bioclim_params(experiment)
+    params = get_sdm_params(experiment)
+    params.update( get_bioclim_params(experiment))
     script = generate_sdm_script()
     return queue_job(experiment, 'Bioclim', env, script, params, OUTPUTS)
 
