@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import chain
 import mimetypes
 import os.path
 import glob
@@ -65,7 +66,7 @@ FORMAT_MAP = {
 
 
 def addLayerInfo(graph, experiment):
-    for layer in experiment.environmental_layers.keys():
+    for layer in set(chain(*experiment.environmental_datasets.values())):
         graph.add((graph.identifier, BIOCLIM['bioclimVariable'], layer))
 
 

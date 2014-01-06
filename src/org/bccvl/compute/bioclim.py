@@ -20,7 +20,7 @@ def get_sdm_params(experiment):
     #       currently all files are treated as multi select here
     # TODO: make sure param names here match field names in schema and
     #       variables in R-srript
-    params = {'layers': experiment.environmental_layers,
+    params = {'layers': experiment.environmental_datasets,
               'occurrence': {},
               'background': {},
               'environment': {}}
@@ -28,7 +28,7 @@ def get_sdm_params(experiment):
     params['occurrence'][uuid] = getdatasetparams(uuid)
     uuid = experiment.species_absence_dataset
     params['background'][uuid] = getdatasetparams(uuid)
-    for uuid in experiment.environmental_layers.values():
+    for uuid in experiment.environmental_datasets.keys():
         # TODO: There might be the same uuid multiple times
         params['environment'][uuid] = getdatasetparams(uuid)
     # TODO Get rid of datasetkey (atl east out of paramete space)

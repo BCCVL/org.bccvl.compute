@@ -5,6 +5,7 @@
 
 .. moduleauthor:: Gerhard Weis <g.weis@griffith.edu.au>
 """
+from itertools import chain
 import os
 import os.path
 from tempfile import mkdtemp, mkstemp
@@ -367,7 +368,7 @@ class WorkEnv(object):
         LOG.info('Import result finished for %s from %s', title, self.workdir)
 
     def get_sdm_params(self, experimentinfo):
-        names = experimentinfo.get('layers', {}).keys()
+        names = set(chain(*experimentinfo.get('layers', {}).values()))
         params = {
             'scriptdir': self.workdir,
             'inputdir': self.inputdir,
@@ -386,7 +387,8 @@ class WorkEnv(object):
         jobbyuid = {}
         for job in self.jobs:
             if job['type'] not in params:
-                params[job['type']] = [] # TODO: document ... job['type'] is name of parameter
+                params[job['type']] = []  # TODO: document ...
+                                          # job['type'] is name of parameter
             #params[job['type']].append(job)
             jobbyuid[job['uuid']] = job
         # build up enviro.data list
@@ -394,15 +396,16 @@ class WorkEnv(object):
         #       code assumes we have layers, to associate, but
         #       this code should do generic unzip file replacement
         zipfile = set()
-        for layer in names:
-            dsuuid = experimentinfo['layers'][layer]
-            zipdir, _ = os.path.splitext(os.path.basename(jobbyuid[dsuuid]['filename']))
-            currentfolder = '/'.join((self.inputdir, zipdir))
-            expmd = experimentinfo[jobbyuid[dsuuid]['type']][dsuuid]
-            filename = os.path.join(currentfolder,
-                                    expmd['layers'][layer])
-            params[jobbyuid[dsuuid]['type']].append(filename)
-            zipfile.add(dsuuid)
+        if 'layers' in experimentinfo:
+            for dsuuid, layers in experimentinfo['layers'].items():
+                zipdir, _ = os.path.splitext(os.path.basename(jobbyuid[dsuuid]['filename']))
+                currentfolder = '/'.join((self.inputdir, zipdir))
+                expmd = experimentinfo[jobbyuid[dsuuid]['type']][dsuuid]
+                for layer in layers:
+                    filename = os.path.join(currentfolder,
+                                            expmd['layers'][layer])
+                    params[jobbyuid[dsuuid]['type']].append(filename)
+                zipfile.add(dsuuid)
         if 'layersperdataset' in experimentinfo:
             for paramname in experimentinfo['datasetkeys']:
                 dslist = {}
