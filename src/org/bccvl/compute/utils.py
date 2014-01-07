@@ -485,7 +485,7 @@ def getdatasetparams(uuid):
     dsinfo = getDatasetInfo(dsobj)
     dsinfo['uuid'] = uuid
     # TODO: not all datasets have layers
-    dsinfo['layers'] = getbiolayermetadata(dsobj)
+    dsinfo['layers'] = [x['filename'] for x in getbiolayermetadata(dsobj)]
     return dsinfo
 
 
