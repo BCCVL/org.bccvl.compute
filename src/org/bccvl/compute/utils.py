@@ -485,7 +485,6 @@ def getdatasetparams(uuid):
     dsinfo = getDatasetInfo(dsobj)
     dsinfo['uuid'] = uuid
     # TODO: not all datasets have layers
-    import ipdb; ipdb.set_trace()
     dsinfo['layers'] = dict(((k, v['filename']) for k, v in getbiolayermetadata(dsobj).items()))
     return dsinfo
 
