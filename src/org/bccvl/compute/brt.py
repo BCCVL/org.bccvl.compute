@@ -150,7 +150,7 @@ class IParametersBRT(Interface):
     max_trees = schema.Int(
         title=_(u'max trees'),
         description=_(u'Max number of trees to fit before stopping'),
-        default=1000,
+        default=10000,
         required=False,
     )
 
