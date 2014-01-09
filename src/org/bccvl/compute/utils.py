@@ -39,6 +39,8 @@ tracelog.setLevel(logging.WARN)
 LOG = logging.getLogger(__name__)
 
 DATA_MOVER = 'http://127.0.0.1:10700/data_mover'
+COMPUTE_IP = 'localhost'
+#COMPUTE_IP = '130.102.155.47'
 
 ##TASKS:
 

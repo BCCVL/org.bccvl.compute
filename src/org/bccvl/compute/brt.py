@@ -1,4 +1,4 @@
-from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job
+from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job,  COMPUTE_IP
 from pkg_resources import resource_string
 
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
@@ -61,7 +61,7 @@ def execute(experiment, request=None, workenv=WorkEnv):
 
 
     """
-    env = workenv('localhost', request)
+    env = workenv(COMPUTE_IP, request)
     params = get_brt_params(experiment)
     script = generate_sdm_script()
     return queue_job(experiment, 'BRT', env, script, params, OUTPUTS)

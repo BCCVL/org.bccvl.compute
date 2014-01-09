@@ -1,7 +1,7 @@
 """
 """
 from pkg_resources import resource_string
-from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
+from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams, COMPUTE_IP
 
 from zope.interface import moduleProvides, implementer, Interface
 # do this dynamically in site module?
@@ -125,7 +125,7 @@ def execute(experiment, request=None, workenv=WorkEnv):
     """
     # TODO: CREATE WorkEnv in job
     # workenv = WorkEnvLocal
-    env = workenv('localhost', request)
+    env = workenv(COMPUTE_IP, request)
     params = get_sdm_params(experiment)
     params.update(get_bioclim_params(experiment))
     script = generate_sdm_script()
