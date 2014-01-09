@@ -156,14 +156,14 @@ class ResultSource(object):
                 filelist.add(os.path.join(self.path, root, name))
 
         # import defined files:
-        for fileglob, filedef in self.outputmap['files'].items():
+        for fileglob, filedef in self.outputmap.get('files', {}).items():
             for fname in glob.glob(os.path.join(self.path, fileglob)):
                 item = self.createItem(fname, filedef)
                 yield item
                 filelist.discard(fname)
 
         # import archives
-        for archname, archdef in self.outputmap['archives'].items():
+        for archname, archdef in self.outputmap.get('archives', {}).items():
             # create archive
             farchname = os.path.join(self.path, archname)
             with ZipFile(farchname, 'w', ZIP_DEFLATED) as zipf:
