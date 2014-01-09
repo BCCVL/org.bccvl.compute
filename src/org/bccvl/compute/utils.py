@@ -165,7 +165,7 @@ class WorkEnv(object):
         self.src = 'plone'
         self.dest = 'plone'
         # TODO: make this virtual host aware and rewrite aware?
-        self.requestenv = request._orig_env
+        #self.requestenv = request._orig_env
 
     @property
     def ssh(self):
@@ -240,7 +240,7 @@ class WorkEnv(object):
         src = {'type': 'url',
                'url': dsinfo['url']}
         dest = {'type': 'scp',
-                'host': self.src,
+                'host': self.dest,
                 'path': destname}
         self.move_data(type, src, dest, uuid=dsinfo['uuid'])
 
@@ -316,10 +316,10 @@ class WorkEnv(object):
             if not os.path.exists(destdir):
                 os.makedirs(destdir)
             src = {'type': 'scp',
-                   'host': self.src,
+                   'host': self.dest,
                    'path': file}
             dest = {'type': 'scp',
-                    'host': self.dest,
+                    'host': self.src,
                     'path': destname}
             self.move_data('output', src, dest, uuid=None)
 
