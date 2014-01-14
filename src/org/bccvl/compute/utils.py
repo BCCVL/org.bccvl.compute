@@ -39,7 +39,8 @@ tracelog.setLevel(logging.WARN)
 LOG = logging.getLogger(__name__)
 
 DATA_MOVER = 'http://127.0.0.1:10700/data_mover'
-COMPUTE_IP = 'localhost'
+COMPUTE_HOST = 'localhost'
+COMPUTE_USER = 'bccvl'
 #COMPUTE_IP = '130.102.155.47'
 
 ##TASKS:
@@ -144,14 +145,11 @@ def decimal_encoder(o):
     raise TypeError(repr(o) + " is not JSON serializable")
 
 
-## JOB-UTILS:
-##    use fabric tasks to do stuff
 class WorkEnv(object):
 
-    _ssh =  None
+    _ssh = None
 
-    def __init__(self, host, request):
-        self.host = host
+    def __init__(self, host=None):
         self.workdir = None
         self.inputdir = None
         self.scriptdir = None
@@ -163,14 +161,16 @@ class WorkEnv(object):
         self.scriptname = None
         self.wrapname = None
         self.src = 'plone'
-        self.dest = 'plone'
-        # TODO: make this virtual host aware and rewrite aware?
-        #self.requestenv = request._orig_env
+        self.dest = 'compute'
+        if host is None:
+            self.host = os.environ.get('COMPUTE_HOST', COMPUTE_HOST)
+        self.user = os.environ.get('COMPUTE_USER', COMPUTE_USER)
+        self.data_mover = os.environ.get('DATA_MOVER', DATA_MOVER)
 
     @property
     def ssh(self):
         if self._ssh is None:
-            self._ssh = SSHTool(self.host)
+            self._ssh = SSHTool(self.host, self.user)
         return self._ssh
 
     def close(self):
@@ -215,7 +215,7 @@ class WorkEnv(object):
         retry = 5
         while retry:
             try:
-                s = ServerProxy(DATA_MOVER)
+                s = ServerProxy(self.data_mover)
                 job = s.move(src, dest)
                 LOG.info("Submitted move job to data_mover: %s", job)
                 self.jobs.append({'type': type,
@@ -248,7 +248,7 @@ class WorkEnv(object):
         # TODO: Time_out, and failure handling
         import time
         stillgoing = True
-        s = ServerProxy(DATA_MOVER)
+        s = ServerProxy(self.data_mover)
         while stillgoing:
             LOG.info('check data_mover after sleep')
             time.sleep(10)
@@ -633,6 +633,7 @@ def job_run(context, jobid, env, script, params, OUTPUTS):
         local.setLiveAnnotation('bccvl.status', status)
 
 
+# TODO: this should be generic. there should be only one queue_job for all types of jobs
 def queue_job(experiment, jobid, env, script, params, OUTPUTS):
     try:
         async = getUtility(IAsyncService)
@@ -824,7 +825,7 @@ class WorkEnvLocal(WorkEnv):
         destname = '/'.join((self.inputdir, datasetitem.file.filename))
         src = {'type': 'blob',
                'file': datasetitem.file.open()}
-        dest = {'host': 'plone', 'path': destname}
+        dest = {'host': 'compute', 'path': destname}
         self.move_data(type, src, dest, uuid=IUUID(datasetitem))
 
     def wait_for_data_mover(self):

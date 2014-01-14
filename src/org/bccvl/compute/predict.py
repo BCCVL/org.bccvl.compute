@@ -1,5 +1,5 @@
 from pkg_resources import resource_string
-from org.bccvl.compute.utils import WorkEnv, WorkEnvLocal, queue_job, getdatasetparams, COMPUTE_IP
+from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
 from gu.z3cform.rdf.interfaces import IGraph
 from org.bccvl.site.namespace import BIOCLIM
 from plone.app.uuid.utils import uuidToObject
@@ -72,7 +72,7 @@ def execute(experiment, request=None, workenv=WorkEnv):
     """
     # TODO: CREATE WorkEnv in job
     # workenv = WorkEnvLocal
-    env = workenv(COMPUTE_IP, request)
+    env = workenv()
     params = get_project_params(experiment)
     script = generate_project_script()
     return queue_job(experiment, 'Projection', env, script, params, OUTPUTS)
