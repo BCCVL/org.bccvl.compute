@@ -108,7 +108,7 @@ class SSHTool(object):
         return code, stdout
 
     def unpack(self, destdir, filename):
-        cmd = "unzip -d '{}' '{}'".format(destdir, filename)
+        cmd = "unzip -o -d '{}' '{}'".format(destdir, filename)
         code, stdout = self._run(cmd)
         return code, stdout
 
