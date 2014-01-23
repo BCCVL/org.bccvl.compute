@@ -60,6 +60,7 @@ class SSHTool(object):
             LOG.info("SSH Connect to %s@%s", self.user, self.host)
             client = paramiko.SSHClient()
             client.load_system_host_keys()
+            client.set_missing_host_key_policy(paramiko.WarningPolicy())
             client.connect(hostname=self.host, username=self.user)
             self._client = client
         return self._client
