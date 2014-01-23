@@ -160,6 +160,7 @@ class WorkEnv(object):
         self.tmpparams = None
         self.scriptname = None
         self.wrapname = None
+        self.jobid = None
         self.src = 'plone'
         self.dest = 'compute'
         if host is None:
@@ -282,7 +283,7 @@ class WorkEnv(object):
         scriptfile, self.tmpscript = mkstemp()
         os.write(scriptfile, script)
         os.close(scriptfile)
-        self.scriptname = '/'.join((self.scriptdir, 'sdm.R'))
+        self.scriptname = '/'.join((self.scriptdir, '{}.R'.format(self.jobid)))
         src = {'type':  'scp',
                'host': self.src,
                'path': self.tmpscript}
@@ -323,10 +324,10 @@ class WorkEnv(object):
                     'path': destname}
             self.move_data('output', src, dest, uuid=None)
 
-    def import_output(self, experiment, jobid, OUTPUTS):
+    def import_output(self, experiment, workenv, OUTPUTS):
         # create result container which will be context for transmogrify import
         # TODO: maybe use rfc822 date format?
-        title = u'%s - %s %s' % (experiment.title, jobid, datetime.now().isoformat())
+        title = u'%s - %s %s' % (experiment.title, workenv.jobid, datetime.now().isoformat())
         #LOG.info('Import result for %s from %s', title, self.workdir)
         # start transmogrify
 
@@ -526,7 +527,7 @@ def create_workenv(env, script, params):
         #env.close()
 
 
-def get_outputs(context, jobid, env, OUTPUTS):
+def get_outputs(context, env, OUTPUTS):
     # TODO: result of previous job might be a zc.twist.Failure
     try:
         #LOG.info("getting outputs for %s", env.workdir)
@@ -534,7 +535,7 @@ def get_outputs(context, jobid, env, OUTPUTS):
         env.wait_for_data_mover()
         transaction.commit()  # start fresh
         transaction.begin()   # and sync state
-        env.import_output(context, jobid, OUTPUTS)
+        env.import_output(context, env, OUTPUTS)
         transaction.commit()  # does this help?
         return env
     except Exception as e:
@@ -602,7 +603,7 @@ def getDatasetInfo(datasetitem):
     }
 
 
-def job_run(context, jobid, env, script, params, OUTPUTS):
+def job_run(context, env, script, params, OUTPUTS):
     endstate = 'Failed'
     try:
         status = local.getLiveAnnotation('bccvl.status')
@@ -618,7 +619,7 @@ def job_run(context, jobid, env, script, params, OUTPUTS):
         # local.setLiveAnnotation('bccvl.status', status, job=main_job)
         status['task'] = 'Retrieving'
         local.setLiveAnnotation('bccvl.status', status)
-        get_outputs(context, jobid, env, OUTPUTS)
+        get_outputs(context, env, OUTPUTS)
         endstate = 'Completed'
     except Exception as e:
         # TODO: set job status and return value
@@ -639,8 +640,9 @@ def queue_job(experiment, jobid, env, script, params, OUTPUTS):
         async = getUtility(IAsyncService)
         queues = async.getQueues()
 
-        run_job = async.wrapJob((job_run, experiment, (jobid, env, script, params, OUTPUTS), {}))
-        run_job.jobid = jobid
+        env.jobid = jobid
+        run_job = async.wrapJob((job_run, experiment, (env, script, params, OUTPUTS), {}))
+        run_job.jobid = env.jobid
         run_job.quota_names = ('default', )
         run_job.annotations['bccvl.status'] = {
             'step': 0,
@@ -657,8 +659,8 @@ def queue_job(experiment, jobid, env, script, params, OUTPUTS):
 
         # Twisted worker needs sepcial agent in plone and twisted worker
         run_job = Job(job_run, experimentinfo, env, script, params)
-        job_import = async.wrapJob((get_outputs, experiment, (jobid, ), {}))
-        job_import.jobid = jobid
+        job_import = async.wrapJob((get_outputs, experiment, (env, ), {}))
+        job_import.jobid = env.jobid
         job_import.annotations['bccvl.status'] = {
             'step': 0,
             'task': u'No Change'}

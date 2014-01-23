@@ -10,7 +10,7 @@ from org.bccvl.compute import MessageFactory as _
 
 BIOMOD_OUTPUTS = {
     'files': {
-        'sdm.Rout': {
+        '*.Rout': {
             'title': 'Log file',
             'type': 'log',
             'format': 'txt',

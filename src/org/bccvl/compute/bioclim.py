@@ -76,7 +76,7 @@ DISMO_OUTPUTS = {
             'type': 'eval',
             'format': 'html',
         },
-        'sdm.Rout': {
+        '*.Rout': {
             'title': 'Log file',
             'type': 'log',
             'format': 'txt',
