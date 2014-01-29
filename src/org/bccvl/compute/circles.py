@@ -12,6 +12,26 @@ moduleProvides(IComputeFunction)
 from .bioclim import DISMO_OUTPUTS
 OUTPUTS = DISMO_OUTPUTS
 
+def get_sdm_params(experiment):
+    # TODO: make list/single value detection possible
+    #       currently all files are treated as multi select here
+    # TODO: make sure param names here match field names in schema and
+    #       variables in R-srript
+    params = {'layers': experiment.environmental_datasets,
+              'occurrence': {},
+              'background': {},
+              'environment': {}}
+    uuid = experiment.species_occurrence_dataset
+    params['occurrence'][uuid] = getdatasetparams(uuid)
+    uuid = experiment.species_absence_dataset
+    params['background'][uuid] = getdatasetparams(uuid)
+    for uuid in experiment.environmental_datasets.keys():
+        # TODO: There might be the same uuid multiple times
+        params['environment'][uuid] = getdatasetparams(uuid)
+    # TODO Get rid of datasetkey (atl east out of paramete space)
+    params['datasetkeys'] = ('occurrence', 'background', 'environment')
+    return params
+
 def get_circles_params(experiment):
     return {}
 
@@ -41,7 +61,8 @@ def execute(experiment, request=None, workenv=WorkEnv):
 
     """
     env = workenv()
-    params = get_circles_params(experiment)
+    params = get_sdm_params(experiment)
+    params.update(get_circles_params(experiment))
     script = generate_circles_script()
     return queue_job(experiment, 'Circles', env, script, params, OUTPUTS)
 
