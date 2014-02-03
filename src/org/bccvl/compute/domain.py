@@ -46,7 +46,7 @@ def execute(experiment, request=None, workenv=WorkEnv):
     params = get_sdm_params(experiment)
     params.update(get_domain_params(experiment))
     script = generate_domain_script()
-    return queue_job(experiment, 'Domain', env, script, params, OUTPUTS)
+    return queue_job(experiment, 'domain', env, script, params, OUTPUTS)
 
 
 class IParametersDomain(Interface):
