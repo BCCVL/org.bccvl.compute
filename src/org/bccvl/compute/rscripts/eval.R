@@ -545,8 +545,10 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.txt")
 
     # get the model predictions and observed values
-    predictions = get_predictions(biomod.model, eval_data=FALSE)
-    obs = get_predictions(biomod.model, "resp.var");
+    predictions = getModelsPrediction(biomod.model)
+    # TODO: get_predictions is buggy; evaluation=FALSE works the wrong way round
+    # predictions = get_predictions(biomod.model, evaluation=FALSE)
+    obs = get_formal_data(biomod.model, "resp.var")
 
     # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
     combined.eval = sapply(model.accuracy, function(x){
@@ -576,8 +578,8 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     # save response curves (Elith et al 2005)
     png(file=file.path(bccvl.params$outputdir, "mean_response_curves.png"))
     test <- response.plot2(models = loaded.name,
-                           Data = get_predictions(biomod.model,"expl.var"),
-                           show.variables = get_predictions(biomod.model,"expl.var.names"),
+                           Data = get_formal_data(biomod.model,"expl.var"),
+                           show.variables = get_formal_data(biomod.model,"expl.var.names"),
                            fixed.var.metric = "mean")
      #, data_species = getModelsInputData(biomod.model,"resp.var"))
      # EMG need to investigate why you would want to use this option - uses presence data only
