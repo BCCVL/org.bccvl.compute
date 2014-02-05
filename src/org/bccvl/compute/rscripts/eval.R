@@ -522,9 +522,7 @@ bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     bccvl.saveModelEvaluation(model.eval, model.combined.eval)
 
     # create response curves
-    if (model.name != "brt") { # TODO: doesn't work for brt?
-        bccvl.createMarginalResponseCurves(model.obj, model.name)
-    }
+    bccvl.createMarginalResponseCurves(model.obj, model.name)
 
     # calculate variable importance (like biomod2, using correlations between predictions)
     bccvl.calculateVariableImpt(model.obj, model.name, 3)
