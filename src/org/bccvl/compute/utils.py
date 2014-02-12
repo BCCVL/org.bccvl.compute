@@ -608,7 +608,7 @@ def job_run(context, env, script, params, OUTPUTS):
     endstate = 'Failed'
     try:
         status = local.getLiveAnnotation('bccvl.status')
-        status['taks'] = 'Transferring'
+        status['task'] = 'Transferring'
         local.setLiveAnnotation('bccvl.status', status)
         #Queued,Completed,Failed,Transfering,Running,Retrieving
         create_workenv(env, script, params)
