@@ -595,8 +595,9 @@ def getDatasetInfo(datasetitem):
     if dsfilename is None:
         # use datasetitem id in case we don't have a filename
         dsfilename = datasetitem.id
-    dsurl = '{}/@@download/file/{}'.format(datasetitem.absolute_url(),
-                                           datasetitem.file.filename)
+    dsurl = '{}{}/@@download/file/{}'.format('http://127.0.0.1:8201',
+                                             '/'.join(datasetitem.getPhysicalPath()),
+                                             datasetitem.file.filename)
     # check for ArchiveItems in the graph and add stuff
     return {
         'filename': dsfilename,
