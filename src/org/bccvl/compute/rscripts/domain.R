@@ -41,16 +41,33 @@ biomod.models.eval.meth = c("KAPPA", "TSS", "ROC", "FAR", "SR", "ACCURACY", "BIA
 model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 # TODO: these functions are used to evaluate the model ... configurable?
 
+# read current climate data
+current.climate.scenario = stack(enviro.data.current)
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
-bkgd = bccvl.species.read(bkgd.data) #read in the background position data lon.lat
 # keep only lon and lat columns
 occur = occur[c("lon","lat")]
-bkgd = bkgd[c("lon","lat")]
 
-# prepare current climate data
-current.climate.scenario = stack(enviro.data.current)
+# prepare absence points
+if (bccvl.params$pseudoabsences$enabled) {
+    # generate randomPoints
+    bkgd = randomPoints(
+        current.climate.scenario,
+        bccvl.params$pseudoabsences$points,
+        occur)
+    # as data frame
+    bkgd = as.data.frame(bkgd)
+    # rename columns
+    names(bkgd) <- c("lon","lat")
+} else {
+    # otherwise read absence ponits from file
+    bkgd = bccvl.species.read(bkgd.data) #read in the background position data lon.lat
+    # keep only lon and lat columns
+    bkgd = bkgd[c("lon","lat")]
+}
+# TODO: combine random and given absence points:
+# rbind(bkgd.datafromfile, bkgd.datarandom)
 
 # extract enviro data for species observation points and append to species data
 occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))

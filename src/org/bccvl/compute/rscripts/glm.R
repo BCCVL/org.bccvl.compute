@@ -68,6 +68,10 @@ glm.BiomodOptions <- list(
 #modeling.output #"BIOMOD.models.out" object produced by a BIOMOD_Modeling run
 #new.env #a set of explanatory variables onto which models will be projected; must match variable names used to build the models
 #proj.name #a character defining the projection name (a new folder will be created with this name)
+# pseudo absences
+biomod.PA.nb.rep = 0
+biomod.PA.nb.absences = 0
+
 biomod.xy.new.env = NULL #optional coordinates of new.env data. Ignored if new.env is a rasterStack
 biomod.selected.models = bccvl.params$selected_models #'all' when all models have to be used to render projections or a subset vector of modeling.output models computed (eg, = grep('_RF', getModelsBuiltModels(myBiomodModelOut)))
 # EMG If running one model at a time, this parameter becomes irrevelant
@@ -89,16 +93,27 @@ dismo.eval.method = c("ODP", "TNR", "FPR", "FNR", "NPP", "MCR", "OR")
 model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 # TODO: these functions are used to evaluate the model ... configurable?
 
+# read current climate data
+current.climate.scenario = stack(enviro.data.current)
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
-bkgd = bccvl.species.read(bkgd.data) #read in the background position data lon.lat
 # keep only lon and lat columns
 occur = occur[c("lon","lat")]
-bkgd = bkgd[c("lon","lat")]
 
-# prepare current climate data
-current.climate.scenario = stack(enviro.data.current)
+# shall we use pseudo absences?
+# TODO: this will ignore given absence file in case we want pseudo absences
+if (bccvl.params$pseudoabsences$enabled) {
+    biomod.PA.nb.rep = 1
+    biomod.PA.nb.absences = bccvl.params$pseudoabsences$points
+    # create an empty data frame for bkgd points
+    bkgd = data.frame(lon=numeric(0), lat=numeric(0))
+} else {
+    # read absence points from file
+    bkgd = bccvl.species.read(bkgd.data) #read in the background position data lon.lat
+    # keep only lon and lat columns
+    bkgd = bkgd[c("lon","lat")]
+}
 
 # extract enviro data for species observation points and append to species data
 occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
@@ -142,7 +157,10 @@ formatBiomodData = function() {
         BIOMOD_FormatingData(resp.var =  biomod.data.pa,
                              expl.var  = stack(current.climate.scenario),
                              resp.xy   = biomod.data,
-                             resp.name = biomod.species.name)
+                             resp.name = biomod.species.name,
+                             PA.nb.rep = biomod.PA.nb.rep,
+                             PA.nb.absences = biomod.PA.nb.absences,
+                             PA.strategy = 'random')
     return(myBiomodData)
 }
 

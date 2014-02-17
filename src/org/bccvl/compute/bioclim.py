@@ -23,9 +23,13 @@ def get_sdm_params(experiment):
     params = {'layers': experiment.environmental_datasets,
               'occurrence': {},
               'background': {},
-              'environment': {}}
+              'environment': {},
+              'pseudoabsences': {'enabled': experiment.species_pseudo_absence_points,
+                                 'points': experiment.species_number_pseudo_absence_points}
+    }
     uuid = experiment.species_occurrence_dataset
     params['occurrence'][uuid] = getdatasetparams(uuid)
+    # TODO: background might be none?
     uuid = experiment.species_absence_dataset
     params['background'][uuid] = getdatasetparams(uuid)
     for uuid in experiment.environmental_datasets.keys():
