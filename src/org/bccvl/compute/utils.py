@@ -354,6 +354,8 @@ class WorkEnv(object):
                 ds = createContentInContainer(experiment,
                                               'gu.repository.content.RepositoryItem',
                                               title=title)
+
+                ds.toolkit = workenv.jobid  # TODO:sholud be toolkit uuid or id
                 ds.REQUEST = request
                 transmogrifier = Transmogrifier(ds)
                 transmogrifier(u'org.bccvl.compute.resultimport',
