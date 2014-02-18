@@ -6,7 +6,7 @@ import glob
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from zope.interface import implementer, provider
-from org.bccvl.site.namespace import BCCPROP, BCCVOCAB, BIOCLIM
+from org.bccvl.site.namespace import BCCPROP, BCCVOCAB, BIOCLIM, DWC
 from gu.plone.rdf.namespace import CVOCAB
 from ordf.graph import Graph
 from ordf.namespace import DC
@@ -15,6 +15,8 @@ from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
 from Products.CMFCore.utils import getToolByName
 from zipfile import ZipFile, ZIP_DEFLATED
+from plone.app.uuid.utils import uuidToObject
+from gu.z3cform.rdf.interfaces import IGraph
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -70,6 +72,17 @@ def addLayerInfo(graph, experiment):
         graph.add((graph.identifier, BIOCLIM['bioclimVariable'], layer))
 
 
+def addSpeciesInfo(graph,  experiment):
+    spds = uuidToObject(experiment.species_occurrence_dataset)
+    spmd = IGraph(spds)
+    for prop in (DWC['scientificName'],
+                 DWC['taxonID'],
+                 DWC['vernacularName']):
+        val = spmd.value(spmd.identifier, prop)
+        if val:
+            graph.add((graph.identifier, prop, val))
+
+
 @provider(ISectionBlueprint)
 @implementer(ISection)
 class ResultSource(object):
@@ -116,6 +129,8 @@ class ResultSource(object):
                          genreuri))
             if genreuri == BCCVOCAB['DataGenreSD']:
                 addLayerInfo(rdf, self.context)
+                # add species info
+                addSpeciesInfo(rdf, self.context)
         format = info.get('format', None)
         if format is not None:
             rdf.add((rdf.identifier, BCCPROP['format'], FORMAT_MAP[format]))
