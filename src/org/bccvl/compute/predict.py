@@ -21,9 +21,9 @@ def get_project_params(experiment):
     layers = list(graph.objects(graph.identifier, BIOCLIM['bioclimVariable']))
     params['layersperdataset'] = layers
 
-    for uuid in experiment.future_climate_datasets():
-        params['climate'][uuid] = getdatasetparams(uuid)
-        params['climate'][uuid]['archivefiles'] = [
+    for brain in experiment.future_climate_datasets():
+        params['climate'][brain.UID] = getdatasetparams(uuid)
+        params['climate'][brain.UID]['archivefiles'] = [
             ]
     params['datasetkeys'] = ('sdms', 'climate')
     return params
