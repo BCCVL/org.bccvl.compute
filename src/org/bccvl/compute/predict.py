@@ -13,7 +13,7 @@ moduleProvides(IComputeFunction)
 def get_project_params(experiment):
     params = {'sdms': {},
               'climate': {}}
-    uuid = experiment.species_distribution_models,
+    uuid = experiment.species_distribution_models
     params['sdms'][uuid] = getdatasetparams(uuid)
 
     sdmobj = uuidToObject(uuid)
@@ -22,7 +22,7 @@ def get_project_params(experiment):
     params['layersperdataset'] = layers
 
     for brain in experiment.future_climate_datasets():
-        params['climate'][brain.UID] = getdatasetparams(uuid)
+        params['climate'][brain.UID] = getdatasetparams(brain.UID)
         params['climate'][brain.UID]['archivefiles'] = [
             ]
     params['datasetkeys'] = ('sdms', 'climate')
