@@ -63,7 +63,9 @@ FORMAT_MAP = {
     'txt': BCCVOCAB['DataSetFormatText'],
     'html': BCCVOCAB['DataSetFormatHTML'],
     'png': BCCVOCAB['DataSetFormatPNG'],
-    'zip': BCCVOCAB['DataSetFormatZIP'], # need a way to describe contained data (if e.g. biomod sdm where everything is RData, or layers with all GTiff, asc(gz), ...)
+    'zip': BCCVOCAB['DataSetFormatZIP'],
+    # need a way to describe contained data (if e.g. biomod sdm where
+    # everything is RData, or layers with all GTiff, asc(gz), ...)
 }
 
 

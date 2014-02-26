@@ -91,7 +91,8 @@ class IParametersBRT(Interface):
     tree_complexity = schema.Int(
         title=_(u'tree complexity'),
         default=1,
-        description=_(u'The complexity of individual trees between 1 and 50 (inclusive)'),
+        description=_(u'The complexity of individual trees between 1 and 50'
+                      u' (inclusive)'),
         min=1,
         max=50,
         required=False,
@@ -106,7 +107,8 @@ class IParametersBRT(Interface):
 
     bag_fraction = schema.Decimal(
         title=_(u'bag fraction'),
-        description=_(u'The proportion of observations used in selecting variables.'),
+        description=_(u'The proportion of observations used in selecting'
+                      u' variables.'),
         default=Decimal('0.75'),
         required=False,
     )
@@ -128,7 +130,8 @@ class IParametersBRT(Interface):
 
     prev_stratify = schema.Bool(
         title=_(u'prev stratify'),
-        description=_(u'prevalence stratify the folds - only for presence/absence data'),
+        description=_(u'prevalence stratify the folds - only for'
+                      u' presence/absence data'),
         default=True,
         required=False,
     )
@@ -164,7 +167,9 @@ class IParametersBRT(Interface):
 
     tolerance_value = schema.Decimal(
         title=_(u'tolerance value'),
-        description=_(u'Tolerance value to use - if method == fixed is absolute, if auto is multiplier * total mean deviance'),
+        description=_(u'Tolerance value to use - if method == fixed is'
+                      u' absolute, if auto is multiplier * total mean'
+                      u' deviance'),
         default=Decimal('0.001'),
         required=False,
     )

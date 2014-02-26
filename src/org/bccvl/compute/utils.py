@@ -227,7 +227,8 @@ class WorkEnv(object):
                 return
             except Exception as e:
                 retry -= 1
-                LOG.info("Datamover error for job %s retry: %d. %s", dest, retry, e)
+                LOG.info("Datamover error for job %s retry: %d. %s",
+                         dest, retry, e)
                 sleep(5)
         raise Exception("Datamover communication failed")
 
@@ -258,7 +259,8 @@ class WorkEnv(object):
             for job in self.jobs:
                 moveid = job['status']['id']
                 if job['status']['status'] in ('COMPLETED', 'FAILED'):
-                    LOG.info("Skip finished move job %s", job['status']['status'])
+                    LOG.info("Skip finished move job %s",
+                             job['status']['status'])
                     continue
                 job['status'] = s.check_move_status(job['status']['id'])
                 LOG.info("DataMover: %s %s", moveid,  job['status'])
@@ -270,7 +272,8 @@ class WorkEnv(object):
                 else:
                     LOG.info("Move Job %s %s", job['status'], job['filename'])
                     if job['status']['status'] != 'COMPLETED':
-                        LOG.fatal('Unknown data_mover return status: %s', job['status'])
+                        LOG.fatal('Unknown data_mover return status:  %s',
+                                  job['status'])
                 # TODO: otherwise done and could remove job from list
 
     def unpack_enviro_data(self):
@@ -303,7 +306,8 @@ class WorkEnv(object):
         self.move_data('script', src, dest, None)
 
         self.wrapname = '/'.join((self.scriptdir, 'wrap.sh'))
-        src['path'] = resource_filename('org.bccvl.compute', 'rscripts/wrap.sh')
+        src['path'] = resource_filename('org.bccvl.compute',
+                                        'rscripts/wrap.sh')
         dest['path'] = self.wrapname
         self.move_data('script', src, dest, None)
 
@@ -313,7 +317,8 @@ class WorkEnv(object):
         files = [l for l in result.split('\n') if l]
         self.tmpimport = mkdtemp()
         for file in files:
-            destname = '/'.join((self.tmpimport, file[len(self.outputdir) + 1:]))
+            destname = '/'.join((self.tmpimport,
+                                 file[len(self.outputdir) + 1:]))
             destdir = os.path.dirname(destname)
             if not os.path.exists(destdir):
                 os.makedirs(destdir)
@@ -328,7 +333,8 @@ class WorkEnv(object):
     def import_output(self, experiment, workenv, OUTPUTS):
         # create result container which will be context for transmogrify import
         # TODO: maybe use rfc822 date format?
-        title = u'%s - %s %s' % (experiment.title, workenv.jobid, datetime.now().isoformat())
+        title = u'%s - %s %s' % (experiment.title, workenv.jobid,
+                                 datetime.now().isoformat())
         #LOG.info('Import result for %s from %s', title, self.workdir)
         # start transmogrify
 
@@ -350,17 +356,18 @@ class WorkEnv(object):
         retry = 5
         while retry:
             try:
-                transaction.begin() # resync
-                ds = createContentInContainer(experiment,
-                                              'gu.repository.content.RepositoryItem',
-                                              title=title)
+                transaction.begin()  # resync
+                ds = createContentInContainer(
+                    experiment,
+                    'gu.repository.content.RepositoryItem',
+                    title=title)
 
                 ds.toolkit = workenv.jobid  # TODO:sholud be toolkit uuid or id
                 ds.REQUEST = request
                 transmogrifier = Transmogrifier(ds)
                 transmogrifier(u'org.bccvl.compute.resultimport',
-                              resultsource={'path': self.tmpimport,
-                                            'outputmap': OUTPUTS})
+                               resultsource={'path': self.tmpimport,
+                                             'outputmap': OUTPUTS})
                 # cleanup fake request
                 del ds.REQUEST
                 transaction.commit()
@@ -389,7 +396,10 @@ class WorkEnv(object):
             # TODO: is this a generic sdm parameter?
             'tails': 'both',
             }
-        # TODO:  split experimentinfo / params so that params is part of experimentinfo and contais only parameters passed no to script. experimentinfo itself will be a container for info about experiment (incl. parameters)
+        # TODO:  split experimentinfo / params so that params is part
+        # of experimentinfo and contais only parameters passed no to
+        # script. experimentinfo itself will be a container for info
+        # about experiment (incl. parameters)
         jobbyuid = {}
         for job in self.jobs:
             if job['type'] not in params:
@@ -445,7 +455,9 @@ class WorkEnv(object):
         # R --slave --vanilla -f $in_R --args $in_data > $out_data
         # R --slave --vanilla -f $in_R --args $in_data $out_data
         # -> Galaxy ... pass parameters as cli params
-        # -> XQTL (Molgenis) ... wrap r-script with common init code, and provide special API to access parameters (maybe loaded from file in init wrapper?)
+        # -> XQTL (Molgenis) ... wrap r-script with common init code,
+        #        and provide special API to access parameters (maybe
+        #        loaded from file in init wrapper?)
         cmd = 'nohup /bin/bash --login {} R CMD BATCH --vanilla "{}" "{}" </dev/null >/dev/null 2>&1 &'.format(self.wrapname, self.scriptname, scriptout)
         code, result = self.ssh.run_script(cmd, self.scriptdir)
         LOG.info("Remoe Job started %s", result)
@@ -491,7 +503,8 @@ def getdatasetparams(uuid):
     dsinfo = getDatasetInfo(dsobj)
     dsinfo['uuid'] = uuid
     # TODO: not all datasets have layers
-    dsinfo['layers'] = dict(((k, v['filename']) for k, v in getbiolayermetadata(dsobj).items()))
+    dsinfo['layers'] = dict(((k, v['filename']) for
+                             k, v in getbiolayermetadata(dsobj).items()))
     return dsinfo
 
 
@@ -546,7 +559,8 @@ def get_outputs(context, env, OUTPUTS):
         LOG.fatal('get_outputs: %s', traceback.format_exc())
         raise Exception(str(e), env)
     finally:
-        # TODO: don't delete here because transaction might need to be replayed or commit transaction above?'
+        # TODO: don't delete here because transaction might need to be
+        #       replayed or commit transaction above?'
         env.cleanup()
         #LOG.info("getting outputs cleaned up %s", env.workdir)
         # cleanup fabric state
@@ -558,7 +572,8 @@ def run_job(env):
     try:
         env.start_script()
         while True:
-            # TODO: make this some sort of time out and do proper error checking (e.g. connection failures)
+            # TODO: make this some sort of time out and do proper
+            #       error checking (e.g. connection failures)
             ret = env.check_script()
             if ret is None:
                 LOG.info("Remote job not yet finished.")
@@ -588,18 +603,18 @@ def run_job(env):
         #env.close()
 
 
-
-
-# TODO: use getDatasetMetadat from xmlrpc package. (remove getbiolayermetadata in getExperimentInfo)
+# TODO: use getDatasetMetadat from xmlrpc package. (remove
+#       getbiolayermetadata in getExperimentInfo)
 def getDatasetInfo(datasetitem):
     # TODO: filename might be None, and then this job fails miserably
     dsfilename = datasetitem.file.filename
     if dsfilename is None:
         # use datasetitem id in case we don't have a filename
         dsfilename = datasetitem.id
-    dsurl = '{}{}/@@download/file/{}'.format('http://127.0.0.1:8201',
-                                             '/'.join(datasetitem.getPhysicalPath()),
-                                             datasetitem.file.filename)
+    dsurl = '{}{}/@@download/file/{}'.format(
+        'http://127.0.0.1:8499',
+        '/'.join(datasetitem.getPhysicalPath()),
+        datasetitem.file.filename)
     # check for ArchiveItems in the graph and add stuff
     return {
         'filename': dsfilename,
@@ -638,14 +653,16 @@ def job_run(context, env, script, params, OUTPUTS):
         local.setLiveAnnotation('bccvl.status', status)
 
 
-# TODO: this should be generic. there should be only one queue_job for all types of jobs
+# TODO: this should be generic. there should be only one queue_job for
+#       all types of jobs
 def queue_job(experiment, jobid, env, script, params, OUTPUTS):
     try:
         async = getUtility(IAsyncService)
         queues = async.getQueues()
 
         env.jobid = jobid
-        run_job = async.wrapJob((job_run, experiment, (env, script, params, OUTPUTS), {}))
+        run_job = async.wrapJob((job_run, experiment,
+                                 (env, script, params, OUTPUTS), {}))
         run_job.jobid = env.jobid
         run_job.quota_names = ('default', )
         run_job.annotations['bccvl.status'] = {
@@ -658,8 +675,6 @@ def queue_job(experiment, jobid, env, script, params, OUTPUTS):
             if 'main' in dispagent:
                 dispagent['main'].size = 2
         return queue.put(run_job)
-
-
 
         # Twisted worker needs sepcial agent in plone and twisted worker
         run_job = Job(job_run, experimentinfo, env, script, params)
