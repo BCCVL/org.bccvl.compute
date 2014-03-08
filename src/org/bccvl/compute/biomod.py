@@ -2,9 +2,10 @@
 
 from persistent import Persistent
 from zope import schema
-from zope.interface import Interface
+from zope.interface import Interface, implementer
 from zope.schema.vocabulary import SimpleVocabulary
 from zope.schema.fieldproperty import FieldProperty
+from zope.schema.interfaces import IVocabularyFactory
 
 from org.bccvl.compute import MessageFactory as _
 
@@ -50,6 +51,11 @@ biomod_prevalance_vocab = SimpleVocabulary.fromValues([
 ])
 
 
+@implementer(IVocabularyFactory)
+def biomod_prevalance_vocab_factory():
+    return biomod_prevalance_vocab
+
+
 class IParametersBiomod(Interface):
     nb_run_eval = schema.Int(
         title=_(u'n-fold cross validation'),
@@ -65,7 +71,7 @@ class IParametersBiomod(Interface):
 #    )
     prevalence = schema.Choice(
         title=_(u'weighted response weights'),
-        vocabulary=biomod_prevalance_vocab,
+        vocabulary='biomod_prevalance_vocab',
         missing_value = '',
         default=None,
     )

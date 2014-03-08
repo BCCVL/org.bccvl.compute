@@ -13,7 +13,7 @@ from .biomod import (IParametersBiomod,
                      get_biomod_params,
                      BIOMOD_OUTPUTS)
 from .interfaces import IComputeFunction
-
+from zope.schema.interfaces import IVocabularyFactory
 from org.bccvl.compute import MessageFactory as _
 
 OUTPUTS = BIOMOD_OUTPUTS
@@ -75,11 +75,23 @@ glm_type_vocab = SimpleVocabulary.fromValues([
     'polynomial',
 ])
 
+
+@implementer(IVocabularyFactory)
+def glm_type_vocab_factory():
+    return glm_type_vocab
+
+
 glm_test_vocab = SimpleVocabulary.fromValues([
     'AIC',
     'BIC',
     'none',
 ])
+
+
+@implementer(IVocabularyFactory)
+def glm_test_vocab_factory():
+    return glm_test_vocab
+
 
 glm_family_vocab = SimpleVocabulary.fromValues([
     'binomial',
@@ -93,11 +105,16 @@ glm_family_vocab = SimpleVocabulary.fromValues([
 ])
 
 
+@implementer(IVocabularyFactory)
+def glm_family_vocab_factory():
+    return glm_family_vocab
+
+
 class IParametersGlm(IParametersBiomod):
     type = schema.Choice(
         title=_(u'type'),
         default='quadratic',
-        vocabulary=glm_type_vocab,
+        vocabulary='glm_type_vocab',
     )
 
     interaction_level = schema.Int(
@@ -109,13 +126,13 @@ class IParametersGlm(IParametersBiomod):
 
     test = schema.Choice(
         title=_(u'test'),
-        vocabulary=glm_test_vocab,
+        vocabulary='glm_test_vocab',
         default='AIC',
     )
 
     family = schema.Choice(
         title=_(u'family'),
-        vocabulary=glm_family_vocab,
+        vocabulary='glm_family_vocab',
         default='binomial',
     )
 

@@ -13,7 +13,7 @@ from .biomod import (IParametersBiomod,
                      get_biomod_params,
                      BIOMOD_OUTPUTS)
 from .interfaces import IComputeFunction
-
+from zope.schema.interfaces import IVocabularyFactory
 from org.bccvl.compute import MessageFactory as _
 
 OUTPUTS = BIOMOD_OUTPUTS
@@ -75,10 +75,15 @@ cta_method_vocab = SimpleVocabulary.fromValues([
 ])
 
 
+@implementer(IVocabularyFactory)
+def cta_method_vocab_factory():
+    return cta_method_vocab
+
+
 class IParametersCTA(IParametersBiomod):
     method = schema.Choice(
         title=_(u'method'),
-        vocabulary=cta_method_vocab,
+        vocabulary='cta_method_vocab',
         default='class',
     )
 

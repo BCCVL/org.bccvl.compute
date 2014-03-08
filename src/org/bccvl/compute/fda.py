@@ -6,7 +6,7 @@ from z3c.form.object import registerFactoryAdapter
 from zope import schema
 from zope.schema.vocabulary import SimpleVocabulary
 from zope.schema.fieldproperty import FieldProperty
-
+from zope.schema.interfaces import IVocabularyFactory
 from org.bccvl.compute.utils import WorkEnv, queue_job
 from .interfaces import IComputeFunction
 from .bioclim import get_sdm_params
@@ -69,12 +69,18 @@ fda_method_vocab = SimpleVocabulary.fromItems([
     ('gen.ridge', 'gen.ridge'),
 ])
 
+
+@implementer(IVocabularyFactory)
+def fda_method_vocab_factory():
+    fda_method_vocab_factory
+
+
 class IParametersFDA(IParametersBiomod):
     method = schema.Choice(
         title=_(u'method'),
         description=_(u'The regression method used in optimal scaling'),
         default='mars',
-        vocabulary=fda_method_vocab,
+        vocabulary='fda_method_vocab',
         required=False,
     )
 

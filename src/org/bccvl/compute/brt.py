@@ -2,6 +2,7 @@ from org.bccvl.compute.utils import WorkEnv, queue_job
 from pkg_resources import resource_string
 
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
+from zope.schema.interfaces import IVocabularyFactory
 from zope.interface import moduleProvides, implementer, Interface
 from persistent import Persistent
 from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
@@ -74,6 +75,11 @@ brt_var_monotone_vocab = SimpleVocabulary([
     SimpleTerm(1, '+1', u'+1'),
 ])
 
+
+@implementer(IVocabularyFactory)
+def brt_var_monotone_vocab_factory():
+    return brt_var_monotone_vocab_factory
+
 brt_family_vocab = SimpleVocabulary.fromItems([
     ('bernoulli (binomial)', 'bernoulli'),
     ('poisson', 'poisson'),
@@ -81,10 +87,20 @@ brt_family_vocab = SimpleVocabulary.fromItems([
     ('gaussian', 'gaussian'),
 ])
 
+
+@implementer(IVocabularyFactory)
+def brt_family_vocab_factory():
+    return brt_family_vocab
+
 brt_tolerance_method_vocab = SimpleVocabulary.fromValues([
     'auto',
     'fixed',
 ])
+
+
+@implementer(IVocabularyFactory)
+def brt_tolerance_method_vocab_factory():
+    return brt_tolerance_method_vocab_factory
 
 
 class IParametersBRT(Interface):
@@ -117,7 +133,7 @@ class IParametersBRT(Interface):
     var_monotone = schema.Choice(
         title=_(u'var monotone'),
         default=-1,
-        vocabulary=brt_var_monotone_vocab,
+        vocabulary='brt_var_monotone_vocab',
         required=False,
     )
 
@@ -139,7 +155,7 @@ class IParametersBRT(Interface):
     family = schema.Choice(
         title=_(u'family'),
         default='bernoulli',
-        vocabulary=brt_family_vocab,
+        vocabulary='brt_family_vocab',
         required=False,
     )
 
@@ -161,7 +177,7 @@ class IParametersBRT(Interface):
         title=_(u'tolerance method'),
         description=_(u'Method to use in deciding to stop.'),
         default='auto',
-        vocabulary=brt_tolerance_method_vocab,
+        vocabulary='brt_tolerance_method_vocab',
         required=False,
     )
 
