@@ -162,6 +162,7 @@ class WorkEnv(object):
         self.scriptname = None
         self.wrapname = None
         self.jobid = None
+        self.maxentjarname = None
         self.src = 'plone'
         self.dest = 'compute'
         if host is None:
@@ -309,6 +310,12 @@ class WorkEnv(object):
         src['path'] = resource_filename('org.bccvl.compute',
                                         'rscripts/wrap.sh')
         dest['path'] = self.wrapname
+        self.move_data('script', src, dest, None)
+
+        self.maxentjarname = '/'.join((self.outputdir, 'maxent.jar'))
+        src['path'] = resource_filename('org.bccvl.compute',
+                                        'rscripts/maxent.jar')
+        dest['path'] = self.maxentjarname
         self.move_data('script', src, dest, None)
 
     def move_output_data(self):
