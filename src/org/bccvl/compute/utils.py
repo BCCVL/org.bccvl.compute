@@ -315,7 +315,7 @@ class WorkEnv(object):
         # TODO: We should only copy this if it's needed.
         # TODO: In bccvl.R, the working directory is configured to the output directory, hence we place the maxent.jar file there...
         #       This means that we get copies of this file in the output of each experiment.
-        self.maxentjarname = '/'.join((self.outputdir, 'maxent.jar'))
+        self.maxentjarname = '/'.join((self.scriptdir, 'maxent.jar'))
         src['path'] = resource_filename('org.bccvl.compute',
                                         'rscripts/maxent.jar')
         dest['path'] = self.maxentjarname

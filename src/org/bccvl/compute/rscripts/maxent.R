@@ -48,7 +48,7 @@ projection.name = "current"  #basename(enviro.data.current)
 
 # model-specific arguments to create a biomod model
 maxent.BiomodOptions <- list(
-  #path_to_maxent.jar = bccvl.params$path_to_maxent_jar #The path to maxent.jar file (the working directory by default)
+  path_to_maxent.jar = paste(bccvl.params$scriptdir, "/script/maxent.jar", sep=""), #The path to maxent.jar file (the working directory by default)
   #memory_allocated = bccvl.params$memory_allocated #The amount of memory (in Mo) reserved for java to run MAXENT. should be 64, 128, 256, 512, 1024, 2048... or NULL if you want to use default java memory limitation parameter.
   maximumiterations = bccvl.params$maximumiterations,
   visible = FALSE,
