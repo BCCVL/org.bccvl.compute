@@ -1,7 +1,7 @@
 """
 """
 from pkg_resources import resource_string
-from zope.interface import moduleProvides, implementer, Interface
+from zope.interface import moduleProvides, implementer, Interface, provider
 from z3c.form.object import registerFactoryAdapter
 from zope import schema
 from zope.schema.vocabulary import SimpleVocabulary
@@ -70,9 +70,9 @@ fda_method_vocab = SimpleVocabulary.fromItems([
 ])
 
 
-@implementer(IVocabularyFactory)
-def fda_method_vocab_factory():
-    fda_method_vocab_factory
+@provider(IVocabularyFactory)
+def fda_method_vocab_factory(context):
+    return fda_method_vocab
 
 
 class IParametersFDA(IParametersBiomod):

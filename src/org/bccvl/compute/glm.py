@@ -2,7 +2,7 @@ from pkg_resources import resource_string
 from org.bccvl.compute.utils import WorkEnv, queue_job
 
 from zope.schema.vocabulary import SimpleVocabulary
-from zope.interface import moduleProvides, implementer
+from zope.interface import moduleProvides, implementer, provider
 from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
 from zope import schema
 from zope.schema.fieldproperty import FieldProperty
@@ -76,8 +76,8 @@ glm_type_vocab = SimpleVocabulary.fromValues([
 ])
 
 
-@implementer(IVocabularyFactory)
-def glm_type_vocab_factory():
+@provider(IVocabularyFactory)
+def glm_type_vocab_factory(context):
     return glm_type_vocab
 
 
@@ -88,8 +88,8 @@ glm_test_vocab = SimpleVocabulary.fromValues([
 ])
 
 
-@implementer(IVocabularyFactory)
-def glm_test_vocab_factory():
+@provider(IVocabularyFactory)
+def glm_test_vocab_factory(context):
     return glm_test_vocab
 
 
@@ -105,8 +105,8 @@ glm_family_vocab = SimpleVocabulary.fromValues([
 ])
 
 
-@implementer(IVocabularyFactory)
-def glm_family_vocab_factory():
+@provider(IVocabularyFactory)
+def glm_family_vocab_factory(context):
     return glm_family_vocab
 
 

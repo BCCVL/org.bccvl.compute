@@ -18,39 +18,39 @@
       />
 
     <utility
-        factory=".brt.brt_var_monotone_vocab_factory"
-        name=".brt.brt_var_monotone_vocab" />
+        component=".brt.brt_var_monotone_vocab_factory"
+        name="brt_var_monotone_vocab" />
 
     <utility
-        factory=".brt.brt_family_vocab_factory"
-        name=".brt.brt_family_vocab" />
+        component=".brt.brt_family_vocab_factory"
+        name="brt_family_vocab" />
 
     <utility
-        factory=".brt.brt_tolerance_method_vocab_factory"
-        name=".brt.brt_tolerance_method_vocab" />
+        component=".brt.brt_tolerance_method_vocab_factory"
+        name="brt_tolerance_method_vocab" />
 
     <utility
-        factory=".biomod.biomod_prevalance_vocab_factory"
-        name=".biomod.biomod_prevalance_vocab" />
+        component=".biomod.biomod_prevalance_vocab_factory"
+        name="biomod_prevalance_vocab" />
 
     <utility
-        factory=".cta.cta_method_vocab_factory"
-        name=".cta.cta_method_vocab" />
+        component=".cta.cta_method_vocab_factory"
+        name="cta_method_vocab" />
 
     <utility
-        factory=".fda.fda_method_vocab_factory"
-        name=".fda.fda_method_vocab" />
+        component=".fda.fda_method_vocab_factory"
+        name="fda_method_vocab" />
 
     <utility
-        factory=".glm.glm_type_vocab_factory"
-        name=".glm.glm_type_vocab" />
+        component=".glm.glm_type_vocab_factory"
+        name="glm_type_vocab" />
 
     <utility
-        factory=".glm.glm_test_vocab_factory"
-        name=".glm.glm_test_vocab" />
+        component=".glm.glm_test_vocab_factory"
+        name="glm_test_vocab" />
 
     <utility
-        factory=".glm.glm_family_vocab_factory"
-        name=".glm.glm_family_vocab" />
+        component=".glm.glm_family_vocab_factory"
+        name="glm_family_vocab" />
 
 </configure>

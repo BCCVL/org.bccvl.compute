@@ -2,7 +2,7 @@
 
 from persistent import Persistent
 from zope import schema
-from zope.interface import Interface, implementer
+from zope.interface import Interface, provider
 from zope.schema.vocabulary import SimpleVocabulary
 from zope.schema.fieldproperty import FieldProperty
 from zope.schema.interfaces import IVocabularyFactory
@@ -51,8 +51,8 @@ biomod_prevalance_vocab = SimpleVocabulary.fromValues([
 ])
 
 
-@implementer(IVocabularyFactory)
-def biomod_prevalance_vocab_factory():
+@provider(IVocabularyFactory)
+def biomod_prevalance_vocab_factory(context):
     return biomod_prevalance_vocab
 
 

@@ -3,7 +3,7 @@ from pkg_resources import resource_string
 
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope.schema.interfaces import IVocabularyFactory
-from zope.interface import moduleProvides, implementer, Interface
+from zope.interface import moduleProvides, implementer, Interface, provider
 from persistent import Persistent
 from z3c.form.object import registerFactoryAdapter # do this dynamically in site module?
 from zope import schema
@@ -76,9 +76,9 @@ brt_var_monotone_vocab = SimpleVocabulary([
 ])
 
 
-@implementer(IVocabularyFactory)
-def brt_var_monotone_vocab_factory():
-    return brt_var_monotone_vocab_factory
+@provider(IVocabularyFactory)
+def brt_var_monotone_vocab_factory(context):
+    return brt_var_monotone_vocab
 
 brt_family_vocab = SimpleVocabulary.fromItems([
     ('bernoulli (binomial)', 'bernoulli'),
@@ -88,9 +88,10 @@ brt_family_vocab = SimpleVocabulary.fromItems([
 ])
 
 
-@implementer(IVocabularyFactory)
-def brt_family_vocab_factory():
+@provider(IVocabularyFactory)
+def brt_family_vocab_factory(context):
     return brt_family_vocab
+
 
 brt_tolerance_method_vocab = SimpleVocabulary.fromValues([
     'auto',
@@ -98,9 +99,9 @@ brt_tolerance_method_vocab = SimpleVocabulary.fromValues([
 ])
 
 
-@implementer(IVocabularyFactory)
-def brt_tolerance_method_vocab_factory():
-    return brt_tolerance_method_vocab_factory
+@provider(IVocabularyFactory)
+def brt_tolerance_method_vocab_factory(context):
+    return brt_tolerance_method_vocab
 
 
 class IParametersBRT(Interface):
