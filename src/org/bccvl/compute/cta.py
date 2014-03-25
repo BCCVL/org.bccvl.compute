@@ -1,7 +1,7 @@
 from zope.schema.interfaces import IVocabularyFactory
 from zope.schema.vocabulary import SimpleVocabulary
 from zope.interface import provider
-from .rscripm import execute_sdm
+from .rscript import execute_sdm
 from .biomod import BIOMOD_OUTPUTS
 
 
