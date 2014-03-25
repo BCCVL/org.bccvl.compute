@@ -1,0 +1,10 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Circles",
+  "method": "org.bccvl.compute.circles.execute",
+  "intperpreter": "R",
+  "script": {"filename": "circles.R"},
+  "schema": {"filename": "circles.xml"},
+  "_fileattributes": ["script", "schema"],
+  "_transitions": "publish"
+}

@@ -1,0 +1,38 @@
+<model xmlns:security="http://namespaces.plone.org/supermodel/security"
+       xmlns:marshal="http://namespaces.plone.org/supermodel/marshal"
+       xmlns:form="http://namespaces.plone.org/supermodel/form"
+       xmlns="http://namespaces.plone.org/supermodel/schema">
+  <schema based-on="zope.interface.Interface">
+   <field name="nb_run_eval" type="zope.schema.Int">
+      <default>10</default>
+      <title>n-fold cross validation</title>
+    </field>
+    <field name="data_split" type="zope.schema.Int">
+      <default>100</default>
+      <title>data split</title>
+    </field>
+    <field name='prevalence' type='zope.schema.Choice'>
+      <default>None</default>
+      <required>False</required>
+      <title>weighted response weights</title>
+      <vocabulary>biomod_prevalance_vocab</vocabulary>
+    </field>
+    <field name="var_import" type="zope.schema.Int">
+      <default>0</default>
+      <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
+      <title>resampling</title>
+    </field>
+    <field name="do_full_models" type="zope.schema.Bool">
+      <default>True</default>
+      <description>calibrate &amp; evaluate models with the whole dataset?</description>
+      <title>do full models</title>
+    </field>
+    <field name="method" type="zope.schema.Choice">
+      <default>mars</default>
+      <description>The regression method used in optimal scaling</description>
+      <required>False</required>
+      <title>method</title>
+      <vocabulary>fda_method_vocab</vocabulary>
+    </field>
+  </schema>
+</model>

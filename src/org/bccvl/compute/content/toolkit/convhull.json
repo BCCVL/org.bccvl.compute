@@ -1,0 +1,10 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Convex Hull",
+  "method": "org.bccvl.compute.convhull.execute",
+  "intperpreter": "R",
+  "script": {"filename": "convHull.R"},
+  "schema": {"filename": "convHull.xml"},
+  "_fileattributes": ["script", "schema"],
+  "_transitions": "publish"
+}

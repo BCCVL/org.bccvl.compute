@@ -1,0 +1,10 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Boosted Regression Tree",
+  "method": "org.bccvl.compute.brt.execute",
+  "intperpreter": "R",
+  "script": {"filename": "brt.R"},
+  "schema": {"filename": "brt.xml"},
+  "_fileattributes": ["script", "schema"],
+  "_transitions": "publish"
+}

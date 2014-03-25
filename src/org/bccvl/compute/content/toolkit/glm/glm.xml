@@ -1,0 +1,71 @@
+<model xmlns:security="http://namespaces.plone.org/supermodel/security"
+       xmlns:marshal="http://namespaces.plone.org/supermodel/marshal"
+       xmlns:form="http://namespaces.plone.org/supermodel/form"
+       xmlns="http://namespaces.plone.org/supermodel/schema">
+  <schema based-on="zope.interface.Interface">
+   <field name="nb_run_eval" type="zope.schema.Int">
+      <default>10</default>
+      <title>n-fold cross validation</title>
+    </field>
+    <field name="data_split" type="zope.schema.Int">
+      <default>100</default>
+      <title>data split</title>
+    </field>
+    <field name='prevalence' type='zope.schema.Choice'>
+      <default>None</default>
+      <required>False</required>
+      <title>weighted response weights</title>
+      <vocabulary>biomod_prevalance_vocab</vocabulary>
+    </field>
+    <field name="var_import" type="zope.schema.Int">
+      <default>0</default>
+      <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
+      <title>resampling</title>
+    </field>
+    <field name="do_full_models" type="zope.schema.Bool">
+      <default>True</default>
+      <description>calibrate &amp; evaluate models with the whole dataset?</description>
+      <title>do full models</title>
+    </field>
+    <field name="type" type="zope.schema.Choice">
+      <default>quadratic</default>
+      <title>type</title>
+      <vocabulary>glm_type_vocab</vocabulary>
+    </field>
+    <field name="interaction_level" type="zope.schema.Int">
+      <default>0</default>
+      <title>interaction level</title>
+    </field>
+    <field name="test" type="zope.schema.Choice">
+      <default>AIC</default>
+      <title>test</title>
+      <vocabulary>glm_test_vocab</vocabulary>
+    </field>
+    <field name="family" type="zope.schema.Choice">
+      <default>binomial</default>
+      <title>family</title>
+      <vocabulary>glm_family_vocab</vocabulary>
+    </field>
+    <field name="mustart" type="zope.schema.Decimal">
+      <default>0.5</default>
+      <description>starting values for the vector of means</description>
+      <title>mustart</title>
+    </field>
+    <field name="control_epsilon" type="zope.schema.Decimal">
+      <default>1E-8</default>
+      <description>positive convergence tolerance e</description>
+      <title>control: epsilon</title>
+    </field>
+    <field name="control_maxit" type="zope.schema.Int">
+      <default>50</default>
+      <description>maximal number of IWLS iterations</description>
+      <title>control: maxit</title>
+    </field>
+    <field name="control_trace" type="zope.schema.Bool">
+      <default>False</default>
+      <description>produce output for each iteration</description>
+      <required>False</required>
+      <title>control: trace</title>
+    </field>
+  </schema>
+</model>

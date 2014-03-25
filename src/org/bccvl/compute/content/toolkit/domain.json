@@ -1,0 +1,10 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Domain",
+  "method": "org.bccvl.compute.domain.execute",
+  "intperpreter": "R",
+  "script": {"filename": "domain.R"},
+  "schema": {"filename": "domain.xml"},
+  "_fileattributes": ["script", "schema"],
+  "_transitions": "publish"
+}

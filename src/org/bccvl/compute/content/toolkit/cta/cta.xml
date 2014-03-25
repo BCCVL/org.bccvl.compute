@@ -1,0 +1,59 @@
+<model xmlns:security="http://namespaces.plone.org/supermodel/security"
+       xmlns:marshal="http://namespaces.plone.org/supermodel/marshal"
+       xmlns:form="http://namespaces.plone.org/supermodel/form"
+       xmlns="http://namespaces.plone.org/supermodel/schema">
+  <schema based-on="zope.interface.Interface">
+   <field name="nb_run_eval" type="zope.schema.Int">
+      <default>10</default>
+      <title>n-fold cross validation</title>
+    </field>
+    <field name="data_split" type="zope.schema.Int">
+      <default>100</default>
+      <title>data split</title>
+    </field>
+    <field name='prevalence' type='zope.schema.Choice'>
+      <default>None</default>
+      <required>False</required>
+      <title>weighted response weights</title>
+      <vocabulary>biomod_prevalance_vocab</vocabulary>
+    </field>
+    <field name="var_import" type="zope.schema.Int">
+      <default>0</default>
+      <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
+      <title>resampling</title>
+    </field>
+    <field name="do_full_models" type="zope.schema.Bool">
+      <default>True</default>
+      <description>calibrate &amp; evaluate models with the whole dataset?</description>
+      <title>do full models</title>
+    </field>
+    <field name="method" type="zope.schema.Choice">
+      <default>class</default>
+      <title>method</title>
+      <vocabulary>cta_method_vocab</vocabulary>
+    </field>
+    <field name="control_xval" type="zope.schema.Int">
+      <default>5</default>
+      <title>cross-validations</title>
+    </field>
+    <field name="control_minbucket" type="zope.schema.Int">
+      <default>5</default>
+      <description>minimum number of observations in any terminal node</description>
+      <title>minimum bucket</title>
+    </field>
+    <field name="control_minsplit" type="zope.schema.Int">
+      <default>5</default>
+      <description>minimum number of observations that must exist in a node for a split to be attempted</description>
+      <title>minimum split</title>
+    </field>
+    <field name="control_cp" type="zope.schema.Decimal">
+      <default>0.001</default>
+      <title>complexity parameter</title>
+    </field>
+    <field name="control_maxdepth" type="zope.schema.Int">
+      <default>25</default>
+      <description>maximum depth of any node of the final tree, with the root node counted as depth 0</description>
+      <title>maximum depth</title>
+    </field>
+  </schema>
+</model>

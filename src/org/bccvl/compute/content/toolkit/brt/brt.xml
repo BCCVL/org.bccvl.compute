@@ -1,0 +1,76 @@
+<model xmlns:security="http://namespaces.plone.org/supermodel/security"
+       xmlns:marshal="http://namespaces.plone.org/supermodel/marshal"
+       xmlns:form="http://namespaces.plone.org/supermodel/form"
+       xmlns="http://namespaces.plone.org/supermodel/schema">
+  <schema based-on="zope.interface.Interface">
+    <field name="tree_complexity" type="zope.schema.Int">
+      <default>1</default>
+      <description>The complexity of individual trees between 1 and 50 (inclusive)</description>
+      <max>50</max>
+      <min>1</min>
+      <required>False</required>
+      <title>tree complexity</title>
+    </field>
+    <field name="learning_rate" type="zope.schema.Decimal">
+      <default>0.01</default>
+      <description>The weight applied to individual trees.</description>
+      <required>False</required>
+      <title>learning rate</title>
+    </field>
+    <field name="bag_fraction" type="zope.schema.Decimal">
+      <default>0.75</default>
+      <description>The proportion of observations used in selecting variables.</description>
+      <required>False</required>
+      <title>bag fraction</title>
+    </field>
+    <field name="var_monotone" type="zope.schema.Choice">
+      <default>-1</default>
+      <required>False</required>
+      <title>var monotone</title>
+      <vocabulary>brt_var_monotone_vocab</vocabulary>
+    </field>
+    <field name="n_folds" type="zope.schema.Int">
+      <default>10</default>
+      <description>Number of folds.</description>
+      <required>False</required>
+      <title>n folds</title>
+    </field>
+    <field name="prev_stratify" type="zope.schema.Bool">
+      <default>True</default>
+      <description>prevalence stratify the folds - only for presence/absence data</description>
+      <required>False</required>
+      <title>prev stratify</title>
+    </field>
+    <field name="family" type="zope.schema.Choice">
+      <default>bernoulli</default>
+      <required>False</required>
+      <title>family</title>
+      <vocabulary>brt_family_vocab</vocabulary>
+    </field>
+    <field name="n_trees" type="zope.schema.Int">
+      <default>50</default>
+      <description>Number of initial trees to fit</description>
+      <required>False</required>
+      <title>trees added each cycle</title>
+    </field>
+    <field name="max_trees" type="zope.schema.Int">
+      <default>10000</default>
+      <description>Max number of trees to fit before stopping</description>
+      <required>False</required>
+      <title>max trees</title>
+    </field>
+    <field name="tolerance_method" type="zope.schema.Choice">
+      <default>auto</default>
+      <description>Method to use in deciding to stop.</description>
+      <required>False</required>
+      <title>tolerance method</title>
+      <vocabulary>brt_tolerance_method_vocab</vocabulary>
+    </field>
+    <field name="tolerance_value" type="zope.schema.Decimal">
+      <default>0.001</default>
+      <description>Tolerance value to use - if method == fixed is absolute, if auto is multiplier * total mean deviance</description>
+      <required>False</required>
+      <title>tolerance value</title>
+    </field>
+  </schema>
+</model>

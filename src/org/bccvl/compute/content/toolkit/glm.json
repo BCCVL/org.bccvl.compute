@@ -1,0 +1,10 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Generalized Linear Model",
+  "method": "org.bccvl.compute.glm.execute",
+  "intperpreter": "R",
+  "script": {"filename": "glm.R"},
+  "schema": {"filename": "glm.xml"},
+  "_fileattributes": ["script", "schema"],
+  "_transitions": "publish"
+}

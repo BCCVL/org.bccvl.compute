@@ -1,0 +1,10 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Classification Tree",
+  "method": "org.bccvl.compute.cta.execute",
+  "intperpreter": "R",
+  "script": {"filename": "cta.R"},
+  "schema": {"filename": "cta.xml"},
+  "_fileattributes": ["script", "schema"],
+  "_transitions": "publish"
+}

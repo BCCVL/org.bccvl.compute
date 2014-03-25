@@ -1,0 +1,10 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Maximum Entropy Modeling",
+  "method": "org.bccvl.compute.maxent.execute",
+  "intperpreter": "R",
+  "script": {"filename": "maxent.R"},
+  "schema": {"filename": "maxent.xml"},
+  "_fileattributes": ["script", "schema"],
+  "_transitions": "publish"
+}
