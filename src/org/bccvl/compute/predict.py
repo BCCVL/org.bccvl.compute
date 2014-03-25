@@ -54,7 +54,7 @@ OUTPUTS = {
 }
 
 
-def execute(experiment, request=None, workenv=WorkEnv):
+def execute(experiment, func, request=None):
     """
     This function takes an experiment and executes.
 
@@ -72,7 +72,7 @@ def execute(experiment, request=None, workenv=WorkEnv):
     """
     # TODO: CREATE WorkEnv in job
     # workenv = WorkEnvLocal
-    env = workenv()
+    env = WorkEnv()
     params = get_project_params(experiment)
     script = generate_project_script()
     return queue_job(experiment, 'Projection', env, script, params, OUTPUTS)
