@@ -12,15 +12,3 @@ def execute(experiment, func, request=None):
     return execute_sdm(experiment, func, request, OUTPUTS=OUTPUTS)
 
 ## Parameters
-
-fda_method_vocab = SimpleVocabulary.fromItems([
-    ('polyreg', 'polyreg'),
-    ('mars', 'mars'),
-    ('bruto', 'bruto'),
-    ('gen.ridge', 'gen.ridge'),
-])
-
-
-@provider(IVocabularyFactory)
-def fda_method_vocab_factory(context):
-    return fda_method_vocab

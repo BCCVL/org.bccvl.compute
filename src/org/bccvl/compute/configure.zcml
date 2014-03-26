@@ -38,10 +38,6 @@
         name="cta_method_vocab" />
 
     <utility
-        component=".fda.fda_method_vocab_factory"
-        name="fda_method_vocab" />
-
-    <utility
         component=".glm.glm_type_vocab_factory"
         name="glm_type_vocab" />
 

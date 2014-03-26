@@ -12,7 +12,6 @@
       <title>data split</title>
     </field>
     <field name='prevalence' type='zope.schema.Choice'>
-      <default>None</default>
       <required>False</required>
       <title>weighted response weights</title>
       <vocabulary>biomod_prevalance_vocab</vocabulary>
@@ -32,7 +31,12 @@
       <description>The regression method used in optimal scaling</description>
       <required>False</required>
       <title>method</title>
-      <vocabulary>fda_method_vocab</vocabulary>
+      <values>
+          <element>ployreg</element>
+          <element>mars</element>
+          <element>bruto</element>
+          <element>gen.ridge</element>
+      </values>
     </field>
   </schema>
 </model>
