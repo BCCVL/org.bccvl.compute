@@ -22,7 +22,7 @@
       <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
       <title>resampling</title>
     </field>
-    <field name="do_full_models" type="zope.schema.Bool">
+    <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>calibrate &amp; evaluate models with the whole dataset?</description>
       <title>do full models</title>

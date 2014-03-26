@@ -35,7 +35,7 @@
       <required>False</required>
       <title>n folds</title>
     </field>
-    <field name="prev_stratify" type="zope.schema.Bool">
+    <field name="prev_stratify" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>prevalence stratify the folds - only for presence/absence data</description>
       <required>False</required>

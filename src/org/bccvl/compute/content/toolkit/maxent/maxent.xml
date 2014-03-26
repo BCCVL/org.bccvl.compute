@@ -22,7 +22,7 @@
       <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
       <title>resampling</title>
     </field>
-    <field name="do_full_models" type="zope.schema.Bool">
+    <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>calibrate &amp; evaluate models with the whole dataset?</description>
       <title>do full models</title>
@@ -32,31 +32,31 @@
       <description>maximum iterations done</description>
       <title>Maximum iterations</title>
     </field>
-    <field name="linear" type="zope.schema.Bool">
+    <field name="linear" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow linear features to be used</description>
       <title>Linear</title>
       <required>False</required>
     </field>
-    <field name="quadratic" type="zope.schema.Bool">
+    <field name="quadratic" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow quadratic features to be used</description>
       <title>Quadratic</title>
       <required>False</required>
     </field>
-    <field name="product" type="zope.schema.Bool">
+    <field name="product" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow product features to be used</description>
       <title>Product</title>
       <required>False</required>
     </field>
-    <field name="threshold" type="zope.schema.Bool">
+    <field name="threshold" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow threshold features to be used</description>
       <title>Threshold</title>
       <required>False</required>
     </field>
-    <field name="hinge" type="zope.schema.Bool">
+    <field name="hinge" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow hinge features to be used</description>
       <title>Hinge</title>
