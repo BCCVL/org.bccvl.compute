@@ -23,11 +23,11 @@ brt_var_monotone_vocab = SimpleVocabulary([
 def brt_var_monotone_vocab_factory(context):
     return brt_var_monotone_vocab
 
-brt_family_vocab = SimpleVocabulary.fromItems([
-    ('bernoulli (binomial)', 'bernoulli'),
-    ('poisson', 'poisson'),
-    ('laplace', 'laplace'),
-    ('gaussian', 'gaussian'),
+brt_family_vocab = SimpleVocabulary([
+    SimpleTerm('bernoulli', 'bernoulli', 'bernoulli (binomial)'),
+    SimpleTerm('poisson', 'poisson', 'poisson'),
+    SimpleTerm('laplace', 'laplace', 'laplace'),
+    SimpleTerm('gaussian', 'gaussian', 'gaussian'),
 ])
 
 
