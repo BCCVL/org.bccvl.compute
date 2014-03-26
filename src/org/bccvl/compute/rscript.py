@@ -32,7 +32,7 @@ def get_sdm_params(experiment):
 
 def get_toolkit_params(experiment, toolkit):
     params = get_sdm_params(experiment)
-    params.update(experiment.paramaters[toolkit.getId()])
+    params.update(experiment.parameters[toolkit.getId()])
     params.update({
         # TODO: some params are probably sdm specific or even
         #       per run (in case of multi runs)
