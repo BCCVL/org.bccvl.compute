@@ -32,7 +32,7 @@
       <required>False</required>
       <title>method</title>
       <values>
-          <element>ployreg</element>
+          <element>polyreg</element>
           <element>mars</element>
           <element>bruto</element>
           <element>gen.ridge</element>

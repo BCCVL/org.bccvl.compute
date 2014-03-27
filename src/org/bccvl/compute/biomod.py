@@ -4,8 +4,6 @@ from zope.interface import provider
 from zope.schema.vocabulary import SimpleVocabulary
 from zope.schema.interfaces import IVocabularyFactory
 
-from org.bccvl.compute import MessageFactory as _
-
 BIOMOD_OUTPUTS = {
     'files': {
         '*.Rout': {

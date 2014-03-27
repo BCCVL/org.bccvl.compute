@@ -64,7 +64,10 @@
       <description>Method to use in deciding to stop.</description>
       <required>False</required>
       <title>tolerance method</title>
-      <vocabulary>brt_tolerance_method_vocab</vocabulary>
+      <values>
+        <element>auto</element>
+        <element>fixed</element>
+      </values>
     </field>
     <field name="tolerance_value" type="zope.schema.Decimal">
       <default>0.001</default>

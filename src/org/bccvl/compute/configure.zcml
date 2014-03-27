@@ -26,27 +26,7 @@
         name="brt_family_vocab" />
 
     <utility
-        component=".brt.brt_tolerance_method_vocab_factory"
-        name="brt_tolerance_method_vocab" />
-
-    <utility
         component=".biomod.biomod_prevalance_vocab_factory"
         name="biomod_prevalance_vocab" />
-
-    <utility
-        component=".cta.cta_method_vocab_factory"
-        name="cta_method_vocab" />
-
-    <utility
-        component=".glm.glm_type_vocab_factory"
-        name="glm_type_vocab" />
-
-    <utility
-        component=".glm.glm_test_vocab_factory"
-        name="glm_test_vocab" />
-
-    <utility
-        component=".glm.glm_family_vocab_factory"
-        name="glm_family_vocab" />
 
 </configure>

@@ -34,14 +34,3 @@ brt_family_vocab = SimpleVocabulary([
 @provider(IVocabularyFactory)
 def brt_family_vocab_factory(context):
     return brt_family_vocab
-
-
-brt_tolerance_method_vocab = SimpleVocabulary.fromValues([
-    'auto',
-    'fixed',
-])
-
-
-@provider(IVocabularyFactory)
-def brt_tolerance_method_vocab_factory(context):
-    return brt_tolerance_method_vocab
