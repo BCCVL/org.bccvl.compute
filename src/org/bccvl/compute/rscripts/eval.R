@@ -547,7 +547,8 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     # TODO: get_predictions is buggy; evaluation=FALSE works the wrong way round
     # predictions = get_predictions(biomod.model, evaluation=FALSE)
     obs = get_formal_data(biomod.model, "resp.var")
-
+    # in case of pseudo absences we might have NA values in obs so replace them with 0
+    obs = replace(obs, is.na(obs), 0)
     # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
     combined.eval = sapply(model.accuracy, function(x){
         return(bccvl.Find.Optim.Stat(Stat = x, Fit = predictions, Obs = obs))
