@@ -2,6 +2,24 @@
 # model accuracy helpers
 ######################################################################################
 
+# ROC    Relative Operating Characteristic
+# KAPPA (HSS)  Cohen's Kappa (Heidke skill score)
+# TSS (HK, PSS)    True skill statistic (Hanssen and Kuipers discriminant, Peirce's skill score)
+# FAR    False alarm ratio
+# SR     Success ratio
+# ACCURACY Accuracy (fraction correct)
+# BIAS   Bias score (frequency bias)
+# POD    Probability of detection (hit rate)
+# CSI    Critical success index (threat score)
+# ETS    Equitable threat score (Gilbert skill score)
+# POFD   Probability of false detection (false alarm rate)
+# OR     Odds ratio
+# ORSS   Odds ratio skill score (Yule's Q)
+# unsupported?
+# http://www.cawcr.gov.au/projects/verification/#Methods_for_dichotomous_forecasts
+# BOYCE .. not implemented?
+# TS       Threat score (critical success index)
+
 # function to save evaluate output
 bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
     # save the 'dismo::ModelEvalution' object
@@ -17,6 +35,14 @@ bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
     dev.off()
 }
 
+#
+# returns:
+#
+#    best.iter: the best score obtained for chosen statistic
+#    cutoff: the associated cut-off used for transform fitted vector into binary
+#    sensibility: the sensibility with this threshold
+#    specificity: the specificity with this threshold
+#
 bccvl.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thresh=NULL) {
     if(length(unique(Obs)) == 1 | length(unique(Fit)) == 1){
         # warning("\nObserved or fited data contains only a value.. Evaluation Methods switched off\n",immediate.=T)
@@ -515,6 +541,7 @@ bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     model.obs = c(rep(1, length(model.eval@presence)), rep(0, length(model.eval@absence)))
 
     # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+    # TODO: model.accuracy is another global variable
     model.combined.eval = sapply(model.accuracy, function(x){
         return(bccvl.Find.Optim.Stat(Stat=x, Fit=model.fit, Obs=model.obs))
     })
@@ -550,6 +577,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     # in case of pseudo absences we might have NA values in obs so replace them with 0
     obs = replace(obs, is.na(obs), 0)
     # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+    # TODO: model.accuracy is another global variable
     combined.eval = sapply(model.accuracy, function(x){
         return(bccvl.Find.Optim.Stat(Stat = x, Fit = predictions, Obs = obs))
     })

@@ -1,10 +1,11 @@
 {
   "_type": "org.bccvl.content.function",
   "title": "Bioclim",
-  "method": "org.bccvl.compute.bioclim.execute",
+  "method": "org.bccvl.compute.rscript.execute_sdm",
   "intperpreter": "R",
   "script": {"filename": "bioclim.R"},
   "schema": {"filename": "bioclim.xml"},
-  "_fileattributes": ["script", "schema"],
+  "output": {"filename": "bioclim.txt"},
+  "_fileattributes": ["script", "schema", "output"],
   "_transitions": "publish"
 }

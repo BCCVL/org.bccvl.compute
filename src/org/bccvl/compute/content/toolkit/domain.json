@@ -1,10 +1,11 @@
 {
   "_type": "org.bccvl.content.function",
   "title": "Domain",
-  "method": "org.bccvl.compute.domain.execute",
+  "method": "org.bccvl.compute.rscript.execute_sdm",
   "intperpreter": "R",
   "script": {"filename": "domain.R"},
   "schema": {"filename": "domain.xml"},
-  "_fileattributes": ["script", "schema"],
+  "output": {"filename": "domain.txt"},
+  "_fileattributes": ["script", "schema", "output"],
   "_transitions": "publish"
 }

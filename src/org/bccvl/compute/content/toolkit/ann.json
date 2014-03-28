@@ -1,10 +1,11 @@
 {
   "_type": "org.bccvl.content.function",
   "title": "Artificial Neural Network",
-  "method": "org.bccvl.compute.ann.execute",
+  "method": "org.bccvl.compute.rscript.execute_sdm",
   "intperpreter": "R",
   "script": {"filename": "ann.R"},
   "schema": {"filename": "ann.xml"},
-  "_fileattributes": ["script", "schema"],
+  "output": {"filename": "ann.txt"},
+  "_fileattributes": ["script", "schema", "output"],
   "_transitions": "publish"
 }

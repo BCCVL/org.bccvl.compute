@@ -1,5 +1,10 @@
 from pkg_resources import resource_string
+import logging
+import json
 from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
+
+
+LOG = logging.getLogger(__name__)
 
 
 def get_sdm_params(experiment):
@@ -46,7 +51,7 @@ def get_toolkit_params(experiment, toolkit):
 
 
 def generate_sdm_script(r_script):
-    script = '\n'.join([
+    script = u'\n'.join([
         resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
         resource_string('org.bccvl.compute', 'rscripts/eval.R'),
         r_script])
@@ -71,6 +76,14 @@ def execute_sdm(experiment, toolkit, request=None, workenv=WorkEnv,
 
 
     """
+    # if OUTPUTS is None, try to get it from toolkit
+    if OUTPUTS is None:
+        try:
+            OUTPUTS = json.loads(toolkit.output)
+        except (ValueError, TypeError) as e:
+            LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
+                      toolkit.getId(), e)
+            OUTPUTS = {}
     env = workenv()
     params = get_toolkit_params(experiment, toolkit)
     script = generate_sdm_script(toolkit.script)
