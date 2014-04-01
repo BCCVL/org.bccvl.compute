@@ -21,7 +21,8 @@ def get_sdm_params(result):
         'pseudoabsences': {
             'enabled': experiment.species_pseudo_absence_points,
             'points': experiment.species_number_pseudo_absence_points
-            }
+            },
+        'species': result.species.replace(' ', '_'),
         }
     uuid = experiment.species_occurrence_dataset
     params['occurrence'][uuid] = getdatasetparams(uuid)
@@ -47,7 +48,6 @@ def get_toolkit_params(result):
         'rescale_all_models': False,  # param_object.rescale_all_models,
         'selected_models': 'all',
         'modeling_id': 'bccvl',
-        'species': 'species',
         })
     return params
 
