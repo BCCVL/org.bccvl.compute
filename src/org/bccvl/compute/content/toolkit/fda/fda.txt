@@ -2,23 +2,23 @@
     "files": {
         "*.Rout": {
             "title": "Log file",
-            "type": "log",
-            "format": "txt"
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript"
         },
         "*.txt": {
             "title": "Model Evaluation",
-            "type": "eval",
-            "format": "txt"
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/plain"
         },
         "species/proj_current/proj_current_ClampingMask.tif": {
             "title": "Clamping Mask",
-            "type": "projection",
-            "format": "GTiff"
+            "genre": "DataGenreClampingMask",
+            "mimetype": "image/geotiff"
         },
         "species/proj_current/proj_current_species.tif": {
             "title": "Projection to current",
-            "type": "projection",
-            "format": "GTiff"
+            "genre": "DataGenreCP",
+            "mimetype": "image/geotiff"
         }
     },
     "archives": {
@@ -28,8 +28,8 @@
                       "species/models/bccvl/*"
                       ],
             "title": "R SDM Model object",
-            "type": "model",
-            "format": "zip"
+            "genre": "DataGenreSDMModel",
+            "mimetype": "application/zip"
         }
     }
 }

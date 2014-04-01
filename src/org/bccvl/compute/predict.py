@@ -36,12 +36,14 @@ def generate_project_script():
     ])
     return script
 
+# TODO: maybe allow tal expressions or regexp match parameters to create more meaningful titles?
+# FIXME: which projection get's which metadata? (GCM, emsc, scale, year)
 OUTPUTS = {
     'files': {
         '*.tif': {
-            'title': 'Projection',
-            'type': 'projection',
-            'format': 'GTiff',  # TODO: replace format withe mime/type?
+            'title': 'Future Projection',
+            'genre': 'DataGenreFP',
+            'mimetype': 'image/geotiff',
         },
     },
     'archives': {

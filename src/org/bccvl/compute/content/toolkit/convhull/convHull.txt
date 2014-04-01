@@ -2,51 +2,51 @@
     "files": {
         "AUC.png": {
             "title": "Area Under the Receiver Operating Characteristic Curve (AUC)",
-            "type": "eval",
-            "format": "png"
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
         },
         "*.csv": {
             "title": "Model accuracy statistics",
-            "type": "eval",
-            "format": "csv"
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/csv"
         },
         "dismo.eval.object.RData": {
             "title": "R ModelEvaluation object",
-            "type": "eval",
-            "format": "RData"
+            "genre": "DataGenreSDMEval",
+            "mimetype": "application/x-r-data"
         },
         "model.object.RData": {
             "title": "R SDM Model object",
-            "type": "model",
-            "format": "RData"
+            "genre": "DataGenreSDMModel",
+            "mimetype": "application/x-r-data"
         },
         "results.html": {
             "title": "Accuracy measures report",
-            "type": "eval",
-            "format": "html"
+            "genre": "DataGenreSDMEval",
+            "mimetype": "txt/html"
         },
         "*.Rout": {
             "title": "Log file",
-            "type": "log",
-            "format": "txt"
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript"
         },
         "current.tif": {
             "title": "Projection to current",
-            "type": "projection",
-            "format": "GTiff"
+            "genre": "DataGenreCP",
+            "mimetype": "image/geotiff"
         },
         "*_response.png": {
             "title": "Marginal Response Curve",
-            "type": "eval",
-            "format": "png"
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
         }
     },
     "archives": {
         "results.html.zip": {
             "files": ["results.html", "AUC.png"],
             "title": "Accuracy measures report as zip",
-            "type": "eval",
-            "format": "zip"
+            "genre": "DataGenreSDMEval",
+            "mimetype": "application/zip"
         }
     }
 }
