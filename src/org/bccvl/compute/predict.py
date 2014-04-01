@@ -14,6 +14,7 @@ def get_project_params(experiment):
     params = {'sdms': {},
               'climate': {}}
     uuid = experiment.species_distribution_models
+    # TODO: doesn't fetch layers for sdm?'
     params['sdms'][uuid] = getdatasetparams(uuid)
 
     sdmobj = uuidToObject(uuid)
@@ -56,7 +57,7 @@ OUTPUTS = {
 }
 
 
-def execute(experiment, func, request=None):
+def execute(result, func, request=None):
     """
     This function takes an experiment and executes.
 
@@ -74,10 +75,11 @@ def execute(experiment, func, request=None):
     """
     # TODO: CREATE WorkEnv in job
     # workenv = WorkEnvLocal
+    experiment = result.__parent__
     env = WorkEnv()
     params = get_project_params(experiment)
     script = generate_project_script()
-    return queue_job(experiment, 'Projection', env, script, params, OUTPUTS)
+    return queue_job(result, 'Projection', env, script, params, OUTPUTS)
 
 
 parameters = None

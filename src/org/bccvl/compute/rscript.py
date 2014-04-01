@@ -7,11 +7,12 @@ from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
 LOG = logging.getLogger(__name__)
 
 
-def get_sdm_params(experiment):
+def get_sdm_params(result):
     # TODO: make list/single value detection possible
     #       currently all files are treated as multi select here
     # TODO: make sure param names here match field names in schema and
     #       variables in R-srript
+    experiment = result.__parent__
     params = {
         'layers': experiment.environmental_datasets,
         'occurrence': {},
@@ -35,9 +36,10 @@ def get_sdm_params(experiment):
     return params
 
 
-def get_toolkit_params(experiment, toolkit):
-    params = get_sdm_params(experiment)
-    params.update(experiment.parameters[toolkit.getId()])
+def get_toolkit_params(result):
+    params = get_sdm_params(result)
+    experiment = result.__parent__
+    params.update(experiment.parameters[result.toolkit])
     params.update({
         # TODO: some params are probably sdm specific or even
         #       per run (in case of multi runs)
@@ -58,9 +60,7 @@ def generate_sdm_script(r_script):
     return script
 
 
-# TODO: remove OUTPUTS
-def execute_sdm(experiment, toolkit, request=None, workenv=WorkEnv,
-                OUTPUTS=None):
+def execute_sdm(result, toolkit, request=None, workenv=WorkEnv):
     """
     This function takes an experiment and executes.
 
@@ -76,15 +76,13 @@ def execute_sdm(experiment, toolkit, request=None, workenv=WorkEnv,
 
 
     """
-    # if OUTPUTS is None, try to get it from toolkit
-    if OUTPUTS is None:
-        try:
-            OUTPUTS = json.loads(toolkit.output)
-        except (ValueError, TypeError) as e:
-            LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
-                      toolkit.getId(), e)
-            OUTPUTS = {}
+    try:
+        OUTPUTS = json.loads(toolkit.output)
+    except (ValueError, TypeError) as e:
+        LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
+                  toolkit.getId(), e)
+        OUTPUTS = {}
     env = workenv()
-    params = get_toolkit_params(experiment, toolkit)
+    params = get_toolkit_params(result)
     script = generate_sdm_script(toolkit.script)
-    return queue_job(experiment, toolkit.getId(), env, script, params, OUTPUTS)
+    return queue_job(result, toolkit.getId(), env, script, params, OUTPUTS)

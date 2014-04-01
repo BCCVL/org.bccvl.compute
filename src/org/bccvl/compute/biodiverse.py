@@ -36,7 +36,7 @@ OUTPUTS = {
 }
 
 
-def execute(experiment, func, request=None):
+def execute(result, func, request=None):
     """
     This function takes an experiment and executes.
 
@@ -54,7 +54,8 @@ def execute(experiment, func, request=None):
     """
     # TODO: CREATE WorkEnv in job
     # workenv = WorkEnvLocal
+    experiment = result.__parent__
     env = WorkEnv()
     params = get_biodiverse_params(experiment)
     script = generate_biodiverse_script()
-    return queue_job(experiment, 'Biodiverse', env, script, params, OUTPUTS)
+    return queue_job(result, 'Biodiverse', env, script, params, OUTPUTS)

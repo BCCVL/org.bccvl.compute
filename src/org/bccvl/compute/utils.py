@@ -13,10 +13,8 @@ from org.bccvl.site.content.dataset import IDataset
 from zope.component import getUtility
 import shutil
 from decimal import Decimal
-from plone.dexterity.utils import createContentInContainer
 from xmlrpclib import ServerProxy
 from collective.transmogrifier.transmogrifier import Transmogrifier
-from datetime import datetime
 from plone.uuid.interfaces import IUUID
 from plone.app.uuid.utils import uuidToObject
 from org.bccvl.site.browser.xmlrpc import getbiolayermetadata
@@ -344,12 +342,7 @@ class WorkEnv(object):
                     'path': destname}
             self.move_data('output', src, dest, uuid=None)
 
-    def import_output(self, experiment, workenv, OUTPUTS):
-        # create result container which will be context for transmogrify import
-        # TODO: maybe use rfc822 date format?
-        title = u'%s - %s %s' % (experiment.title, workenv.jobid,
-                                 datetime.now().isoformat())
-        #LOG.info('Import result for %s from %s', title, self.workdir)
+    def import_output(self, result, workenv, OUTPUTS):
         # start transmogrify
 
         #transmogrify.dexterity.schemaupdater needs a REQUEST on context????
@@ -371,19 +364,14 @@ class WorkEnv(object):
         while retry:
             try:
                 transaction.begin()  # resync
-                ds = createContentInContainer(
-                    experiment,
-                    'gu.repository.content.RepositoryItem',
-                    title=title)
 
-                ds.toolkit = workenv.jobid  # TODO:sholud be toolkit uuid or id
-                ds.REQUEST = request
-                transmogrifier = Transmogrifier(ds)
+                result.REQUEST = request
+                transmogrifier = Transmogrifier(result)
                 transmogrifier(u'org.bccvl.compute.resultimport',
                                resultsource={'path': self.tmpimport,
                                              'outputmap': OUTPUTS})
                 # cleanup fake request
-                del ds.REQUEST
+                del result.REQUEST
                 transaction.commit()
                 retry = 0
             except transaction.interfaces.TransientError:
@@ -392,9 +380,11 @@ class WorkEnv(object):
                 retry -= 1
                 LOG.info("Retrying IMPORT: %s attempts left", retry)
 
-        LOG.info('Import result finished for %s from %s', title, self.workdir)
+        LOG.info('Import result finished for %s from %s', result.title, self.workdir)
 
     def get_sdm_params(self, experimentinfo):
+        # FIXME: move tis away
+        #  prepare files for exec environment. e.g. find workenv local filenames for input files, etc...
         names = set(chain(*experimentinfo.get('layers', {}).values()))
         params = {
             'scriptdir': self.workdir,
@@ -542,9 +532,6 @@ def create_workenv(env, script, params):
                     # TODO: no guarantee that inputfile name is unique
                     #       use dataset uuid?
                     env.move_input_data(dskey, dsinfo)
-        # env.move_input_data('environment', experimentinfo['environment'])
-        # env.move_input_data('occurrence', experimentinfo['occurrence'])
-        # env.move_input_data('absence', experimentinfo['absence'])
         params.update(env.get_sdm_params(params))
         env.move_script(script, params)
         env.wait_for_data_mover()
@@ -673,13 +660,13 @@ def job_run(context, env, script, params, OUTPUTS):
 
 # TODO: this should be generic. there should be only one queue_job for
 #       all types of jobs
-def queue_job(experiment, jobid, env, script, params, OUTPUTS):
+def queue_job(result, jobid, env, script, params, OUTPUTS):
     try:
         async = getUtility(IAsyncService)
         queues = async.getQueues()
 
         env.jobid = jobid
-        run_job = async.wrapJob((job_run, experiment,
+        run_job = async.wrapJob((job_run, result,
                                  (env, script, params, OUTPUTS), {}))
         run_job.jobid = env.jobid
         run_job.quota_names = ('default', )

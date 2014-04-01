@@ -3,10 +3,12 @@ from itertools import chain
 import mimetypes
 import os.path
 import glob
+import re
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from zope.interface import implementer, provider
-from org.bccvl.site.namespace import BCCPROP, BCCVOCAB, BIOCLIM, DWC
+from org.bccvl.site.namespace import BCCPROP, BCCVOCAB, BIOCLIM, DWC, BCCEMSC, BCCGCM
+from org.bccvl.site.content.interfaces import IProjectionExperiment, ISDMExperiment
 from gu.plone.rdf.namespace import CVOCAB
 from ordf.graph import Graph
 from ordf.namespace import DC
@@ -45,8 +47,11 @@ def addLayerInfo(graph, experiment):
         graph.add((graph.identifier, BIOCLIM['bioclimVariable'], layer))
 
 
-def addSpeciesInfo(graph,  experiment):
-    spds = uuidToObject(experiment.species_occurrence_dataset)
+def addSpeciesInfo(graph, experiment):
+    if ISDMExperiment.providedBy(experiment):
+        spds = uuidToObject(experiment.species_occurrence_dataset)
+    if IProjectionExperiment.providedBy(experiment):
+        spds = uuidToObject(experiment.species_distribution_models)
     spmd = IGraph(spds)
     for prop in (DWC['scientificName'],
                  DWC['taxonID'],
@@ -104,7 +109,24 @@ class ResultSource(object):
                 addLayerInfo(rdf, self.context.__parent__)
                 rdf.add((rdf.identifier, BCCPROP['resolution'], self.context.resolution))
                 # add species info
-                addSpeciesInfo(rdf, self.context)
+                addSpeciesInfo(rdf, self.context.__parent__)
+            elif genreuri == BCCVOCAB['DataGenreFP']:
+                rdf.add((rdf.identifier, BCCPROP['resolution'], self.context.resolution))
+                addSpeciesInfo(rdf, self.context.__parent__)
+
+                # FIXME: find a cleaner way to attach metadata
+                filename = os.path.basename(fname)
+                m = re.match(r'^(.*)_(.*)_(\d*)\.tif$', filename)
+                if m:
+                    rdf.add((rdf.identifier, BCCPROP['emissionscenario'], BCCEMSC[m.group(1)]))
+                    rdf.add((rdf.identifier, BCCPROP['gcm'], BCCGCM[m.group(2)]))
+                    year = Literal("start=%s; end=%s; scheme=W3C-DTF;" % (m.group(3), m.group(3)),
+                                   datatype=DC['Period'])
+                    rdf.add((rdf.identifier, DC['temporal'], year))
+                else:
+                    LOG.fatal('filename %s did not match regexp.', filename)
+                # exp.future_climate_datasets()
+
         mimetype = info.get('mimetype', None)
         if mimetype is None:
             mimetype = guess_mimetype(fname, mtr)
