@@ -1,6 +1,7 @@
 from pkg_resources import resource_string
 import logging
 import json
+import re
 from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
 
 
@@ -22,7 +23,8 @@ def get_sdm_params(result):
             'enabled': experiment.species_pseudo_absence_points,
             'points': experiment.species_number_pseudo_absence_points
             },
-        'species': result.species.replace(' ', '_'),
+        # replace all spaces and underscores to '.' (biomod does the same)
+        'species': re.sub(u"[ _]", u".", result.species)
         }
     uuid = experiment.species_occurrence_dataset
     params['occurrence'][uuid] = getdatasetparams(uuid)
