@@ -301,7 +301,8 @@ class WorkEnv(object):
 
         paramsfile, self.tmpparams = mkstemp()
         paramsfile = os.fdopen(paramsfile, 'w')
-        json.dump(params, paramsfile, default=decimal_encoder)
+        json.dump(params, paramsfile, default=decimal_encoder,
+                  sort_keys=True, indent=4)
         paramsfile.close()
         self.paramsname = '/'.join((self.scriptdir, 'params.json'))
         src['path'] = self.tmpparams
