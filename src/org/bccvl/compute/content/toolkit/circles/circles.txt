@@ -15,7 +15,7 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "application/x-r-data"
         },
-        "model.object.RData": {
+        "*.model.object.RData": {
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
             "mimetype": "application/x-r-data"
@@ -30,7 +30,7 @@
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript"
         },
-        "current.tif": {
+        "*.proj_current.tif": {
             "title": "Projection to current",
             "genre": "DataGenreCP",
             "mimetype": "image/geotiff"

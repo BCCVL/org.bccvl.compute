@@ -5,17 +5,27 @@
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript"
         },
-        "*.txt": {
+        "*.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
-            "mimetype": "text/plain"
+            "mimetype": "text/csv"
         },
-        "species/proj_current/proj_current_ClampingMask.tif": {
+        "mean_response_curves.png": {
+            "title": "Mean Response Curves",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
+        },
+        "pROC.png": {
+            "title": "ROC curve",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
+        },
+        "*/proj_current/proj_current_ClampingMask.tif": {
             "title": "Clamping Mask",
             "genre": "DataGenreClampingMask",
             "mimetype": "image/geotiff"
         },
-        "species/proj_current/proj_current_species.tif": {
+        "*/proj_current/proj_current_*.tif": {
             "title": "Projection to current",
             "genre": "DataGenreCP",
             "mimetype": "image/geotiff"
@@ -24,8 +34,10 @@
     "archives": {
         "model.object.RData.zip": {
             "files": ["model.object.RData",
-                      "species/.BIOMOD_DATA/bccvl/*",
-                      "species/models/bccvl/*"
+                      "*/*.bccvl.models.out",
+                      "*/.BIOMOD_DATA/bccvl/*",
+                      "*/models/bccvl/*",
+                      "*/proj_current/*.current.projection.out"
                       ],
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
