@@ -577,13 +577,21 @@ def run_job(env):
     # TODO: result of previous job might be a zc.twist.Failure
     try:
         env.start_script()
+        # the remote job might take a while to start let's retry a few times
+        # in case check_script fails to detect running job
+        retry = 3
         while True:
             # TODO: make this some sort of time out and do proper
             #       error checking (e.g. connection failures)
             ret = env.check_script()
             if ret is None:
+                retry = 0  # we have found something no retry necessary anymore
                 LOG.info("Remote job not yet finished.")
                 sleep(10)
+                continue
+            if retry:
+                # we haven't seen a sign of the job yet, let's retry
+                retry -= 1
                 continue
             #-1 .... something went wrong
             # any other number ... exit code of job
