@@ -3,7 +3,7 @@
 ##  INPUT:
 ##
 ##  occur.data ... filename for occurence data
-##  bkgd.data  ... filename for absence data
+##  absen.data  ... filename for absence data
 ##  enviro.data.current ... list of filenames for climate data
 ##  enviro.data.type    ... continuous
 ##  opt.tails ... predict parameter
@@ -20,7 +20,7 @@
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
 occur.data = bccvl.params$occurrence[1]
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
-bkgd.data = bccvl.params$background[1]
+absen.data = bccvl.params$background[1]
 #define the current enviro data to use
 enviro.data.current = bccvl.params$environment
 #type in terms of continuous or categorical
@@ -29,7 +29,7 @@ enviro.data.type = bccvl.params$environmenttype
 #additional parameters for projecting convHull
 opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right tail of the percentile distribution ("both", "low", "high"
 opt.ext = NULL #an optional extent object to limit the prediction to a sub-region of 'x'
-projection.name = "current"
+projection.name = paste(bccvl.params$species, "proj_current", sep=".")
 
 
 # model accuracy statistics
@@ -57,22 +57,22 @@ if (bccvl.params$pseudoabsences$enabled) {
         bccvl.params$pseudoabsences$points,
         occur)
     # as data frame
-    bkgd = as.data.frame(bkgd)
+    absen = as.data.frame(bkgd)
     # rename columns
-    names(bkgd) <- c("lon","lat")
+    names(absen) <- c("lon","lat")
 } else {
     # otherwise read absence ponits from file
-    bkgd = bccvl.species.read(bkgd.data) #read in the background position data lon.lat
+    absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
     # keep only lon and lat columns
-    bkgd = bkgd[c("lon","lat")]
+    absen = absen[c("lon","lat")]
 }
 # TODO: combine random and given absence points:
-# rbind(bkgd.datafromfile, bkgd.datarandom)
+# rbind(absen.datafromfile, absen.datarandom)
 
 # extract enviro data for species observation points and append to species data
 occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-if (!is.null(bkgd)) {
-    bkgd = cbind(bkgd, extract(current.climate.scenario, cbind(bkgd$lon, bkgd$lat)))
+if (!is.null(absen)) {
+    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
 }
 
 
@@ -92,15 +92,15 @@ if (!all(enviro.data.type=="continuous")) {
     warning("convhull not run because categorical data cannot be used")
 } else {
     # run convhull with matrix of enviro data
-    ch = convHull(p=occur)
+    model.sdm = convHull(p=occur)
     # save out the model object
-    bccvl.save(ch, "model.object.RData")
+    bccvl.save(model.sdm, paste(bccvl.params$species, "model.object.RData", sep="."))
     # predict for given climate scenario
-    convhull.proj = predict(ch, current.climate.scenario, tails=opt.tails)
+    model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
     # save output
-    bccvl.saveModelProjection(convhull.proj, projection.name)
+    bccvl.saveModelProjection(model.proj, projection.name)
     # evaluate model
-    if (!is.null(bkgd)) {
-        bccvl.evaluate.model('convHull', ch, occur, bkgd)
+    if (!is.null(absen)) {
+        bccvl.evaluate.model('convHull', model.sdm, occur, absen)
     }
 } # end if continuous

@@ -3,7 +3,7 @@
 ##  INPUT:
 ##
 ##  occur.data ... filename for occurence data
-##  bkgd.data  ... filename for absence data
+##  absen.data  ... filename for absence data
 ##  enviro.data.current ... list of filenames for climate data
 ##  enviro.data.type    ... continuous
 ##  opt.tails ... predict parameter
@@ -20,7 +20,7 @@
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
 occur.data = bccvl.params$occurrence[1]
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
-bkgd.data = bccvl.params$background[1]
+absen.data = bccvl.params$background[1]
 #define the current enviro data to use
 enviro.data.current = bccvl.params$environment
 #type in terms of continuous or categorical
@@ -47,7 +47,7 @@ biomod.species.name = bccvl.params$species # used for various path and file name
 projection.name = "current"  #basename(enviro.data.current)
 
 # model-specific arguments to create a biomod model
-cta.BiomodOptions <- list(
+model.options.cta <- list(
 	method = bccvl.params$method, #"anova", "poisson", "class" or "exp"
 	parms = "default", #optional parameters for the splitting function
 	cost = NULL, #a vector of non-negative costs, one for each variable in the model. Defaults to one for all variables
@@ -105,21 +105,25 @@ occur = occur[c("lon","lat")]
 if (bccvl.params$pseudoabsences$enabled) {
     biomod.PA.nb.rep = 1
     biomod.PA.nb.absences = bccvl.params$pseudoabsences$points
-    # create an empty data frame for bkgd points
-    bkgd = data.frame(lon=numeric(0), lat=numeric(0))
+    # create an empty data frame for absen points
+    absen = data.frame(lon=numeric(0), lat=numeric(0))
 } else {
     # read absence points from file
-    bkgd = bccvl.species.read(bkgd.data) #read in the background position data lon.lat
+    absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
     # keep only lon and lat columns
-    bkgd = bkgd[c("lon","lat")]
+    absen = absen[c("lon","lat")]
 }
 
 # extract enviro data for species observation points and append to species data
 occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-if (!is.null(bkgd)) {
-    bkgd = cbind(bkgd, extract(current.climate.scenario, cbind(bkgd$lon, bkgd$lat)))
+if (!is.null(absen)) {
+    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
 }
 
+# TODO: Spatial data frames usage:
+# op = SpatialPoints(occur[c("lon","lat")])
+## append env data to op
+# op = extract(current.climate.scenario, op, sp=TRUE)
 
 ###run the models and store models
 ############### BIOMOD2 Models ###############
@@ -149,11 +153,16 @@ if (!is.null(bkgd)) {
 # na.rm	logical, if TRUE, all points having one or several missing value for environmental data will be removed from analysis
 
 # format the data as required by the biomod package
+# TODO: relies on global variables
 formatBiomodData = function() {
-    biomod.data = rbind(occur[,c("lon", "lat")], bkgd[,c("lon", "lat")])
-    biomod.data.pa = c(rep(1, nrow(occur)), rep(0, nrow(bkgd)))
+    ## TODO: check occur and absen for NA in climate.scenario ... if too many or empty raise warning
+    ## SpatialPointsDataFrame(coords=biomod.data, values=as.data.frame(biomod.data.pa))
+    ## -> can be used instead of resp.xy
+    biomod.data = rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
+    biomod.data.pa = c(rep(1, nrow(occur)), rep(0, nrow(absen)))
+    ## respvar = SpatialPointsDataFrame(coords=biomod.data, data=as.data.frame(biomod.data.pa))
     myBiomodData <-
-        BIOMOD_FormatingData(resp.var =  biomod.data.pa,
+        BIOMOD_FormatingData(resp.var  =  biomod.data.pa,
                              expl.var  = current.climate.scenario,
                              resp.xy   = biomod.data,
                              resp.name = biomod.species.name,
@@ -210,14 +219,14 @@ formatBiomodData = function() {
 # NOTE: for method and parms, you can give a 'real' value as described in the rpart help file or 'default' that implies default rpart values.
 
 # 1. Format the data
-myBiomodData = formatBiomodData()
+model.data = formatBiomodData()
 # 2. Define the model options
-myBiomodOptions <- BIOMOD_ModelingOptions(CTA = cta.BiomodOptions)
+model.options <- BIOMOD_ModelingOptions(CTA = model.options.cta)
 # 3. Compute the model
-myBiomodModelOut.cta <-
-    BIOMOD_Modeling(data = myBiomodData,
+model.sdm <-
+    BIOMOD_Modeling(data = model.data,
                     models = c('CTA'),
-                    models.options = myBiomodOptions,
+                    models.options = model.options,
                     NbRunEval=biomod.NbRunEval,
                     DataSplit=biomod.DataSplit,
                     Yweights=biomod.Yweights,
@@ -230,17 +239,17 @@ myBiomodModelOut.cta <-
                     modeling.id = biomod.modeling.id
                     )
 #save out the model object
-bccvl.save(myBiomodModelOut.cta, name="model.object.RData")
+bccvl.save(model.sdm, name="model.object.RData")
 # predict for current climate scenario
-cta.proj.c <-
-    BIOMOD_Projection(modeling.output=myBiomodModelOut.cta,
+model.proj <-
+    BIOMOD_Projection(modeling.output=model.sdm,
                       new.env=current.climate.scenario,
                       proj.name= projection.name,
                       xy.new.env = biomod.xy.new.env,
                       selected.models = biomod.selected.models,
                       binary.meth = biomod.binary.meth,
                       filtered.meth = biomod.filtered.meth,
-                      #compress = biomod.compress,
+                      # compress = biomod.compress,
                       build.clamping.mask = biomod.build.clamping.mask,
                       silent = opt.biomod.silent,
                       do.stack = opt.biomod.do.stack,
@@ -253,5 +262,5 @@ bccvl.grdtogtiff(file.path(getwd(),
 
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
-cta.loaded.model = BIOMOD_LoadModels(myBiomodModelOut.cta, models="CTA") # load model
-bccvl.saveBIOMODModelEvaluation(cta.loaded.model, myBiomodModelOut.cta) 	# save output
+loaded.model = BIOMOD_LoadModels(model.sdm, models="CTA") # load model
+bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm) 	# save output

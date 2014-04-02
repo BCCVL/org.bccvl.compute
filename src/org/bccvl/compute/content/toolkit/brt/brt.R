@@ -3,7 +3,7 @@
 ##  INPUT:
 ##
 ##  occur.data ... filename for occurence data
-##  bkgd.data  ... filename for absence data
+##  absen.data  ... filename for absence data
 ##  enviro.data.current ... list of filenames for climate data
 ##  enviro.data.type    ... continuous
 ##  opt.tails ... predict parameter
@@ -20,7 +20,7 @@
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
 occur.data = bccvl.params$occurrence[1]
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
-bkgd.data = bccvl.params$background[1]
+absen.data = bccvl.params$background[1]
 #define the current enviro data to use
 enviro.data.current = bccvl.params$environment
 #type in terms of continuous or categorical
@@ -48,7 +48,7 @@ brt.silent = FALSE #Logical. to allow running with no output for simplifying mod
 brt.keep.fold.models = FALSE #Logical. keep the fold models from cross valiation
 brt.keep.fold.vector = FALSE #Logical. allows the vector defining fold membership to be kept
 brt.keep.fold.fit = FALSE #Logical. allows the predicted values for observations from cross-validation to be kept
-projection.name = "current"
+projection.name = paste(bccvl.params$species, "proj_current", sep=".")
 
 # model accuracy statistics
 # these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R
@@ -75,22 +75,22 @@ if (bccvl.params$pseudoabsences$enabled) {
         bccvl.params$pseudoabsences$points,
         occur)
     # as data frame
-    bkgd = as.data.frame(bkgd)
+    absen = as.data.frame(bkgd)
     # rename columns
-    names(bkgd) <- c("lon","lat")
+    names(absen) <- c("lon","lat")
 } else {
     # otherwise read absence ponits from file
-    bkgd = bccvl.species.read(bkgd.data) #read in the background position data lon.lat
+    absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
     # keep only lon and lat columns
-    bkgd = bkgd[c("lon","lat")]
+    absen = absen[c("lon","lat")]
 }
 # TODO: combine random and given absence points:
-# rbind(bkgd.datafromfile, bkgd.datarandom)
+# rbind(absen.datafromfile, bkgd.datarandom)
 
 # extract enviro data for species observation points and append to species data
 occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-if (!is.null(bkgd)) {
-    bkgd = cbind(bkgd, extract(current.climate.scenario, cbind(bkgd$lon, bkgd$lat)))
+if (!is.null(absen)) {
+    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
 }
 
 
@@ -144,11 +144,11 @@ if (!is.null(bkgd)) {
 
 
 
-brt.data = rbind(occur,bkgd)
+brt.data = rbind(occur,absen)
 # setup the data as needed
-brt.data$pa = c(rep(1,nrow(occur)),rep(0,nrow(bkgd)))
+brt.data$pa = c(rep(1,nrow(occur)),rep(0,nrow(absen)))
 # run the algorithm
-brt <- gbm.step(
+model.sdm <- gbm.step(
         data=brt.data,
         gbm.x=which(names(brt.data) %in% names(current.climate.scenario)),
         gbm.y=which(names(brt.data)=='pa'),
@@ -176,11 +176,11 @@ brt <- gbm.step(
         keep.fold.fit = brt.keep.fold.fit)
 
 #save out the model object
-bccvl.save(brt, "model.object.RData")
+bccvl.save(model.sdm, paste(bccvl.params$species, "model.object.RData", sep="."))
 # NOTE the order of arguments in the predict function for brt; this is because
 # the function is defined outside of the dismo package
 # predict for CURRENT climate scenario
-brt.proj = predict(current.climate.scenario, brt, n.trees=brt$gbm.call$best.trees, type="response")
-bccvl.saveModelProjection(brt.proj, projection.name)
+model.proj = predict(current.climate.scenario, model.sdm, n.trees=model.sdm$gbm.call$best.trees, type="response")
+bccvl.saveModelProjection(model.proj, projection.name)
 # evaluate model
-bccvl.evaluate.model('brt', brt, occur, bkgd)
+bccvl.evaluate.model('brt', model.sdm, occur, absen)

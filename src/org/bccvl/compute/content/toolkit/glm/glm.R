@@ -3,7 +3,7 @@
 ##  INPUT:
 ##
 ##  occur.data ... filename for occurence data
-##  bkgd.data  ... filename for absence data
+##  absen.data  ... filename for absence data
 ##  enviro.data.current ... list of filenames for climate data
 ##  enviro.data.type    ... continuous
 ##  opt.tails ... predict parameter
@@ -20,7 +20,7 @@
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
 occur.data = bccvl.params$occurrence[1]
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
-bkgd.data = bccvl.params$background[1]
+absen.data = bccvl.params$background[1]
 #define the current enviro data to use
 enviro.data.current = bccvl.params$environment
 #type in terms of continuous or categorical
@@ -47,7 +47,7 @@ biomod.species.name = bccvl.params$species # used for various path and file name
 projection.name = "current"  #basename(enviro.data.current)
 
 # model-specific arguments to create a biomod model
-glm.BiomodOptions <- list(
+model.options.glm <- list(
 	type = bccvl.params$type,	#"simple", "quadratic" or "polynomial"; switched off if myFormula is not NULL
 	interaction.level = bccvl.params$interaction_level, #integer corresponding to the interaction level between variables considered; switched off if myFormula is not NULL
 	myFormula = NULL, #specific formula; if not NULL, type and interaction.level are args are switched off
@@ -106,19 +106,19 @@ occur = occur[c("lon","lat")]
 if (bccvl.params$pseudoabsences$enabled) {
     biomod.PA.nb.rep = 1
     biomod.PA.nb.absences = bccvl.params$pseudoabsences$points
-    # create an empty data frame for bkgd points
-    bkgd = data.frame(lon=numeric(0), lat=numeric(0))
+    # create an empty data frame for absen points
+    absen = data.frame(lon=numeric(0), lat=numeric(0))
 } else {
     # read absence points from file
-    bkgd = bccvl.species.read(bkgd.data) #read in the background position data lon.lat
+    absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
     # keep only lon and lat columns
-    bkgd = bkgd[c("lon","lat")]
+    absen = absen[c("lon","lat")]
 }
 
 # extract enviro data for species observation points and append to species data
 occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-if (!is.null(bkgd)) {
-    bkgd = cbind(bkgd, extract(current.climate.scenario, cbind(bkgd$lon, bkgd$lat)))
+if (!is.null(absen)) {
+    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
 }
 
 
@@ -151,8 +151,8 @@ if (!is.null(bkgd)) {
 
 # format the data as required by the biomod package
 formatBiomodData = function() {
-    biomod.data = rbind(occur[,c("lon", "lat")], bkgd[,c("lon", "lat")])
-    biomod.data.pa = c(rep(1, nrow(occur)), rep(0, nrow(bkgd)))
+    biomod.data = rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
+    biomod.data.pa = c(rep(1, nrow(occur)), rep(0, nrow(absen)))
     myBiomodData <-
         BIOMOD_FormatingData(resp.var =  biomod.data.pa,
                              expl.var  = stack(current.climate.scenario),
@@ -209,14 +209,14 @@ formatBiomodData = function() {
 #		trace - logical indicating if output should be produced for each iteration
 
 # 1. Format the data
-myBiomodData = formatBiomodData()
+model.data = formatBiomodData()
 # 2. Define the model options
-myBiomodOptions <- BIOMOD_ModelingOptions(GLM = glm.BiomodOptions)
+model.options <- BIOMOD_ModelingOptions(GLM = model.options.glm)
 # 3. Compute the model
-myBiomodModelOut.glm <-
-    BIOMOD_Modeling(data = myBiomodData,
+model.sdm <-
+    BIOMOD_Modeling(data = model.data,
                     models=c('GLM'),
-                    models.options=myBiomodOptions,
+                    models.options=model.options,
                     NbRunEval=biomod.NbRunEval,
                     DataSplit=biomod.DataSplit,
                     Yweights=biomod.Yweights,
@@ -230,10 +230,10 @@ myBiomodModelOut.glm <-
                     )
 	# model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
 #save out the model object
-bccvl.save(myBiomodModelOut.glm, name="model.object.RData")
+bccvl.save(model.sdm, name="model.object.RData")
 # predict for current climate scenario
-glm.proj.c <-
-    BIOMOD_Projection(modeling.output=myBiomodModelOut.glm,
+model.proj <-
+    BIOMOD_Projection(modeling.output=model.sdm,
                       new.env=current.climate.scenario,
                       proj.name  = projection.name,  #basename(enviro.data.current), {{ species }}
                       xy.new.env = biomod.xy.new.env,
@@ -253,5 +253,5 @@ bccvl.grdtogtiff(file.path(getwd(),
 
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
-glm.loaded.model = BIOMOD_LoadModels(myBiomodModelOut.glm, models="GLM")
-bccvl.saveBIOMODModelEvaluation(glm.loaded.model, myBiomodModelOut.glm) 	# save output
+loaded.model = BIOMOD_LoadModels(model.sdm, models="GLM")
+bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm) 	# save output

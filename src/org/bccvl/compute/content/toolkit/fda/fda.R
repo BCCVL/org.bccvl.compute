@@ -3,7 +3,7 @@
 ##  INPUT:
 ##
 ##  occur.data ... filename for occurence data
-##  bkgd.data  ... filename for absence data
+##  absen.data  ... filename for absence data
 ##  enviro.data.current ... list of filenames for climate data
 ##  enviro.data.type    ... continuous
 ##  opt.tails ... predict parameter
@@ -20,7 +20,7 @@
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
 occur.data = bccvl.params$occurrence[1]
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
-bkgd.data = bccvl.params$background[1]
+absen.data = bccvl.params$background[1]
 #define the current enviro data to use
 enviro.data.current = bccvl.params$environment
 #type in terms of continuous or categorical
@@ -48,7 +48,7 @@ projection.name = "current"  #basename(enviro.data.current)
 
 
 # model-specific arguments to create a biomod model
-fda.BiomodOptions <- list(
+model.options.fda <- list(
 	model = bccvl.params$model #regression method used in optimal scaling; "polyreg", "mars", "bruto" or "gen.ridge"
 )
 
@@ -98,19 +98,19 @@ occur = occur[c("lon","lat")]
 if (bccvl.params$pseudoabsences$enabled) {
     biomod.PA.nb.rep = 1
     biomod.PA.nb.absences = bccvl.params$pseudoabsences$points
-    # create an empty data frame for bkgd points
-    bkgd = data.frame(lon=numeric(0), lat=numeric(0))
+    # create an empty data frame for absen points
+    absen = data.frame(lon=numeric(0), lat=numeric(0))
 } else {
     # read absence points from file
-    bkgd = bccvl.species.read(bkgd.data) #read in the background position data lon.lat
+    absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
     # keep only lon and lat columns
-    bkgd = bkgd[c("lon","lat")]
+    absen = absen[c("lon","lat")]
 }
 
 # extract enviro data for species observation points and append to species data
 occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-if (!is.null(bkgd)) {
-    bkgd = cbind(bkgd, extract(current.climate.scenario, cbind(bkgd$lon, bkgd$lat)))
+if (!is.null(absen)) {
+    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
 }
 
 
@@ -144,8 +144,8 @@ if (!is.null(bkgd)) {
 
 # format the data as required by the biomod package
 formatBiomodData = function() {
-    biomod.data = rbind(occur[,c("lon", "lat")], bkgd[,c("lon", "lat")])
-    biomod.data.pa = c(rep(1, nrow(occur)), rep(0, nrow(bkgd)))
+    biomod.data = rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
+    biomod.data.pa = c(rep(1, nrow(occur)), rep(0, nrow(absen)))
     myBiomodData <-
         BIOMOD_FormatingData(resp.var =  biomod.data.pa,
                              expl.var  = stack(current.climate.scenario),
@@ -190,14 +190,14 @@ formatBiomodData = function() {
 # Other possibilities are mars and bruto. For Penalized Discriminant analysis gen.ridge is appropriate.
 
 # 1. Format the data
-myBiomodData = formatBiomodData()
+model.data = formatBiomodData()
 # 2. Define the model options
-myBiomodOptions <- BIOMOD_ModelingOptions(FDA = fda.BiomodOptions)
+model.options <- BIOMOD_ModelingOptions(FDA = model.options.fda)
 # 3. Compute the model
-myBiomodModelOut.fda <-
-    BIOMOD_Modeling(data              = myBiomodData,
+model.sdm <-
+    BIOMOD_Modeling(data              = model.data,
                     models            = c('FDA'),
-                    models.options    = myBiomodOptions,
+                    models.options    = model.options,
                     NbRunEval         = biomod.NbRunEval,
                     DataSplit         = biomod.DataSplit,
                     Yweights          = biomod.Yweights,
@@ -211,10 +211,10 @@ myBiomodModelOut.fda <-
                     )
 
 #save out the model object
-bccvl.save(myBiomodModelOut.fda, name="model.object.RData")
+bccvl.save(model.sdm, name="model.object.RData")
 # predict for current climate scenario
-fda.proj.c <-
-    BIOMOD_Projection(modeling.output     = myBiomodModelOut.fda,
+model.proj <-
+    BIOMOD_Projection(modeling.output     = model.sdm,
                       new.env             = current.climate.scenario,
                       proj.name           = projection.name,
                       xy.new.env          = biomod.xy.new.env,
@@ -236,5 +236,5 @@ bccvl.grdtogtiff(file.path(getwd(),
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
 # evaluate model
-fda.loaded.model = BIOMOD_LoadModels(myBiomodModelOut.fda, models="FDA") # load model
-bccvl.saveBIOMODModelEvaluation(fda.loaded.model, myBiomodModelOut.fda)
+loaded.model = BIOMOD_LoadModels(model.sdm, models="FDA") # load model
+bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)
