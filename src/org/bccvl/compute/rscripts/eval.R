@@ -567,7 +567,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     # get and save the model evaluation statistics
     # EMG these must specified during model creation with the arg "models.eval.meth"
     evaluation = get_evaluations(biomod.model)
-    bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.txt")
+    bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.csv")
 
     # get the model predictions and observed values
     predictions = getModelsPrediction(biomod.model)
@@ -604,6 +604,8 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
 
     # save response curves (Elith et al 2005)
     png(file=file.path(bccvl.params$outputdir, "mean_response_curves.png"))
+    # TODO: check models parameter ... do I need it? shouldn't it be algo name?
+    #       -> would make BIOMOD_LoadMadels call and parameter loaded.name pointless
     test <- response.plot2(models = loaded.name,
                            Data = get_formal_data(biomod.model,"expl.var"),
                            show.variables = get_formal_data(biomod.model,"expl.var.names"),
