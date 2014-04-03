@@ -1,25 +1,32 @@
 import unittest2 as unittest
-from decimal import Decimal
+import json
+from pkg_resources import resource_listdir
+from pkg_resources import resource_isdir
 from pkg_resources import resource_string
+import org.bccvl.compute
+import os.path
 from zope.interface.verify import verifyClass
 from zope.interface.verify import verifyObject
-from org.bccvl.compute.brt import ParametersBRT
-from org.bccvl.compute.brt import IParametersBRT
 
 
-class BRT_Params_Test(unittest.TestCase):
+class test_algorithm_config(unittest.TestCase):
 
-    def _getTargetClass(self):
-        return ParametersBRT
+    def iter_content_resource(self, root='content/toolkit'):
+        for item in resource_listdir('org.bccvl.compute', root):
+            item = os.path.join(root, item)
+            yield item
+            if resource_isdir('org.bccvl.compute', item):
+                for subitem in self.iter_content_resource(item):
+                    yield subitem
 
-    def _makeOne(self):
-        inst = self._getTargetClass()()
-        return inst
-
-    def test_class_conforms_to_IParameters(self):
-        klass = self._getTargetClass()
-        verifyClass(IParametersBRT, klass)
-
-    def test_instance_conforms_IParameters(self):
-        inst = self._makeOne()
-        verifyObject(IParametersBRT, inst)
+    def test_json_parseable(self):
+        for item in self.iter_content_resource():
+            if not (item.endswith(".json") or item.endswith('.txt')):
+                continue
+            e = None
+            try:
+                content = resource_string('org.bccvl.compute', item)
+                content = json.loads(content)
+            except Exception as e:
+                content = None
+            self.assertIsNotNone(content, "can't parse %s: %s" % (item, e))

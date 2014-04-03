@@ -42,12 +42,12 @@ projectdataset <- function(model.obj, futuredata, projection.name) {
         # for biomod to find it we'll have to change wd
 
         biomod.xy.new.env <- NULL
-        biomod.selected.models <- "all" # bccvl.params$selected_models
+        biomod.selected.models <- bccvl.params$selected_models
         biomod.binary.meth <- NULL
         biomod.filtered.meth <- NULL
-        biomod.compress <- bccvl.params$compress
+        biomod.compress <- NULL # bccvl.params$compress
         biomod.build.clamping.mask <- TRUE
-        biomod.species.name <- "species" # bccvl.params$species
+        biomod.species.name <-  bccvl.params$species
         opt.biomod.silent <- FALSE
         opt.biomod.do.stack <- TRUE
         opt.biomod.keep.in.memory <- TRUE
@@ -94,6 +94,8 @@ if (tolower(file_ext(modelfile)) == "zip") {
     modelfile = file.path(zipdir, zipfile)
     # we'll have to change wd so that biomod can load data from model subfolders'
     setwd(zipdir)
+    # TODO: could make the part with getModelOjebct more intelligent...
+    #       e.g. check if loaded model is a biomod model and change wd
 }
 
 

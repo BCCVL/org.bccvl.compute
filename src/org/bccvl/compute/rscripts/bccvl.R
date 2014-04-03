@@ -1,3 +1,7 @@
+# FIXME: R env setup should be done on compute host
+#        - lib dir: get rid of it
+#        - don't do install.packages?
+#        -
 # setup R environment
 if (!file.exists(Sys.getenv("R_LIBS_USER"))) {
     dir.create(Sys.getenv("R_LIBS_USER"), recursive=TRUE);
@@ -45,7 +49,10 @@ bccvl.species.read <- function(filename) {
 
 # function to save projection output raster
 bccvl.saveModelProjection <- function(model.obj, projection.name, outputdir=bccvl.params$outputdir) {
-    filename = file.path(outputdir, paste(projection.name, '.tif', sep=""))
+    ## save projections under biomod2 compatible name:
+    ##  proj_name_species.tif
+    basename = paste("proj", projection.name, bccvl.params$species, sep="_")
+    filename = file.path(outputdir, paste(basename, 'tif', sep="."))
     writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
 }
 
@@ -67,18 +74,19 @@ bccvl.getModelObject <- function(model.file=bccvl.params$inputmodel) {
 }
 
 # convert all .gri/.grd found in folder to gtiff
+# TODO: extend to handle other grid file formats, e.g. .asc
 bccvl.grdtogtiff <- function(folder) {
     grdfiles <- list.files(path=folder,
                            pattern="^.*\\.gri")
     for (grdfile in grdfiles) {
         # get grid file name
-        grdfile <- file_path_sans_ext(grdfile)
+        grdname <- file_path_sans_ext(grdfile)
         # read grid raster
-        grd <- raster(file.path(folder,grdfile))
+        grd <- raster(file.path(folder, grdfile))
         # write raster as geotiff
-        bccvl.saveModelProjection(grd, grdfile, folder)
+        bccvl.saveModelProjection(grd, grdname, folder)
         # remove grd files
-        file.remove(file.path(folder, paste(grdfile, c("grd","gri"), sep=".")))
+        file.remove(file.path(folder, paste(grdname, c("grd","gri"), sep=".")))
     }
 }
 

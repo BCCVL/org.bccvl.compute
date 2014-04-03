@@ -3,10 +3,12 @@ from itertools import chain
 import mimetypes
 import os.path
 import glob
+import re
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from zope.interface import implementer, provider
-from org.bccvl.site.namespace import BCCPROP, BCCVOCAB, BIOCLIM, DWC
+from org.bccvl.site.namespace import BCCPROP, BCCVOCAB, BIOCLIM, DWC, BCCEMSC, BCCGCM
+from org.bccvl.site.content.interfaces import IProjectionExperiment, ISDMExperiment
 from gu.plone.rdf.namespace import CVOCAB
 from ordf.graph import Graph
 from ordf.namespace import DC
@@ -20,13 +22,6 @@ from gu.z3cform.rdf.interfaces import IGraph
 import logging
 
 LOG = logging.getLogger(__name__)
-
-
-# register a few mimetypes
-mimetypes.add_type('text/plain', '.rascii')
-mimetypes.add_type('text/plain', '.rout')
-mimetypes.add_type('application/octet-stream', '.rdata')
-mimetypes.add_type('image/geotiff', '.geotiff')
 
 
 def guess_mimetype(name, mtr=None):
@@ -47,35 +42,16 @@ def guess_mimetype(name, mtr=None):
     return 'application/octet-stream'
 
 
-GENRE_MAP = {
-    None: BCCVOCAB['DataGenreUnknown'],
-    'eval':  BCCVOCAB['DataGenreSDMEval'],
-    'model':  BCCVOCAB['DataGenreSD'],
-    'log':  BCCVOCAB['DataGenreLog'],
-    'projection': BCCVOCAB['DataGenreFP']}
-
-# TODO: replace BCCVOCAB with something standard (NFO? mime type onto?)
-FORMAT_MAP = {
-    None: BCCVOCAB['DataSetFormatUnknown'],
-    'RData': BCCVOCAB['DataSetFormatRDATA'],
-    'csv': BCCVOCAB['DataSetFormatCSV'],
-    'GTiff': BCCVOCAB['DataSetFormatGTiff'],
-    'txt': BCCVOCAB['DataSetFormatText'],
-    'html': BCCVOCAB['DataSetFormatHTML'],
-    'png': BCCVOCAB['DataSetFormatPNG'],
-    'zip': BCCVOCAB['DataSetFormatZIP'],
-    # need a way to describe contained data (if e.g. biomod sdm where
-    # everything is RData, or layers with all GTiff, asc(gz), ...)
-}
-
-
 def addLayerInfo(graph, experiment):
     for layer in set(chain(*experiment.environmental_datasets.values())):
         graph.add((graph.identifier, BIOCLIM['bioclimVariable'], layer))
 
 
-def addSpeciesInfo(graph,  experiment):
-    spds = uuidToObject(experiment.species_occurrence_dataset)
+def addSpeciesInfo(graph, experiment):
+    if ISDMExperiment.providedBy(experiment):
+        spds = uuidToObject(experiment.species_occurrence_dataset)
+    if IProjectionExperiment.providedBy(experiment):
+        spds = uuidToObject(experiment.species_distribution_models)
     spmd = IGraph(spds)
     for prop in (DWC['scientificName'],
                  DWC['taxonID'],
@@ -115,27 +91,47 @@ class ResultSource(object):
         mtr = getToolByName(self.context, 'mimetypes_registry')
         normalizer = getUtility(IFileNameNormalizer)
 
-        mimetype = guess_mimetype(fname, mtr)
         datasetid = normalizer.normalize(name)
-
-        # genre, format = get_data_genre(name)
 
         rdf = Graph()
         rdf.add((rdf.identifier, DC['title'], Literal(name)))
         rdf.add((rdf.identifier, RDF['type'], CVOCAB['Dataset']))
-        genre = info.get('type', None)
+        genre = info.get('genre', None)
+
         if genre:
-            genreuri = GENRE_MAP.get(genre, None)
-            if genreuri:
-                rdf.add((rdf.identifier, BCCPROP['datagenre'],
-                         genreuri))
-            if genreuri == BCCVOCAB['DataGenreSD']:
-                addLayerInfo(rdf, self.context)
+            genreuri = BCCVOCAB[genre]
+            rdf.add((rdf.identifier, BCCPROP['datagenre'], genreuri))
+            # FIXME: attach species data to everything?
+
+            #  resolution, toolkit, species, layers
+            #  future: year, emsc, gcm
+            if genreuri == BCCVOCAB['DataGenreSDMModel']:
+                addLayerInfo(rdf, self.context.__parent__)
+                rdf.add((rdf.identifier, BCCPROP['resolution'], self.context.resolution))
                 # add species info
-                addSpeciesInfo(rdf, self.context)
-        format = info.get('format', None)
-        if format is not None:
-            rdf.add((rdf.identifier, BCCPROP['format'], FORMAT_MAP[format]))
+                addSpeciesInfo(rdf, self.context.__parent__)
+            elif genreuri == BCCVOCAB['DataGenreFP']:
+                rdf.add((rdf.identifier, BCCPROP['resolution'], self.context.resolution))
+                addSpeciesInfo(rdf, self.context.__parent__)
+
+                # FIXME: find a cleaner way to attach metadata
+                filename = os.path.basename(fname)
+                m = re.match(r'^(.*)_(.*)_(\d*)\.tif$', filename)
+                if m:
+                    rdf.add((rdf.identifier, BCCPROP['emissionscenario'], BCCEMSC[m.group(1)]))
+                    rdf.add((rdf.identifier, BCCPROP['gcm'], BCCGCM[m.group(2)]))
+                    year = Literal("start=%s; end=%s; scheme=W3C-DTF;" % (m.group(3), m.group(3)),
+                                   datatype=DC['Period'])
+                    rdf.add((rdf.identifier, DC['temporal'], year))
+                else:
+                    LOG.fatal('filename %s did not match regexp.', filename)
+                # exp.future_climate_datasets()
+
+        mimetype = info.get('mimetype', None)
+        if mimetype is None:
+            mimetype = guess_mimetype(fname, mtr)
+        if mimetype is not None:
+            rdf.add((rdf.identifier, DC['format'], Literal(mimetype)))
 
         LOG.info("Ingest item: %s, %s", datasetid, name)
         return {

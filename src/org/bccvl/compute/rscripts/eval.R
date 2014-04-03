@@ -2,6 +2,24 @@
 # model accuracy helpers
 ######################################################################################
 
+# ROC    Relative Operating Characteristic
+# KAPPA (HSS)  Cohen's Kappa (Heidke skill score)
+# TSS (HK, PSS)    True skill statistic (Hanssen and Kuipers discriminant, Peirce's skill score)
+# FAR    False alarm ratio
+# SR     Success ratio
+# ACCURACY Accuracy (fraction correct)
+# BIAS   Bias score (frequency bias)
+# POD    Probability of detection (hit rate)
+# CSI    Critical success index (threat score)
+# ETS    Equitable threat score (Gilbert skill score)
+# POFD   Probability of false detection (false alarm rate)
+# OR     Odds ratio
+# ORSS   Odds ratio skill score (Yule's Q)
+# unsupported?
+# http://www.cawcr.gov.au/projects/verification/#Methods_for_dichotomous_forecasts
+# BOYCE .. not implemented?
+# TS       Threat score (critical success index)
+
 # function to save evaluate output
 bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
     # save the 'dismo::ModelEvalution' object
@@ -17,6 +35,14 @@ bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
     dev.off()
 }
 
+#
+# returns:
+#
+#    best.iter: the best score obtained for chosen statistic
+#    cutoff: the associated cut-off used for transform fitted vector into binary
+#    sensibility: the sensibility with this threshold
+#    specificity: the specificity with this threshold
+#
 bccvl.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thresh=NULL) {
     if(length(unique(Obs)) == 1 | length(unique(Fit)) == 1){
         # warning("\nObserved or fited data contains only a value.. Evaluation Methods switched off\n",immediate.=T)
@@ -515,6 +541,7 @@ bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     model.obs = c(rep(1, length(model.eval@presence)), rep(0, length(model.eval@absence)))
 
     # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+    # TODO: model.accuracy is another global variable
     model.combined.eval = sapply(model.accuracy, function(x){
         return(bccvl.Find.Optim.Stat(Stat=x, Fit=model.fit, Obs=model.obs))
     })
@@ -540,15 +567,17 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     # get and save the model evaluation statistics
     # EMG these must specified during model creation with the arg "models.eval.meth"
     evaluation = get_evaluations(biomod.model)
-    bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.txt")
+    bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.csv")
 
     # get the model predictions and observed values
     predictions = getModelsPrediction(biomod.model)
     # TODO: get_predictions is buggy; evaluation=FALSE works the wrong way round
     # predictions = get_predictions(biomod.model, evaluation=FALSE)
     obs = get_formal_data(biomod.model, "resp.var")
-
+    # in case of pseudo absences we might have NA values in obs so replace them with 0
+    obs = replace(obs, is.na(obs), 0)
     # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+    # TODO: model.accuracy is another global variable
     combined.eval = sapply(model.accuracy, function(x){
         return(bccvl.Find.Optim.Stat(Stat = x, Fit = predictions, Obs = obs))
     })
@@ -575,6 +604,8 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
 
     # save response curves (Elith et al 2005)
     png(file=file.path(bccvl.params$outputdir, "mean_response_curves.png"))
+    # TODO: check models parameter ... do I need it? shouldn't it be algo name?
+    #       -> would make BIOMOD_LoadMadels call and parameter loaded.name pointless
     test <- response.plot2(models = loaded.name,
                            Data = get_formal_data(biomod.model,"expl.var"),
                            show.variables = get_formal_data(biomod.model,"expl.var.names"),

@@ -1,0 +1,52 @@
+{
+    "files": {
+        "AUC.png": {
+            "title": "Area Under the Receiver Operating Characteristic Curve (AUC)",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
+        },
+        "*.csv": {
+            "title": "Model accuracy statistics",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/csv"
+        },
+        "dismo.eval.object.RData": {
+            "title": "R ModelEvaluation object",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "application/x-r-data"
+        },
+        "*.model.object.RData": {
+            "title": "R SDM Model object",
+            "genre": "DataGenreSDMModel",
+            "mimetype": "application/x-r-data"
+        },
+        "results.html": {
+            "title": "Accuracy measures report",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "txt/html"
+        },
+        "*.Rout": {
+            "title": "Log file",
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript"
+        },
+        "*.proj_current.tif": {
+            "title": "Projection to current",
+            "genre": "DataGenreCP",
+            "mimetype": "image/geotiff"
+        },
+        "*_response.png": {
+            "title": "Marginal Response Curve",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
+        }
+    },
+    "archives": {
+        "results.html.zip": {
+            "files": ["results.html", "AUC.png"],
+            "title": "Accuracy measures report as zip",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "application/zip"
+        }
+    }
+}

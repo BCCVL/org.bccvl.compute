@@ -1,7 +1,8 @@
 from pkg_resources import resource_string
+import re
 from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
 from gu.z3cform.rdf.interfaces import IGraph
-from org.bccvl.site.namespace import BIOCLIM
+from org.bccvl.site.namespace import BIOCLIM, DWC
 from plone.app.uuid.utils import uuidToObject
 from zope.interface import moduleProvides
 # do this dynamically in site module?
@@ -26,6 +27,9 @@ def get_project_params(experiment):
         params['climate'][brain.UID]['archivefiles'] = [
             ]
     params['datasetkeys'] = ('sdms', 'climate')
+    species = unicode(graph.value(graph.identifier, DWC['scientificName']))
+    params['species'] = re.sub(u"[ _]", u".", species)
+    params['selected_models'] = 'all'
     return params
 
 
@@ -36,12 +40,14 @@ def generate_project_script():
     ])
     return script
 
+# TODO: maybe allow tal expressions or regexp match parameters to create more meaningful titles?
+# FIXME: which projection get's which metadata? (GCM, emsc, scale, year)
 OUTPUTS = {
     'files': {
         '*.tif': {
-            'title': 'Projection',
-            'type': 'projection',
-            'format': 'GTiff',  # TODO: replace format withe mime/type?
+            'title': 'Future Projection',
+            'genre': 'DataGenreFP',
+            'mimetype': 'image/geotiff',
         },
     },
     'archives': {
@@ -54,7 +60,7 @@ OUTPUTS = {
 }
 
 
-def execute(experiment, request=None, workenv=WorkEnv):
+def execute(result, func, request=None):
     """
     This function takes an experiment and executes.
 
@@ -72,10 +78,11 @@ def execute(experiment, request=None, workenv=WorkEnv):
     """
     # TODO: CREATE WorkEnv in job
     # workenv = WorkEnvLocal
-    env = workenv()
+    experiment = result.__parent__
+    env = WorkEnv()
     params = get_project_params(experiment)
     script = generate_project_script()
-    return queue_job(experiment, 'Projection', env, script, params, OUTPUTS)
+    return queue_job(result, 'Projection', env, script, params, OUTPUTS)
 
 
 parameters = None

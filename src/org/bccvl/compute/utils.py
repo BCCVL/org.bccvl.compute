@@ -13,10 +13,8 @@ from org.bccvl.site.content.dataset import IDataset
 from zope.component import getUtility
 import shutil
 from decimal import Decimal
-from plone.dexterity.utils import createContentInContainer
 from xmlrpclib import ServerProxy
 from collective.transmogrifier.transmogrifier import Transmogrifier
-from datetime import datetime
 from plone.uuid.interfaces import IUUID
 from plone.app.uuid.utils import uuidToObject
 from org.bccvl.site.browser.xmlrpc import getbiolayermetadata
@@ -162,6 +160,7 @@ class WorkEnv(object):
         self.scriptname = None
         self.wrapname = None
         self.jobid = None
+        self.maxentjarname = None
         self.src = 'plone'
         self.dest = 'compute'
         if host is None:
@@ -287,7 +286,11 @@ class WorkEnv(object):
         scriptfile, self.tmpscript = mkstemp()
         os.write(scriptfile, script)
         os.close(scriptfile)
-        self.scriptname = '/'.join((self.scriptdir, '{}.R'.format(self.jobid)))
+        # FIXME: need more sophisticated way to do the right thing:
+        if 'perl' in script.split('\n')[0]:
+            self.scriptname = '/'.join((self.scriptdir, '{}.pl'.format(self.jobid)))
+        else:
+            self.scriptname = '/'.join((self.scriptdir, '{}.R'.format(self.jobid)))
         src = {'type':  'scp',
                'host': self.src,
                'path': self.tmpscript}
@@ -298,7 +301,8 @@ class WorkEnv(object):
 
         paramsfile, self.tmpparams = mkstemp()
         paramsfile = os.fdopen(paramsfile, 'w')
-        json.dump(params, paramsfile, default=decimal_encoder)
+        json.dump(params, paramsfile, default=decimal_encoder,
+                  sort_keys=True, indent=4)
         paramsfile.close()
         self.paramsname = '/'.join((self.scriptdir, 'params.json'))
         src['path'] = self.tmpparams
@@ -309,6 +313,15 @@ class WorkEnv(object):
         src['path'] = resource_filename('org.bccvl.compute',
                                         'rscripts/wrap.sh')
         dest['path'] = self.wrapname
+        self.move_data('script', src, dest, None)
+
+        # TODO: We should only copy this if it's needed.
+        # TODO: In bccvl.R, the working directory is configured to the output directory, hence we place the maxent.jar file there...
+        #       This means that we get copies of this file in the output of each experiment.
+        self.maxentjarname = '/'.join((self.scriptdir, 'maxent.jar'))
+        src['path'] = resource_filename('org.bccvl.compute',
+                                        'rscripts/maxent.jar')
+        dest['path'] = self.maxentjarname
         self.move_data('script', src, dest, None)
 
     def move_output_data(self):
@@ -330,12 +343,7 @@ class WorkEnv(object):
                     'path': destname}
             self.move_data('output', src, dest, uuid=None)
 
-    def import_output(self, experiment, workenv, OUTPUTS):
-        # create result container which will be context for transmogrify import
-        # TODO: maybe use rfc822 date format?
-        title = u'%s - %s %s' % (experiment.title, workenv.jobid,
-                                 datetime.now().isoformat())
-        #LOG.info('Import result for %s from %s', title, self.workdir)
+    def import_output(self, result, workenv, OUTPUTS):
         # start transmogrify
 
         #transmogrify.dexterity.schemaupdater needs a REQUEST on context????
@@ -357,19 +365,14 @@ class WorkEnv(object):
         while retry:
             try:
                 transaction.begin()  # resync
-                ds = createContentInContainer(
-                    experiment,
-                    'gu.repository.content.RepositoryItem',
-                    title=title)
 
-                ds.toolkit = workenv.jobid  # TODO:sholud be toolkit uuid or id
-                ds.REQUEST = request
-                transmogrifier = Transmogrifier(ds)
+                result.REQUEST = request
+                transmogrifier = Transmogrifier(result)
                 transmogrifier(u'org.bccvl.compute.resultimport',
                                resultsource={'path': self.tmpimport,
                                              'outputmap': OUTPUTS})
                 # cleanup fake request
-                del ds.REQUEST
+                del result.REQUEST
                 transaction.commit()
                 retry = 0
             except transaction.interfaces.TransientError:
@@ -378,9 +381,11 @@ class WorkEnv(object):
                 retry -= 1
                 LOG.info("Retrying IMPORT: %s attempts left", retry)
 
-        LOG.info('Import result finished for %s from %s', title, self.workdir)
+        LOG.info('Import result finished for %s from %s', result.title, self.workdir)
 
     def get_sdm_params(self, experimentinfo):
+        # FIXME: move tis away
+        #  prepare files for exec environment. e.g. find workenv local filenames for input files, etc...
         names = set(chain(*experimentinfo.get('layers', {}).values()))
         params = {
             'scriptdir': self.workdir,
@@ -458,7 +463,11 @@ class WorkEnv(object):
         # -> XQTL (Molgenis) ... wrap r-script with common init code,
         #        and provide special API to access parameters (maybe
         #        loaded from file in init wrapper?)
-        cmd = 'nohup /bin/bash --login {} R CMD BATCH --vanilla "{}" "{}" </dev/null >/dev/null 2>&1 &'.format(self.wrapname, self.scriptname, scriptout)
+        # FIXME: better way to decide how to run script
+        if self.scriptname.endswith('.R'):
+            cmd = 'nohup /bin/bash --login {} R CMD BATCH --vanilla "{}" "{}" </dev/null >/dev/null 2>&1 &'.format(self.wrapname, self.scriptname, scriptout)
+        else:
+            cmd = 'nohup /bin/bash --login {} perl {} < /dev/null > {} 2>&1 &'.format(self.wrapname, self.scriptname, scriptout)
         code, result = self.ssh.run_script(cmd, self.scriptdir)
         LOG.info("Remoe Job started %s", result)
         return result
@@ -524,9 +533,6 @@ def create_workenv(env, script, params):
                     # TODO: no guarantee that inputfile name is unique
                     #       use dataset uuid?
                     env.move_input_data(dskey, dsinfo)
-        # env.move_input_data('environment', experimentinfo['environment'])
-        # env.move_input_data('occurrence', experimentinfo['occurrence'])
-        # env.move_input_data('absence', experimentinfo['absence'])
         params.update(env.get_sdm_params(params))
         env.move_script(script, params)
         env.wait_for_data_mover()
@@ -571,13 +577,21 @@ def run_job(env):
     # TODO: result of previous job might be a zc.twist.Failure
     try:
         env.start_script()
+        # the remote job might take a while to start let's retry a few times
+        # in case check_script fails to detect running job
+        retry = 3
         while True:
             # TODO: make this some sort of time out and do proper
             #       error checking (e.g. connection failures)
             ret = env.check_script()
             if ret is None:
+                retry = 0  # we have found something no retry necessary anymore
                 LOG.info("Remote job not yet finished.")
                 sleep(10)
+                continue
+            if retry:
+                # we haven't seen a sign of the job yet, let's retry
+                retry -= 1
                 continue
             #-1 .... something went wrong
             # any other number ... exit code of job
@@ -655,13 +669,13 @@ def job_run(context, env, script, params, OUTPUTS):
 
 # TODO: this should be generic. there should be only one queue_job for
 #       all types of jobs
-def queue_job(experiment, jobid, env, script, params, OUTPUTS):
+def queue_job(result, jobid, env, script, params, OUTPUTS):
     try:
         async = getUtility(IAsyncService)
         queues = async.getQueues()
 
         env.jobid = jobid
-        run_job = async.wrapJob((job_run, experiment,
+        run_job = async.wrapJob((job_run, result,
                                  (env, script, params, OUTPUTS), {}))
         run_job.jobid = env.jobid
         run_job.quota_names = ('default', )
@@ -676,138 +690,10 @@ def queue_job(experiment, jobid, env, script, params, OUTPUTS):
                 dispagent['main'].size = 2
         return queue.put(run_job)
 
-        # Twisted worker needs sepcial agent in plone and twisted worker
-        run_job = Job(job_run, experimentinfo, env, script, params)
-        job_import = async.wrapJob((get_outputs, experiment, (env, ), {}))
-        job_import.jobid = env.jobid
-        job_import.annotations['bccvl.status'] = {
-            'step': 0,
-            'task': u'No Change'}
-
-        job_queue_next = Job(queue_next2, '', job_import)
-        run_job.addCallbacks(job_queue_next)
-
-        # assign main_job to db
-        queues._p_jar.add(job_import)
-        queues['twist'].put(run_job)
-        return job_import
     except Exception as e:
         env.cleanup()
         env.cleanup_remote()
         raise e
-
-
-
-# TODO: the more parallel code below should work again after fixing the
-#       threading issue with 4store datamanagers
-
-
-
-def queue_job2(experiment, jobid, env, script, params):
-    try:
-        # run import only if we run as async job
-        async = getUtility(IAsyncService)
-        queue = async.getQueues()['']
-
-        # create processing jobs
-        experimentinfo = getExperimentInfo(experiment)
-        #job1 = async.wrapJob((create_workenv, experiment, (), {'script': script, 'params': params}))
-        job1 = Job(create_workenv, experimentinfo, script=script, params=params)
-        job1.name = u'Transfering'
-        #job2 = async.wrapJob((run_job, experiment, (), {}))  # env as return value from job1
-        job2 = Job(run_job, experimentinfo)
-        job2.name = u'Running'
-        job3 = async.wrapJob((get_outputs, experiment, (jobid, ), {}))  # env as return value from job2
-        job3.name = u'Retrieving'
-
-        main_job = async.wrapJob((finish_job_queue, experiment, (), {}))
-        main_job.jobs = [job1, job2, job3]
-        main_job.name = 'Cleanup'
-        main_job.jobid = jobid
-        main_job.addCallbacks(success=job_success_callback,
-                              failure=job_failure_callback)
-        #start_job = async.wrapJob((queue_next, experiment, (main_job, 0, env), {}))
-        start_job = Job(queue_next, main_job, 0, env)
-        start_job.quota_names = ('default', )
-        # assign job to main db???
-        queue._p_jar.add(main_job)
-        queue.put(start_job)
-        # main_job.annotations['bccvl.status'] = {
-        #     'step': 0,
-        #     'steps': len(main_job.jobs),
-        #     'task': u'New'}
-        return main_job
-
-    except Exception, e:
-        env.cleanup()
-        env.cleanup_remote()
-        raise e
-
-
-def finish_job_queue(context, result):
-    # FIXME: need to handle errors here
-    try:
-        # main_job = local.getJob()
-        # newstate = u'Failed'
-        if isinstance(result, WorkEnv):
-            # clenup remote and local
-            env = result
-            # newstate = u'Completed'
-        else:
-
-            ex, env = result.value.args
-            # where do I get env from?
-        env.cleanup_remote()
-        env.cleanup()
-        #status = main_job.annotations['bccvl.status']
-        # status = local.getLiveAnnotation('bccvl.status')
-        # status = deepcopy(status)
-        # status['task'] = newstate
-        # local.setLiveAnnotation('bccvl.status', status, job=main_job)
-        #main_job.annotations['bccvl.status'] = status
-        return result
-    finally:
-        env.close()
-
-
-# used as callback on sub jobs. job is main_job which keeps track of progress
-#def queue_next(context, main_job, ix, result):
-def queue_next(main_job, ix, result):
-    #status = main_job.annotations.get('bccvl.status')
-    # status = local.getLiveAnnotation('bccvl.status', job=main_job)
-    # status = deepcopy(status)
-    queue = local.getQueue()
-    if queue is None:
-        # try to get queue form parent job
-        queue = local.getJob().parent.parent.queue
-    # if prev:
-    #     status['history'].append({
-    #         'start': prev.active_start,
-    #         'end': prev.active_end,
-    #         'status': prev.status})
-
-    # FIXME: ask for WorkEnv? instead of Failure?
-    # TODO: if previous job was run try to fetch results?
-    if ix < len(main_job.jobs) and not isinstance(result, Failure):
-        next = main_job.jobs[ix]
-        next.kwargs['env'] = result
-        # status['step'] += 1
-        # status['task'] = next.name
-        #local.setLiveAnnotation('bccvl.status', status, job=main_job)
-        #main_job.annotations['bccvl.status'] = status
-        #qjob = async.wrapJob((queue_next, context, (main_job, ix+1), {}))
-        qjob = Job(queue_next, main_job, ix + 1)
-        next.addCallbacks(qjob, qjob)
-        # TODO: may throw ValueError ... cannot assign already scheduled job
-        LOG.info("about to queue_next %s, %s", main_job.jobid, next.name)
-        return queue.put(next)
-    else:
-        # status['task'] = main_job.name
-        #local.setLiveAnnotation('bccvl.status', status, job=main_job)
-        #main_job.annotations['bccvl.status'] = status
-        main_job.args.append(result)
-        LOG.info("about to queue_next %s, %s", main_job.jobid, main_job.name)
-        return queue.put(main_job)
 
 
 class WorkEnvLocal(WorkEnv):
