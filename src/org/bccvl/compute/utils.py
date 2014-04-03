@@ -39,6 +39,7 @@ LOG = logging.getLogger(__name__)
 DATA_MOVER = 'http://127.0.0.1:10700/data_mover'
 COMPUTE_HOST = 'localhost'
 COMPUTE_USER = 'bccvl'
+INTERNAL_URL = 'http://127.0.0.1:8201'
 #COMPUTE_IP = '130.102.155.47'
 
 ##TASKS:
@@ -621,13 +622,13 @@ def run_job(env):
 #       getbiolayermetadata in getExperimentInfo)
 def getDatasetInfo(datasetitem):
     # TODO: filename might be None, and then this job fails miserably
+    int_url = os.environ.get("INTERNAL_URL", INTERNAL_URL)
     dsfilename = datasetitem.file.filename
     if dsfilename is None:
         # use datasetitem id in case we don't have a filename
         dsfilename = datasetitem.id
     dsurl = '{}{}/@@download/file/{}'.format(
-        'http://127.0.0.1:8499',
-        '/'.join(datasetitem.getPhysicalPath()),
+        int_url, '/'.join(datasetitem.getPhysicalPath()),
         datasetitem.file.filename)
     # check for ArchiveItems in the graph and add stuff
     return {
