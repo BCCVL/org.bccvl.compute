@@ -19,7 +19,11 @@ use Biodiverse::ElementProperties;
 #####################################
 # read parameters
 open( my $fp, '<', 'params.json' );
-my $json_text   = <$fp>;
+my $json_text ;
+{
+    local $/;
+    $json_text   = <$fp>;
+}
 my %bccvl_params = %{decode_json($json_text)};
 
 ####################################
