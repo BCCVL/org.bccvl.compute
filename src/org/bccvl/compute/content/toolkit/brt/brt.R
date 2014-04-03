@@ -48,7 +48,7 @@ brt.silent = FALSE #Logical. to allow running with no output for simplifying mod
 brt.keep.fold.models = FALSE #Logical. keep the fold models from cross valiation
 brt.keep.fold.vector = FALSE #Logical. allows the vector defining fold membership to be kept
 brt.keep.fold.fit = FALSE #Logical. allows the predicted values for observations from cross-validation to be kept
-projection.name = paste(bccvl.params$species, "proj_current", sep=".")
+projection.name = "current"
 
 # model accuracy statistics
 # these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R

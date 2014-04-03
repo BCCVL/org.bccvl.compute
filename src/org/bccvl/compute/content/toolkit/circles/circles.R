@@ -29,7 +29,7 @@ enviro.data.type = bccvl.params$environmenttype
 #additional parameters for projecting circles
 opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right tail of the percentile distribution ("both", "low", "high"
 opt.ext = NULL #an optional extent object to limit the prediction to a sub-region of 'x'
-projection.name = paste(bccvl.params$species, "proj_current", sep=".")
+projection.name = "current"
 
 
 # model accuracy statistics
