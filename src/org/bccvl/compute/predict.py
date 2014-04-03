@@ -1,7 +1,8 @@
 from pkg_resources import resource_string
+import re
 from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
 from gu.z3cform.rdf.interfaces import IGraph
-from org.bccvl.site.namespace import BIOCLIM
+from org.bccvl.site.namespace import BIOCLIM, DWC
 from plone.app.uuid.utils import uuidToObject
 from zope.interface import moduleProvides
 # do this dynamically in site module?
@@ -14,7 +15,6 @@ def get_project_params(experiment):
     params = {'sdms': {},
               'climate': {}}
     uuid = experiment.species_distribution_models
-    # TODO: doesn't fetch layers for sdm?'
     params['sdms'][uuid] = getdatasetparams(uuid)
 
     sdmobj = uuidToObject(uuid)
@@ -27,6 +27,9 @@ def get_project_params(experiment):
         params['climate'][brain.UID]['archivefiles'] = [
             ]
     params['datasetkeys'] = ('sdms', 'climate')
+    species = unicode(graph.value(graph.identifier, DWC['scientificName']))
+    params['species'] = re.sub(u"[ _]", u".", species)
+    params['selected_models'] = 'all'
     return params
 
 
