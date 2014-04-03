@@ -36,9 +36,11 @@
             "files": ["model.object.RData",
                       "*/*.bccvl.models.out",
                       "*/.BIOMOD_DATA/bccvl/*",
+                      "*/proj_current/*.current.projection.out",
                       "*/models/bccvl/*_MAXENT",
-                      "*/proj_current/*.current.projection.out"
-                      ],
+                      "*/models/bccvl/*_MAXENT_outputs/*",
+                      "*/models/bccvl/*_MAXENT_outputs/plots/*"
+                     ],
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
             "mimetype": "application/zip"
