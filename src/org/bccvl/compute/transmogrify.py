@@ -116,7 +116,7 @@ class ResultSource(object):
 
                 # FIXME: find a cleaner way to attach metadata
                 filename = os.path.basename(fname)
-                m = re.match(r'^(.*)_(.*)_(\d*)\.tif$', filename)
+                m = re.match(r'^proj_(.*)_(.*)_(\d*)_.*\.tif$', filename)
                 if m:
                     rdf.add((rdf.identifier, BCCPROP['emissionscenario'], BCCEMSC[m.group(1)]))
                     rdf.add((rdf.identifier, BCCPROP['gcm'], BCCGCM[m.group(2)]))

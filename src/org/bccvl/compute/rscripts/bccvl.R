@@ -51,6 +51,7 @@ bccvl.species.read <- function(filename) {
 bccvl.saveModelProjection <- function(model.obj, projection.name, outputdir=bccvl.params$outputdir) {
     ## save projections under biomod2 compatible name:
     ##  proj_name_species.tif
+    ##  only useful for dismo outputs
     basename = paste("proj", projection.name, bccvl.params$species, sep="_")
     filename = file.path(outputdir, paste(basename, 'tif', sep="."))
     writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
@@ -84,7 +85,9 @@ bccvl.grdtogtiff <- function(folder) {
         # read grid raster
         grd <- raster(file.path(folder, grdfile))
         # write raster as geotiff
-        bccvl.saveModelProjection(grd, grdname, folder)
+        outputdir = bccvl.params$outputdir
+        filename = file.path(outputdir, paste(grdname, 'tif', sep="."))
+        writeRaster(grd, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
         # remove grd files
         file.remove(file.path(folder, paste(grdname, c("grd","gri"), sep=".")))
     }
