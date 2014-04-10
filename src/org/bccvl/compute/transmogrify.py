@@ -138,9 +138,10 @@ class ResultSource(object):
             '_path': datasetid,
             '_type': 'org.bccvl.content.dataset',
             'title': unicode(name),
+            'description': info.get('title', u''),
             'file': {
                 'file': name,
-                'contentype': mimetype,
+                'contenttype': mimetype,
                 'filename': name
             },
             '_rdf': {
