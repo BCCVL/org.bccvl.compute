@@ -23,7 +23,7 @@
         "results.html": {
             "title": "Accuracy measures report",
             "genre": "DataGenreSDMEval",
-            "mimetype": "txt/html"
+            "mimetype": "text/html"
         },
         "*.Rout": {
             "title": "Log file",
