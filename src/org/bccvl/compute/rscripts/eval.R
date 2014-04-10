@@ -394,7 +394,8 @@ bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples) {
 
 # function to calculate variable importance values for dismo models based on Maxent's decrease in AUC
 # i.e., hold all but one predictor variable to its original values, resample that one predictor and recalculate model AUC
-bccvl.calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
+bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
+                                              model.name, occur, bkgd) {
     # get the enviromental variables and values used to create the model
     # EMG this is duplicated from above, should be able to combine or find an easier way to determine
     if (model.name == "brt") {
@@ -555,7 +556,7 @@ bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     bccvl.calculateVariableImpt(model.obj, model.name, 3)
 
     # calculate variable importance (like maxent, using decrease in AUC)
-    bccvl.calculatePermutationVarImpt(model.obj, model.eval, model.name)
+    bccvl.calculatePermutationVarImpt(model.obj, model.eval, model.name, occur, bkgd)
 
     # create HTML file with accuracy measures
     bccvl.generateHTML()
