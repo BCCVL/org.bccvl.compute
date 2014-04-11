@@ -11,6 +11,8 @@ use Carp;
 use English qw { -no_match_vars };
 
 use JSON ;
+use File::Basename ;
+use File::Spec ;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
@@ -31,12 +33,24 @@ my %bccvl_params = %{decode_json($json_text)};
 my $outdir = $bccvl_params{'outputdir'};
 chdir($outdir);
 
+####################################
+# project input files ... assume they
+my @files = () ;
+foreach (@{$bccvl_params{'specieslayers'}}) {
+    my ($name, $path, $suffix) = fileparse($_, qr/\.[^.]*/);
+    my $destfile = File::Spec->catfile($outdir, $name . "_input.tif");
+    print "try to transform $_ to $destfile\n";
+    system("gdalwarp", "-t_srs", "epsg:3577", $_, $destfile);
+    # TODO: $! .... knows whether it all went well
+    print "gdalwarp:", $!, "\n" ;
+    print $destfile, "\n" ;
+    push(@files, $destfile);
+}
+
 ###################################3
 # extract script params to orig script variables
 
 my $cellsize = $bccvl_params{'clustersize'};
-
-my @files = @{$bccvl_params{'specieslayers'}};
 
 # rest of orig script variables
 # TODO: set this to something more meaningful from params.json
