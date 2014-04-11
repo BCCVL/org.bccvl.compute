@@ -17,7 +17,7 @@
 
 
 projectdataset <- function(model.obj, futuredata, projection.name) {
-    future.climate.scenario = stack(futuredata)
+    future.climate.scenario = bccvl.enviro.stack(futuredata)
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario)
     # do projection
