@@ -41,10 +41,26 @@ bccvl.err.null <- function (e) return(NULL)
 
 # read species presence/absence data
 #    return NULL if filename is not  given
+# TODO: shall we set projection here as well? use SpatialPoints?
 bccvl.species.read <- function(filename) {
     if (!is.null(filename)) {
         return (read.csv(filename))
     }
+}
+
+# return a RasterStack of given vector of input files
+# checks if data has projection associated with it, and in case
+# there is none, this method sets it to WGS84 (EPSG:4326)
+bccvl.enviro.stack <- function(enviro.data) {
+    enviro.stack = stack(enviro.data)
+    # get projection info
+    proj = proj4string(enviro.stack)
+    if (is.na(proj)) {
+        # None set, let's set a default
+        proj4string(enviro.stack) <- CRS("+init=epsg:4326")
+        warning("Environmental data set has no projection metadat. Set to default EPSG:4326")
+    }
+    return (enviro.stack)
 }
 
 # function to save projection output raster
