@@ -17,12 +17,11 @@ def get_biodiverse_params(experiment):
               # which keys describe files to transfer?
               'datasetkeys': ['specieslayers'],
               }
-    uuids = experiment.datasets
-    thresholds = experiment.thresholds
-    for idx, uuid in enumerate(uuids):
+    for idx, proj in enumerate(experiment.projection):
+        uuid = proj['dataset']
         dsparams = getdatasetparams(uuid)
         params['specieslayers'][uuid] = dsparams
-        params['thresholds'][uuid] = thresholds[idx]
+        params['thresholds'][uuid] = proj['threshold']
     return params
 
 
