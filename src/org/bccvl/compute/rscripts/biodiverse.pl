@@ -109,4 +109,13 @@ $sp->export (
     list   => 'SPATIAL_RESULTS',
 );
 
+my $ascglob = File::Spec->catfile($outdir, "*.asc");
+foreach(glob($ascglob)) {
+    my ($name, $path, $suffix) = fileparse($_, qr/\.[^.]*/);
+    my $destfile = File::Spec->catfile($path, $name . ".tif");
+    system("gdal_translate", "-a_srs", "epsg:3577", "-stats", $_, $destfile);
+    # TODO: check $! before moving on
+    unlink($_);
+}
+
 say 'Completed';
