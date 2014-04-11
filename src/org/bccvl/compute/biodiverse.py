@@ -33,6 +33,31 @@ def generate_biodiverse_script():
     return script
 
 OUTPUTS = {
+    'files': {
+        '*.plout': {
+            "title": "Log file",
+            "genre": "DataGenreLog",
+            "mimetype": "text/plain"
+        },
+        '*.tif': {
+            'title': 'Biodiverse output',
+            'genre': 'BiodiverseOutput',
+            'mimetype': 'image/geotiff',
+        },
+        # TODO: is this a Cadcorp SIS Base Dataset? (a gis file)
+        '*.bds':  {
+            'title': 'Biodiverse output',
+            'genre': 'BiodiverseOutput',
+            'mimetype': 'application/octet-stream',
+        }
+    },
+    'archives': {
+        # 'results.html.zip': {
+        #     'files': ['results.html', 'AUC.png'],
+        #     'title': 'Accuracy measures report as zip',
+        #     'type': 'eval',
+        #     'format': 'zip',
+    },
 }
 
 
