@@ -44,6 +44,11 @@ def generate_project_script():
 # FIXME: which projection get's which metadata? (GCM, emsc, scale, year)
 OUTPUTS = {
     'files': {
+        '*.Rout': {
+            "title": "Log file",
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript"
+        },
         '*.tif': {
             'title': 'Future Projection',
             'genre': 'DataGenreFP',
