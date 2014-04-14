@@ -1,28 +1,31 @@
 from pkg_resources import resource_string
 from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
-from zope.interface import moduleProvides
 # do this dynamically in site module?
-from .interfaces import IComputeFunction
+from zope.interface import provider
+from org.bccvl.site.interfaces import IComputeMethod
+from copy import deepcopy
 
-moduleProvides(IComputeFunction)
 
+def get_biodiverse_params(result):
+    # make a deep copy of the params to not accedientially modify the
+    # persisted dict
+    params = deepcopy(result.job_params)
 
-def get_biodiverse_params(experiment):
-    # TODO: workenv can only deal with datasets in dictinoaries, with
-    # uuid as key, list would be more appropriate here as order might
-    # matter
-    params = {'specieslayers': {},
-              'thresholds': {},
-              'clustersize': experiment.cluster_size,
-              # which keys describe files to transfer?
-              'datasetkeys': ['specieslayers'],
-              }
-    for idx, proj in enumerate(experiment.projection):
-        uuid = proj['dataset']
-        dsparams = getdatasetparams(uuid)
-        params['specieslayers'][uuid] = dsparams
-        params['thresholds'][uuid] = proj['threshold']
-    return params
+    # params['projections'] is a list of dicts with 'threshold' and 'uuid'
+    # and sholud become a list of dicts with datasetinfos + threshold?
+
+    dslist = []
+    for dsparam in params['projections']:
+        dsinfo = getdatasetparams(dsparam['dataset'])
+        dsinfo['threshold'] = dsparam['threshold']
+        dslist.append(dsinfo)
+    # replace projections param
+    params['projections'] = dslist
+
+    workerhints = {
+        'files': ('projections', )
+    }
+    return {'env': {}, 'params': params, 'worker': workerhints}
 
 
 def generate_biodiverse_script():
@@ -60,7 +63,8 @@ OUTPUTS = {
 }
 
 
-def execute(result, func, request=None):
+@provider(IComputeMethod)
+def execute(result, func):
     """
     This function takes an experiment and executes.
 
@@ -78,8 +82,7 @@ def execute(result, func, request=None):
     """
     # TODO: CREATE WorkEnv in job
     # workenv = WorkEnvLocal
-    experiment = result.__parent__
     env = WorkEnv()
-    params = get_biodiverse_params(experiment)
+    params = get_biodiverse_params(result)
     script = generate_biodiverse_script()
     return queue_job(result, 'Biodiverse', env, script, params, OUTPUTS)

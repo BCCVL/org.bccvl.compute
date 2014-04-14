@@ -1,22 +1,24 @@
 
 # bccvl.params$future$data ... list of file names with climate variables
-# bccvl.params$inputmodel ... sdm model
-# bccvl.params$inputdir ... folder with all input data
-# bccvl.params$outputdir ... folder to store output files
+
+# bccvl.env$inputdir ... folder with all input data
+# bccvl.env$outputdir ... folder to store output files
 
 # dismo:
 #   bccvl.params$tails ... predict (tails)
 # biomod:
-#   bccvl.params$species ... used to generate output files and folders
 #   bccvl.params$selected_models ... which models to use
 #   bccvl.params$compress ... not used
 
 # dismo places outputfiles in outputdir
 # biomod places outputfiles in subfolders in outputdir
 
+sdm.species = bccvl.params$species_distribution_models$species
+sdm.model.file = bccvl.params$species_distribution_models$filename
 
+future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x) x$filename)
 
-projectdataset <- function(model.obj, futuredata, projection.name) {
+projectdataset <- function(model.obj, futuredata, projection.name, species) {
     future.climate.scenario = bccvl.enviro.stack(futuredata)
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario)
@@ -29,14 +31,14 @@ projectdataset <- function(model.obj, futuredata, projection.name) {
                               predictors,
                               tails=opt.tails,
                               ext=opt.ext)
-        bccvl.saveModelProjection(model.proj, projection.name)
+        bccvl.saveModelProjection(model.proj, projection.name, species)
     } else if (inherits(model.obj, "gbm")) {
         # brt package)
         model.proj <- predict(predictors,
                               model.obj,
                               n.trees=model.obj$gbm.call$best.trees,
                               type="response")
-        bccvl.saveModelProjection(model.proj, projection.name)
+        bccvl.saveModelProjection(model.proj, projection.name, species)
     } else if (inherits(model.obj, "BIOMOD.models.out")) {
         # expect additional model data in input folder.
         # for biomod to find it we'll have to change wd
@@ -47,7 +49,7 @@ projectdataset <- function(model.obj, futuredata, projection.name) {
         biomod.filtered.meth <- NULL
         biomod.compress <- NULL # bccvl.params$compress
         biomod.build.clamping.mask <- TRUE
-        biomod.species.name <-  bccvl.params$species
+        biomod.species.name <-  species
         opt.biomod.silent <- FALSE
         opt.biomod.do.stack <- TRUE
         opt.biomod.keep.in.memory <- TRUE
@@ -71,11 +73,11 @@ projectdataset <- function(model.obj, futuredata, projection.name) {
         projinput <- file.path(getwd(),
                                biomod.species.name,
                                paste("proj", projection.name, sep="_"))
-        projoutput <- file.path(bccvl.params$outputdir,
+        projoutput <- file.path(bccvl.env$outputdir,
                                 biomod.species.name,
                                 paste("proj", projection.name, sep="_"))
         # create top level dir
-        dir.create(file.path(bccvl.params$outputdir, biomod.species.name))
+        dir.create(file.path(bccvl.env$outputdir, biomod.species.name))
         # move proj_future folder to output folder
         file.rename(projinput, projoutput)
         # convert grd files to tif
@@ -85,7 +87,8 @@ projectdataset <- function(model.obj, futuredata, projection.name) {
 
 
 # TODO: get rid of this zip detection
-modelfile <- bccvl.params$sdms[1]
+# in case the sdm model is a zip file we'll have to unpack it
+modelfile <- sdm.model.file
 if (tolower(file_ext(modelfile)) == "zip") {
     # assume we have been given a zip file and the model file has the same name
     # as the basename(zip) within a subfolder with the same name
@@ -103,8 +106,6 @@ if (tolower(file_ext(modelfile)) == "zip") {
 # TODO:should be loaded straigt from bccvl.params$sdms[1]
 model.obj <- bccvl.getModelObject(modelfile)
 
-for (dataset in bccvl.params$climate) {
-    # use folder name of first dataset to generate name for projection output
-    projection.name = basename(dirname(dataset[1]))
-    projectdataset(model.obj, dataset, projection.name)
-}
+# use folder name of first dataset to generate name for projection output
+projection.name = basename(dirname(future.climate.dataset[[1]]))
+projectdataset(model.obj, future.climate.dataset, projection.name, sdm.species)
