@@ -10,6 +10,11 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv"
         },
+        "*/models/bccvl/*_MAXENT_outputs/maxentResults.csv": {
+            "title": "Maxent Thresholds",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/csv"
+        },
         "mean_response_curves.png": {
             "title": "Mean Response Curves",
             "genre": "DataGenreSDMEval",
