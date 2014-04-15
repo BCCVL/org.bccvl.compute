@@ -103,8 +103,12 @@ def extractThresholdValues(fname):
             if fieldname.startswith('Cutoff.'):
                 name = fieldname
                 break
-        for row in dictreader:
-            thresholds[row['']] = Decimal(row[name])
+        try:
+            for row in dictreader:
+                thresholds[row['']] = Decimal(row[name])
+        except KeyError:
+            LOG.warn("Couldn't extract Threshold '%s' from file '%s'",
+                     name, fname)
     return thresholds
 
 
