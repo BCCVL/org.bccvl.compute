@@ -4,33 +4,49 @@ from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
 from gu.z3cform.rdf.interfaces import IGraph
 from org.bccvl.site.namespace import BIOCLIM, DWC
 from plone.app.uuid.utils import uuidToObject
-from zope.interface import moduleProvides
 # do this dynamically in site module?
-from .interfaces import IComputeFunction
+from zope.interface import provider
+from org.bccvl.site.interfaces import IComputeMethod
+from copy import deepcopy
 
-moduleProvides(IComputeFunction)
 
-
-def get_project_params(experiment):
-    params = {'sdms': {},
-              'climate': {}}
-    uuid = experiment.species_distribution_models
-    params['sdms'][uuid] = getdatasetparams(uuid)
-
+def get_project_params(result):
+    params = deepcopy(result.job_params)
+    # get metadata for species_distribution_models
+    uuid = params['species_distribution_models']
+    params['species_distribution_models'] = getdatasetparams(uuid)
+    # do biomod name mangling of species name
+    params['species_distribution_models']['species'] = re.sub(u"[ _]", u".", params['species_distribution_models'].get('species', u"Unknown"))
+    # we need the layers from sdm to fetch correct files for climate_models
+    # TODO: getdatasetparams should fetch 'layers'
     sdmobj = uuidToObject(uuid)
-    graph = IGraph(sdmobj)
-    layers = list(graph.objects(graph.identifier, BIOCLIM['bioclimVariable']))
-    params['layersperdataset'] = layers
-
-    for brain in experiment.future_climate_datasets():
-        params['climate'][brain.UID] = getdatasetparams(brain.UID)
-        params['climate'][brain.UID]['archivefiles'] = [
-            ]
-    params['datasetkeys'] = ('sdms', 'climate')
-    species = unicode(graph.value(graph.identifier, DWC['scientificName']))
-    params['species'] = re.sub(u"[ _]", u".", species)
+    sdmmd = IGraph(sdmobj)
+    layers = list(sdmmd.objects(sdmmd.identifier, BIOCLIM['bioclimVariable']))
+    params['species_distribution_models']['layers'] = layers
+    # do future climate layers
+    uuid = params['future_climate_datasets']
+    dsinfo = getdatasetparams(uuid)
+    climatelist = []
+    for layer in layers:
+        climatelist.append({
+            'uuid': dsinfo['uuid'],
+            'filename': dsinfo['filename'],
+            'downloadurl': dsinfo['downloadurl'],
+            'internalurl': dsinfo['internalurl'],
+            'layer': layer,
+            'zippath': dsinfo['layers'][layer],
+            # TODO: add year, gcm, emsc here?
+            # TODO: do we have/need continuous or not?
+            'type': dsinfo['type'],
+        })
+    # replace climate_models parameter
+    params['future_climate_datasets'] = climatelist
     params['selected_models'] = 'all'
-    return params
+    # add hints for worker
+    workerhints = {
+        'files': ('species_distribution_models', 'future_climate_datasets')
+    }
+    return {'env': {}, 'params': params, 'worker': workerhints}
 
 
 def generate_project_script():
@@ -42,8 +58,16 @@ def generate_project_script():
 
 # TODO: maybe allow tal expressions or regexp match parameters to create more meaningful titles?
 # FIXME: which projection get's which metadata? (GCM, emsc, scale, year)
+# FIXME: remove clapmingMasks from DataGenreFP
+#        e.g. add exclude pattern and interpret as glob(includes) - glob(excludes)
+#        or apply regexp pattern on glob(includes) result
 OUTPUTS = {
     'files': {
+        '*.Rout': {
+            "title": "Log file",
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript"
+        },
         '*.tif': {
             'title': 'Future Projection',
             'genre': 'DataGenreFP',
@@ -60,7 +84,8 @@ OUTPUTS = {
 }
 
 
-def execute(result, func, request=None):
+@provider(IComputeMethod)
+def execute(result, func):
     """
     This function takes an experiment and executes.
 
@@ -78,14 +103,7 @@ def execute(result, func, request=None):
     """
     # TODO: CREATE WorkEnv in job
     # workenv = WorkEnvLocal
-    experiment = result.__parent__
     env = WorkEnv()
-    params = get_project_params(experiment)
+    params = get_project_params(result)
     script = generate_project_script()
     return queue_job(result, 'Projection', env, script, params, OUTPUTS)
-
-
-parameters = None
-
-if __name__ == '__main__':
-    execute()

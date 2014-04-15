@@ -30,7 +30,7 @@ bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
     # EMG no guarantee these value are correct
 
     # save AUROC curve
-    png(file=file.path(bccvl.params$outputdir, 'AUC.png'))
+    png(file=file.path(bccvl.env$outputdir, 'AUC.png'))
     plot(out.model, 'ROC');
     dev.off()
 }
@@ -325,7 +325,7 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
 
             # create separate file for each response curve
             save.name = env.vars[j]
-            png(file=file.path(bccvl.params$outputdir, paste(save.name, "_response.png", sep="")))
+            png(file=file.path(bccvl.env$outputdir, paste(save.name, "_response.png", sep="")))
             plot(range.values, new.predictions, ylim=c(0,1), xlab="", ylab="", main=save.name, type="l")
             rug(model.values[,j])
             dev.off()
@@ -394,7 +394,8 @@ bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples) {
 
 # function to calculate variable importance values for dismo models based on Maxent's decrease in AUC
 # i.e., hold all but one predictor variable to its original values, resample that one predictor and recalculate model AUC
-bccvl.calculatePermutationVarImpt <- function(out.model, model.eval, model.name) {
+bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
+                                              model.name, occur, bkgd) {
     # get the enviromental variables and values used to create the model
     # EMG this is duplicated from above, should be able to combine or find an easier way to determine
     if (model.name == "brt") {
@@ -466,12 +467,12 @@ bccvl.calculatePermutationVarImpt <- function(out.model, model.eval, model.name)
 bccvl.generateHTML <- function() {
 
     # read in model outputs
-    auccurve = readPNG(file.path(bccvl.params$outputdir, "AUC.png"))
-    accuracystats <- read.csv(file.path(bccvl.params$outputdir, "combined.modelEvaluation.csv"),
+    auccurve = readPNG(file.path(bccvl.env$outputdir, "AUC.png"))
+    accuracystats <- read.csv(file.path(bccvl.env$outputdir, "combined.modelEvaluation.csv"),
                               row.names=c(1))
 
     # create the output file
-    target = HTMLInitFile(outdir=bccvl.params$outputdir, filename="results", BackGroundColor="#CCCCCC")
+    target = HTMLInitFile(outdir=bccvl.env$outputdir, filename="results", BackGroundColor="#CCCCCC")
 
     # add content
     HTML("<center><br><H1>Model Output for ", file=target)
@@ -555,7 +556,7 @@ bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     bccvl.calculateVariableImpt(model.obj, model.name, 3)
 
     # calculate variable importance (like maxent, using decrease in AUC)
-    bccvl.calculatePermutationVarImpt(model.obj, model.eval, model.name)
+    bccvl.calculatePermutationVarImpt(model.obj, model.eval, model.name, occur, bkgd)
 
     # create HTML file with accuracy measures
     bccvl.generateHTML()
@@ -588,7 +589,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     # save AUC curve
     require(pROC, quietly=T)
     roc1 <- roc(as.numeric(obs), as.numeric(predictions), percent=T)
-    png(file=file.path(bccvl.params$outputdir, "pROC.png"))
+    png(file=file.path(bccvl.env$outputdir, "pROC.png"))
     plot(roc1, main=paste("AUC=",round(auc(roc1)/100,3),sep=""), legacy.axes=TRUE)
     dev.off()
 
@@ -603,7 +604,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
     }
 
     # save response curves (Elith et al 2005)
-    png(file=file.path(bccvl.params$outputdir, "mean_response_curves.png"))
+    png(file=file.path(bccvl.env$outputdir, "mean_response_curves.png"))
     # TODO: check models parameter ... do I need it? shouldn't it be algo name?
     #       -> would make BIOMOD_LoadMadels call and parameter loaded.name pointless
     test <- response.plot2(models = loaded.name,

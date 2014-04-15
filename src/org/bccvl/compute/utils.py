@@ -28,6 +28,8 @@ from time import sleep
 from pkg_resources import resource_filename
 import transaction
 import transaction.interfaces
+from gu.z3cform.rdf.interfaces import IGraph
+from org.bccvl.site.namespace import DWC
 
 import paramiko
 
@@ -161,7 +163,6 @@ class WorkEnv(object):
         self.scriptname = None
         self.wrapname = None
         self.jobid = None
-        self.maxentjarname = None
         self.src = 'plone'
         self.dest = 'compute'
         if host is None:
@@ -241,7 +242,7 @@ class WorkEnv(object):
         # TODO: take care of non unique destination names ... dataset uuid?
         destname = '/'.join((self.inputdir, dsinfo['filename']))
         src = {'type': 'url',
-               'url': dsinfo['url']}
+               'url': dsinfo['internalurl']}
         dest = {'type': 'scp',
                 'host': self.dest,
                 'path': destname}
@@ -316,15 +317,6 @@ class WorkEnv(object):
         dest['path'] = self.wrapname
         self.move_data('script', src, dest, None)
 
-        # TODO: We should only copy this if it's needed.
-        # TODO: In bccvl.R, the working directory is configured to the output directory, hence we place the maxent.jar file there...
-        #       This means that we get copies of this file in the output of each experiment.
-        self.maxentjarname = '/'.join((self.scriptdir, 'maxent.jar'))
-        src['path'] = resource_filename('org.bccvl.compute',
-                                        'rscripts/maxent.jar')
-        dest['path'] = self.maxentjarname
-        self.move_data('script', src, dest, None)
-
     def move_output_data(self):
         # TODO: use data_mover's transfer folder feature?'
         code, result = self.ssh.get_files_list(self.outputdir)
@@ -384,74 +376,44 @@ class WorkEnv(object):
 
         LOG.info('Import result finished for %s from %s', result.title, self.workdir)
 
-    def get_sdm_params(self, experimentinfo):
-        # FIXME: move tis away
-        #  prepare files for exec environment. e.g. find workenv local filenames for input files, etc...
-        names = set(chain(*experimentinfo.get('layers', {}).values()))
-        params = {
-            'scriptdir': self.workdir,
+    def get_env_params(self, params):
+        # set env params
+        params['env'].update({
+            'workdir': self.workdir,
+            'scriptdir': self.scriptdir,
             'inputdir': self.inputdir,
-            'outputdir': self.outputdir,
-            # TODO: all the parameters below must go into sdm modules
-            'environmenttype': ["continuous" for i in xrange(0, len(names))],
-            # 'enviro': {
-            #     'names': names,
-            #     'data': [],
-            #     'type':
-            #     },
-            # TODO: is this a generic sdm parameter?
-            'tails': 'both',
-            }
-        # TODO:  split experimentinfo / params so that params is part
-        # of experimentinfo and contais only parameters passed no to
-        # script. experimentinfo itself will be a container for info
-        # about experiment (incl. parameters)
-        jobbyuid = {}
-        for job in self.jobs:
-            if job['type'] not in params:
-                params[job['type']] = []  # TODO: document ...
-                                          # job['type'] is name of parameter
-            #params[job['type']].append(job)
-            jobbyuid[job['uuid']] = job
-        # build up enviro.data list
-        # TODO: find layernames in case we extracted a zip
-        #       code assumes we have layers, to associate, but
-        #       this code should do generic unzip file replacement
-        zipfile = set()
-        if 'layers' in experimentinfo:
-            for dsuuid, layers in experimentinfo['layers'].items():
-                zipdir, _ = os.path.splitext(os.path.basename(jobbyuid[dsuuid]['filename']))
-                currentfolder = '/'.join((self.inputdir, zipdir))
-                expmd = experimentinfo[jobbyuid[dsuuid]['type']][dsuuid]
-                for layer in layers:
-                    filename = os.path.join(currentfolder,
-                                            expmd['layers'][layer])
-                    params[jobbyuid[dsuuid]['type']].append(filename)
-                zipfile.add(dsuuid)
-        if 'layersperdataset' in experimentinfo:
-            for paramname in experimentinfo['datasetkeys']:
-                dslist = {}
-                for job in self.jobs:
-                    if job['type'] != paramname:
-                        continue
-                    expmd = experimentinfo[job['type']][job['uuid']]
-                    if not 'layers' in expmd or not expmd['layers']:
-                        continue
-                    zipfile.add(job['uuid'])
-                    zipdir, _ = os.path.splitext(os.path.basename(job['filename']))
-                    currentfolder = '/'.join((self.inputdir, zipdir))
-                    for layer in experimentinfo['layersperdataset']:
-                        filename = os.path.join(currentfolder,
-                                                expmd['layers'][layer])
-                        if job['uuid'] not in dslist:
-                            dslist[job['uuid']] = []
-                        dslist[job['uuid']].append(filename)
-                if dslist:
-                    params[paramname] = dslist.values()
-        for job in self.jobs:
-            if job['uuid'] in zipfile:
+            'outputdir': self.outputdir
+        })
+        # go through all worker files and convert filenames to absolute path names
+        for dsattr in params['worker']['files']:
+            dsparam = params['params'][dsattr]
+            if not dsparam:
+                # skip empty parameters
                 continue
-            params[job['type']].append(job['filename'])
+            # we have either a dict or a list of dicts
+            if isinstance(dsparam, dict):
+                # make it a list
+                dsparam = [dsparam]
+            for dsinfo in dsparam:
+                if not 'zippath' in dsinfo:
+                    # assume file has been put into inputdir with correct filename
+                    # and nothing to unzip
+                    filename = dsinfo['filename']
+                    # rewrite filename
+                    dsinfo['filename'] = '/'.join((self.inputdir, filename))
+                else:
+                    # assume we have a zip file here and we rewrite the whole
+                    # list of filenames. filename is zip name and zippath is file within
+
+                    # zipdir is the same as zip file base name
+                    zipdir, _ = os.path.splitext(os.path.basename(dsinfo['filename']))
+                    # basedir is zipdir within inputdir
+                    basedir = '/'.join((self.inputdir, zipdir))
+                    # append zippath to get final filename
+                    filename = os.path.join(basedir, dsinfo['zippath'])
+                    # rewrite real filename
+                    dsinfo['filename'] = filename
+        # return updated params dictionary
         return params
 
     def start_script(self):
@@ -506,18 +468,6 @@ class WorkEnv(object):
         return retval
 
 
-def getdatasetparams(uuid):
-    dsobj = uuidToObject(uuid)
-    if dsobj is None:
-        return {}
-    dsinfo = getDatasetInfo(dsobj)
-    dsinfo['uuid'] = uuid
-    # TODO: not all datasets have layers
-    dsinfo['layers'] = dict(((k, v['filename']) for
-                             k, v in getbiolayermetadata(dsobj).items()))
-    return dsinfo
-
-
 def create_workenv(env, script, params):
     try:
         env.workdir = env.create_workdir()
@@ -527,14 +477,27 @@ def create_workenv(env, script, params):
         env.mkdir(env.inputdir)
         env.mkdir(env.scriptdir)
         env.mkdir(env.outputdir)
+        # keep track of already transferred files
+        transferred = set()
         # TODO: this supports files only in top level dict
-        for dskey in params['datasetkeys']:
-            for dsinfo in params[dskey].values():
-                if 'url' in dsinfo:
+        for dskey in params['worker']['files']:
+            # check if dataset info is dict or list
+            dsparam = params['params'][dskey]
+            if not dsparam:
+                # skip empty parameter
+                continue
+            if isinstance(dsparam, dict):
+                dsparam = [dsparam]
+            for dsinfo in dsparam:
+                # TODO: only uses internalurl here
+                if 'internalurl' in dsinfo and dsinfo['internalurl'] not in transferred:
                     # TODO: no guarantee that inputfile name is unique
                     #       use dataset uuid?
                     env.move_input_data(dskey, dsinfo)
-        params.update(env.get_sdm_params(params))
+                    # assume url's are unique; make sure we transfer each file only once
+                    transferred.add(dsinfo['internalurl'])
+        # TODO: this is a bad order and assumes all goes well and names just match
+        params = env.get_env_params(params)
         env.move_script(script, params)
         env.wait_for_data_mover()
         env.unpack_enviro_data()
@@ -620,21 +583,69 @@ def run_job(env):
 
 # TODO: use getDatasetMetadat from xmlrpc package. (remove
 #       getbiolayermetadata in getExperimentInfo)
-def getDatasetInfo(datasetitem):
-    # TODO: filename might be None, and then this job fails miserably
+def getDatasetInfo(datasetitem, uuid):
+    # extract various infos for a dateset
+    #  filename
+    #  downloadurl
+    #
+    #  internal_url
+    #######
+    #  species
+
     int_url = os.environ.get("INTERNAL_URL", INTERNAL_URL)
-    dsfilename = datasetitem.file.filename
-    if dsfilename is None:
-        # use datasetitem id in case we don't have a filename
-        dsfilename = datasetitem.id
-    dsurl = '{}{}/@@download/file/{}'.format(
-        int_url, '/'.join(datasetitem.getPhysicalPath()),
-        datasetitem.file.filename)
-    # check for ArchiveItems in the graph and add stuff
+    # get filename
+    fileob = datasetitem.file
+    if datasetitem.file is None or datasetitem.file.filename is None:
+        # TODO: What to do here? the download url doesn't make sense
+        #        for now use id as filename
+        filename = datasetitem.getId()
+    else:
+        filename = fileob.filename
+    # generate downloaurl
+    downloadurl = '{}/@@download/file/{}'.format(
+        datasetitem.absolute_url(),
+        filename
+    )
+    internalurl = '{}/{}/@@download/file/{}'.format(
+        int_url,
+        "/".join(datasetitem.getPhysicalPath()),
+        filename
+    )
     return {
-        'filename': dsfilename,
-        'url': dsurl
+        'uuid': uuid,
+        'filename': filename,
+        'downloadurl': downloadurl,
+        'internalurl':  internalurl
     }
+
+
+def getdatasetparams(uuid):
+    # return dict with:
+    #    filename
+    #    downloadurl
+    #    dm_accessurl-> maybe add url rewrite to datamover?
+    #    # occurrence specific:
+    #    species
+    #    # raster specific:
+    #    layers ... need to split this up
+    dsobj = uuidToObject(uuid)
+    if dsobj is None:
+        return None
+    dsinfo = getDatasetInfo(dsobj, uuid)
+    # if we have species info add it
+    dsmd = IGraph(dsobj)
+    species = dsmd.value(dsmd.identifier, DWC['scientificName'])
+    if species:
+        dsinfo['species'] = unicode(species)
+    # if we can get layermetadata, let's add it
+    biomod = getbiolayermetadata(dsobj)
+    if biomod:
+        dsinfo['layers'] = dict(((k, v['filename']) for
+                                 k, v in biomod.items()))
+        # FIXME: get type from metadata
+        dsinfo['type'] = 'continuous'
+    # return infoset
+    return dsinfo
 
 
 def job_run(context, env, script, params, OUTPUTS):

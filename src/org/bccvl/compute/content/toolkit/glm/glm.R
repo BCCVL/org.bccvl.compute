@@ -11,20 +11,21 @@
 ##  outputdir ... root folder for output data
 
 #define the working directory
-#scriptdir = normalizePath(bccvl.params$scriptdir)
-#inputdir =  normalizePath(bccvl.params$inputdir)
-#outputdir =  normalizePath(bccvl.params$outputdir)
+#scriptdir = normalizePath(bccvl.env$scriptdir)
+#inputdir =  normalizePath(bccvl.env$inputdir)
+#outputdir =  normalizePath(bccvl.env$outputdir)
 
 
 # extract params
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
-occur.data = bccvl.params$occurrence[1]
+occur.data = bccvl.params$species_occurrence_dataset$filename
+occur.species = bccvl.params$species_occurrence_dataset$species
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
-absen.data = bccvl.params$background[1]
+absen.data = bccvl.params$species_absence_dataset$filename
 #define the current enviro data to use
-enviro.data.current = bccvl.params$environment
+enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
 #type in terms of continuous or categorical
-enviro.data.type = bccvl.params$environmenttype
+enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 
 
 ############### BIOMOD2 Models ###############
@@ -43,7 +44,7 @@ biomod.do.full.models = bccvl.params$do_full_models #if true, models calibrated 
 biomod.modeling.id = bccvl.params$modeling_id  #character, the ID (=name) of modeling procedure. A random number by default
 # biomod.DataSplitTable = NULL #a matrix, data.frame or a 3D array filled with TRUE/FALSE to specify which part of data must be used for models calibration (TRUE) and for models validation (FALSE). Each column correspund to a "RUN". If filled, args NbRunEval, DataSplit and do.full.models will be ignored
 # EMG Need to test whether a NULL values counts as an argument
-biomod.species.name = bccvl.params$species # used for various path and file name generation
+biomod.species.name = occur.species # used for various path and file name generation
 projection.name = "current"  #basename(enviro.data.current)
 
 # model-specific arguments to create a biomod model
@@ -94,7 +95,7 @@ model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 # TODO: these functions are used to evaluate the model ... configurable?
 
 # read current climate data
-current.climate.scenario = stack(enviro.data.current)
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current)
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
@@ -103,10 +104,10 @@ occur = occur[c("lon","lat")]
 
 # shall we use pseudo absences?
 # TODO: this will ignore given absence file in case we want pseudo absences
-if (bccvl.params$pseudoabsences$enabled) {
+if (bccvl.params$species_pseudo_absence_points) {
     biomod.PA.nb.rep = 1
-    biomod.PA.nb.absences = bccvl.params$pseudoabsences$points
-    # create an empty data frame for absen points
+    biomod.PA.nb.absences = bccvl.params$species_number_pseudo_absence_points
+    # create an empty data frame for bkgd points
     absen = data.frame(lon=numeric(0), lat=numeric(0))
 } else {
     # read absence points from file

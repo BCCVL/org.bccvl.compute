@@ -10,21 +10,22 @@
 ##
 ##  outputdir ... root folder for output data
 
-#define the working directory
-#scriptdir = normalizePath(bccvl.params$scriptdir)
-#inputdir =  normalizePath(bccvl.params$inputdir)
-#outputdir =  normalizePath(bccvl.params$outputdir)
+#define the working environment
+#scriptdir = normalizePath(bccvl.env$scriptdir)
+#inputdir =  normalizePath(bccvl.env$inputdir)
+#outputdir =  normalizePath(bccvl.env$outputdir)
 
 
 # extract params
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
-occur.data = bccvl.params$occurrence[1]
+occur.data = bccvl.params$species_occurrence_dataset$filename
+occur.species = bccvl.params$species_occurrence_dataset$species
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
-absen.data = bccvl.params$background[1]
+absen.data = bccvl.params$species_absence_dataset$filename
 #define the current enviro data to use
-enviro.data.current = bccvl.params$environment
+enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
 #type in terms of continuous or categorical
-enviro.data.type = bccvl.params$environmenttype
+enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 
 #additional parameters for projecting circles
 opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right tail of the percentile distribution ("both", "low", "high"
@@ -42,32 +43,18 @@ model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 # TODO: these functions are used to evaluate the model ... configurable?
 
 # read current climate data
-current.climate.scenario = stack(enviro.data.current)
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current)
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
 # keep only lon and lat columns
 occur = occur[c("lon","lat")]
-
 # prepare absence points
-if (bccvl.params$pseudoabsences$enabled) {
-    # generate randomPoints
-    bkgd = randomPoints(
-        current.climate.scenario,
-        bccvl.params$pseudoabsences$points,
-        occur)
-    # as data frame
-    absen = as.data.frame(bkgd)
-    # rename columns
-    names(absen) <- c("lon","lat")
-} else {
-    # otherwise read absence ponits from file
-    absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
-    # keep only lon and lat columns
-    absen = absen[c("lon","lat")]
-}
-# TODO: combine random and given absence points:
-# rbind(absen.datafromfile, bkgd.datarandom)
+absen = bccvl.dismo.absence(absen.data,
+                            bccvl.params$species_pseudo_absence_points,
+                            bccvl.params$species_number_pseudo_absence_points,
+                            current.climate.scenario,
+                            occur)
 
 # extract enviro data for species observation points and append to species data
 occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
@@ -96,11 +83,11 @@ if (!all(enviro.data.type=="continuous")) {
     # run circles with matrix of enviro data
     model.sdm = circles(p=occur, lonlat=TRUE)
     # save out the model object
-    bccvl.save(model.sdm, paste(bccvl.params$species, "model.object.RData", sep="."))
+    bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
     # predict for given climate scenario
     model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
     # save output
-    bccvl.saveModelProjection(model.proj, projection.name)
+    bccvl.saveModelProjection(model.proj, projection.name, occur.species)
     # evaluate model
     if (!is.null(absen)) {
         bccvl.evaluate.model('circles', model.sdm, occur, absen)

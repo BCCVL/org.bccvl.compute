@@ -26,9 +26,12 @@ for (lib in necessary) {
 }
 
 # load parameters
-bccvl.params <- rjson::fromJSON(file="params.json")
+params = rjson::fromJSON(file="params.json")
+bccvl.params <- params$params
+bccvl.env <- params$env
+rm(params)
 # set working directory (script runner takes care of it)
-setwd(bccvl.params$outputdir)
+setwd(bccvl.env$outputdir)
 
 ############################################################
 #
@@ -41,35 +44,81 @@ bccvl.err.null <- function (e) return(NULL)
 
 # read species presence/absence data
 #    return NULL if filename is not  given
+# TODO: shall we set projection here as well? use SpatialPoints?
 bccvl.species.read <- function(filename) {
     if (!is.null(filename)) {
         return (read.csv(filename))
     }
 }
 
+# use either absen.data (1) or generate random pseudo absence points (2)
+# (1) extract "lat" and "lon" from absen.data
+# (2) generate number of absence points in area of climate.data
+bccvl.dismo.absence <- function(absen.data=NULL,
+                                pseudo.absen.enabled=FALSE,
+                                pseudo.absen.points=0,
+                                climate.data=NULL,
+                                occur.data=NULL) {
+    # TODO: combine random and given absence points:
+    # rbind(absen.datafromfile, bkgd.datarandom)
+    if (pseudo.absen.enabled) {
+        # generate randomPoints
+        bkgd = randomPoints(
+            climate.data,
+            pseudo.absen.points,
+            occur.data)
+        # as data frame
+        absen = as.data.frame(bkgd)
+        # rename columns
+        names(absen) <- c("lon","lat")
+    } else {
+        # otherwise read absence ponits from file
+        absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
+        # keep only lon and lat columns
+        absen = absen[c("lon","lat")]
+    }
+    return(absen);
+}
+
+# return a RasterStack of given vector of input files
+# checks if data has projection associated with it, and in case
+# there is none, this method sets it to WGS84 (EPSG:4326)
+bccvl.enviro.stack <- function(enviro.data) {
+    enviro.stack = stack(enviro.data)
+    # get projection info
+    proj = proj4string(enviro.stack)
+    if (is.na(proj)) {
+        # None set, let's set a default
+        proj4string(enviro.stack) <- CRS("+init=epsg:4326")
+        warning("Environmental data set has no projection metadat. Set to default EPSG:4326")
+    }
+    return (enviro.stack)
+}
+
 # function to save projection output raster
-bccvl.saveModelProjection <- function(model.obj, projection.name, outputdir=bccvl.params$outputdir) {
+bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir) {
     ## save projections under biomod2 compatible name:
     ##  proj_name_species.tif
-    basename = paste("proj", projection.name, bccvl.params$species, sep="_")
+    ##  only useful for dismo outputs
+    basename = paste("proj", projection.name, species, sep="_")
     filename = file.path(outputdir, paste(basename, 'tif', sep="."))
     writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
 }
 
 # function to save RData in outputdir
-bccvl.save <- function(robj, name, outputdir=bccvl.params$outputdir) {
+bccvl.save <- function(robj, name, outputdir=bccvl.env$outputdir) {
     filename = file.path(outputdir, name)
     save(robj, file=filename)
 }
 
 # function to save CSV Data in outputdir
-bccvl.write.csv <- function(robj, name, outputdir=bccvl.params$outputdir) {
+bccvl.write.csv <- function(robj, name, outputdir=bccvl.env$outputdir) {
     filename = file.path(outputdir, name)
     write.csv(robj, file=filename)
 }
 
 # function to get model object
-bccvl.getModelObject <- function(model.file=bccvl.params$inputmodel) {
+bccvl.getModelObject <- function(model.file=bccvl.env$inputmodel) {
     return (get(load(file=model.file)))
 }
 
@@ -84,7 +133,9 @@ bccvl.grdtogtiff <- function(folder) {
         # read grid raster
         grd <- raster(file.path(folder, grdfile))
         # write raster as geotiff
-        bccvl.saveModelProjection(grd, grdname, folder)
+        outputdir = bccvl.env$outputdir
+        filename = file.path(outputdir, paste(grdname, 'tif', sep="."))
+        writeRaster(grd, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
         # remove grd files
         file.remove(file.path(folder, paste(grdname, c("grd","gri"), sep=".")))
     }

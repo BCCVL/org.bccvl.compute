@@ -29,4 +29,19 @@
         component=".vocabularies.brt_family_vocab_factory"
         name="brt_family_vocab" />
 
+    <utility
+        component=".rscript.execute_sdm"
+        name="org.bccvl.site.content.interfaces.ISDMExperiment"
+    />
+
+    <utility
+        component=".predict.execute"
+        name="org.bccvl.site.content.interfaces.IProjectionExperiment"
+    />
+
+    <utility
+        component=".biodiverse.execute"
+        name="org.bccvl.site.content.interfaces.IBiodiverseExperiment"
+    />
+
 </configure>

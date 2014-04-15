@@ -2,59 +2,91 @@ from pkg_resources import resource_string
 import logging
 import json
 import re
+from copy import deepcopy
 from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
-
+from zope.interface import provider
+from org.bccvl.site.interfaces import IComputeMethod
 
 LOG = logging.getLogger(__name__)
 
+# TODO: jobtracker: split job params accordingly and store on result (get's rid of result.ttolkit-> importer and possibly other places')
+# TODO: adapt sdm scripts (bccvl.params to new param layout)
+# TODO: adapt utils worker for new file management
+# TODO: adapt getdatasetparams for different dataset with metadata
+# TODO: adapt utils worker to populate 'env' section
+# TODO: Tool could create import folder upfront so that worker can send results back immediately
+
+# TODO: Job tracking alternative .... let object provide marker interface like IActiveJob, IFinishedJob, IFaildeJob etc... if on result it doesn't matter no job history needed (except for failed-> retry?)
+#       woulde be kinda weird, ad iniefficient to access job info, but would do the trick
+
 
 def get_sdm_params(result):
-    # TODO: make list/single value detection possible
-    #       currently all files are treated as multi select here
-    # TODO: make sure param names here match field names in schema and
-    #       variables in R-srript
-    experiment = result.__parent__
-    params = {
-        'layers': experiment.environmental_datasets,
-        'occurrence': {},
-        'background': {},
-        'environment': {},
-        'pseudoabsences': {
-            'enabled': experiment.species_pseudo_absence_points,
-            'points': experiment.species_number_pseudo_absence_points
-            },
+    # make a deep copy of the params to not accedientially modify the
+    # persisted dict
+    params = deepcopy(result.job_params)
+    # TODO: names to fix up
+    # occurrence-> species_occurrence_dataset
+    # background-> species_absence_dataset
+    # pseudoabsence['enabled']-> species_pseudo_absence_points,
+    # pseudoabsence['points']-> species_number_pseudo_absence_points
+    # layers+ environment{}-> environmental_datasets TODO: turn into list of files
+
+    # get all necessary metadata for files, and add worker hints to download files
+    for paramname in ('species_occurrence_dataset', 'species_absence_dataset'):
+        # TODO: absence might be none
+        uuid = params[paramname]
+        params[paramname] = getdatasetparams(uuid)
         # replace all spaces and underscores to '.' (biomod does the same)
-        'species': re.sub(u"[ _]", u".", result.species)
-        }
-    uuid = experiment.species_occurrence_dataset
-    params['occurrence'][uuid] = getdatasetparams(uuid)
-    # TODO: background might be none?
-    uuid = experiment.species_absence_dataset
-    params['background'][uuid] = getdatasetparams(uuid)
-    for uuid in experiment.environmental_datasets.keys():
-        # TODO: There might be the same uuid multiple times
-        params['environment'][uuid] = getdatasetparams(uuid)
-    # TODO Get rid of datasetkey (atl east out of paramete space)
-    params['datasetkeys'] = ('occurrence', 'background', 'environment')
-    return params
+        # TODO: really necessary?
+        if params[paramname]:
+            params[paramname]['species'] = re.sub(u"[ _]", u".", params[paramname].get('species', u'Unknown'))
+    # TODO: This assumes we only zip file based layers
+    for uuid, layers in params['environmental_datasets'].items():
+        envlist = []
+        dsinfo = getdatasetparams(uuid)
+        for layer in layers:
+            envlist.append({
+                'uuid': dsinfo['uuid'],
+                'filename': dsinfo['filename'],
+                'downloadurl': dsinfo['downloadurl'],
+                'internalurl': dsinfo['internalurl'],
+                # TODO: should we use layer title or URI?
+                'layer': layer,
+                'zippath': dsinfo['layers'][layer],
+                'type': dsinfo['type']
+            })
+        # replace original dict
+        params['environmental_datasets'] = envlist
+    # add hints for worker to download files
+    workerhints = {
+        'files':  ('species_occurrence_dataset', 'species_absence_dataset',
+                   'environmental_datasets')
+    }
+    return {'env': {}, 'params': params, 'worker': workerhints}
 
 
 def get_toolkit_params(result):
+    # TODO: get params from result directly
     params = get_sdm_params(result)
-    experiment = result.__parent__
-    params.update(experiment.parameters[result.toolkit])
-    params.update({
+    params['params'].update({
         # TODO: some params are probably sdm specific or even
         #       per run (in case of multi runs)
         #       following are mostly biomod specific but could be generic
-        'rescale_all_models': False,  # param_object.rescale_all_models,
+        'rescale_all_models': False,
         'selected_models': 'all',
         'modeling_id': 'bccvl',
+        # generic dismo params
+        'tails': 'both',
         })
     return params
 
 
 def generate_sdm_script(r_script):
+    # TODO: clean this up ...
+    #       e.g. generic sdm.R is entry point, which sources bccvl.R and eval.R
+    #            and toolkit.R (source toolkit.R does the job)
+    #       script name and source becomes part of params?
+    #       workerhints may get script stuff as additional info?
     script = u'\n'.join([
         resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
         resource_string('org.bccvl.compute', 'rscripts/eval.R'),
@@ -62,7 +94,8 @@ def generate_sdm_script(r_script):
     return script
 
 
-def execute_sdm(result, toolkit, request=None, workenv=WorkEnv):
+@provider(IComputeMethod)
+def execute_sdm(result, toolkit):
     """
     This function takes an experiment and executes.
 
@@ -84,7 +117,7 @@ def execute_sdm(result, toolkit, request=None, workenv=WorkEnv):
         LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
                   toolkit.getId(), e)
         OUTPUTS = {}
-    env = workenv()
+    env = WorkEnv()
     params = get_toolkit_params(result)
     script = generate_sdm_script(toolkit.script)
     return queue_job(result, toolkit.getId(), env, script, params, OUTPUTS)

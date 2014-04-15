@@ -19,6 +19,8 @@ from Products.CMFCore.utils import getToolByName
 from zipfile import ZipFile, ZIP_DEFLATED
 from plone.app.uuid.utils import uuidToObject
 from gu.z3cform.rdf.interfaces import IGraph
+from csv import DictReader
+from decimal import Decimal
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -59,6 +61,51 @@ def addSpeciesInfo(graph, experiment):
         val = spmd.value(spmd.identifier, prop)
         if val:
             graph.add((graph.identifier, prop, val))
+
+
+def extractThresholdValues(fname):
+    # parse csv file and add threshold values as dict
+    # this method might be called multiple times for one item
+
+    # There are various formats:
+    #   combined.modelEvaluation: Threshold Name, Testing.data, Cutoff, Sensitivity, Specificity
+    #   biomod2.modelEvaluation: Threshold Name, Testing.data, Cutoff.*, Sensitivity.*, Specificity.*
+    #   maxentResults.csv: Species,<various columns with interesting values>
+    #                              <threshold name><space><cumulative threshold,logistic threshold,area,training omission>"
+    # FIXME: this is really ugly and csv format detection should be done differently
+    thresholds = {}
+    if fname.endswith('maxentResults.csv'):
+        csvfile = open(fname, 'r')
+        dictreader = DictReader(csvfile)
+        row = dictreader.next()
+        # There is only one row in maxentResults
+        for name in ('Fixed cumulative value 1',
+                     'Fixed cumulative value 5',
+                     'Fixed cumulative value 10',
+                     'Minimum training presence',
+                     '10 percentile training presence',
+                     '10 percentile training presence',
+                     'Equal training sensitivity and specificity',
+                     'Maximum training sensitivity plus specificity',
+                     'Balance training omission, predicted area and threshold value',
+                     'Equate entropy of thresholded and original distributions',
+                     ):
+            # We extract only 'cumulative threshold'' values
+            threshold = '{} cumulative threshold'.format(name)
+            thresholds[threshold] = Decimal(row[threshold])
+    else:
+        # assume it's one of our biomod/dismo results
+        csvfile = open(fname, 'r')
+        dictreader = DictReader(csvfile)
+        # search the field with Cutoff
+        name = 'Cutoff'
+        for fieldname in dictreader.fieldnames:
+            if fieldname.startswith('Cutoff.'):
+                name = fieldname
+                break
+        for row in dictreader:
+            thresholds[row['']] = Decimal(row[name])
+    return thresholds
 
 
 @provider(ISectionBlueprint)
@@ -107,25 +154,36 @@ class ResultSource(object):
             #  future: year, emsc, gcm
             if genreuri == BCCVOCAB['DataGenreSDMModel']:
                 addLayerInfo(rdf, self.context.__parent__)
-                rdf.add((rdf.identifier, BCCPROP['resolution'], self.context.resolution))
+                rdf.add((rdf.identifier, BCCPROP['resolution'],
+                         self.context.resolution))
                 # add species info
                 addSpeciesInfo(rdf, self.context.__parent__)
             elif genreuri == BCCVOCAB['DataGenreFP']:
-                rdf.add((rdf.identifier, BCCPROP['resolution'], self.context.resolution))
+                rdf.add((rdf.identifier, BCCPROP['resolution'],
+                         self.context.resolution))
                 addSpeciesInfo(rdf, self.context.__parent__)
 
                 # FIXME: find a cleaner way to attach metadata
                 filename = os.path.basename(fname)
-                m = re.match(r'^(.*)_(.*)_(\d*)\.tif$', filename)
+                m = re.match(r'^proj_(.*)_(.*)_(\d*)_.*\.tif$', filename)
                 if m:
-                    rdf.add((rdf.identifier, BCCPROP['emissionscenario'], BCCEMSC[m.group(1)]))
-                    rdf.add((rdf.identifier, BCCPROP['gcm'], BCCGCM[m.group(2)]))
+                    rdf.add((rdf.identifier, BCCPROP['emissionscenario'],
+                             BCCEMSC[m.group(1)]))
+                    rdf.add((rdf.identifier, BCCPROP['gcm'],
+                             BCCGCM[m.group(2)]))
                     year = Literal("start=%s; end=%s; scheme=W3C-DTF;" % (m.group(3), m.group(3)),
                                    datatype=DC['Period'])
                     rdf.add((rdf.identifier, DC['temporal'], year))
                 else:
                     LOG.fatal('filename %s did not match regexp.', filename)
                 # exp.future_climate_datasets()
+            elif genreuri == BCCVOCAB['DataGenreSDMEval']:
+                if info.get('mimetype') == 'text/csv':
+                    thresholds = extractThresholdValues(fname)
+                    if thresholds:
+                        if 'thresholds' not in info:
+                            info['thresholds'] = {}
+                        info['thresholds'].update(thresholds)
 
         mimetype = info.get('mimetype', None)
         if mimetype is None:
@@ -138,9 +196,11 @@ class ResultSource(object):
             '_path': datasetid,
             '_type': 'org.bccvl.content.dataset',
             'title': unicode(name),
+            'description': info.get('title', u''),
+            'thresholds': info.get('thresholds', None),
             'file': {
                 'file': name,
-                'contentype': mimetype,
+                'contenttype': mimetype,
                 'filename': name
             },
             '_rdf': {
