@@ -70,12 +70,6 @@ sub apply_threshold {
     # read vertical blocks until max height reached
     my $posh = 0 ;
     my $nodata = $band->NoDataValue();
-    if (!defined($nodata)) {
-        # TODO: is there a better value to pick?
-        ($nodata, undef) = $band->ComputeRasterMinMax();
-        $nodata -= 1;
-        $band->NoDataValue($nodata);
-    }
     while ($posh < $bandh) {
         # read horizontal blocks until max width reached
         my $posw = 0 ;
@@ -90,8 +84,12 @@ sub apply_threshold {
             for(my $row_i = 0; $row_i < @{$block}; $row_i++) {
                 my $row = $block->[$row_i];
                 for(my $col_i = 0; $col_i < @{$row}; $col_i++) {
-                    if ( $row->[$col_i] < $threshold ) {
-                        $row->[$col_i] = $nodata ;
+                    my $val = $row->[$col_i];
+                    if ($val == $nodata) {
+                        next;
+                    }
+                    if ($val < $threshold ) {
+                        $row->[$col_i] = 0 ;
                     }
                 }
             }
