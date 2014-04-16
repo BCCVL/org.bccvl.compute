@@ -85,7 +85,7 @@ sub apply_threshold {
                 my $row = $block->[$row_i];
                 for(my $col_i = 0; $col_i < @{$row}; $col_i++) {
                     my $val = $row->[$col_i];
-                    if ($val == $nodata) {
+                    if (defined($nodata) && $val == $nodata) {
                         next;
                     }
                     if ($val < $threshold ) {
