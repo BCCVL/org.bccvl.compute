@@ -650,8 +650,10 @@ def getdatasetparams(uuid):
 
 def job_run(context, env, script, params, OUTPUTS):
     endstate = 'Failed'
+    status = {}
     try:
-        status = local.getLiveAnnotation('bccvl.status')
+        status = local.getLiveAnnotation('bccvl.status', default={},
+                                         timeout=5)
         status['task'] = 'Transferring'
         local.setLiveAnnotation('bccvl.status', status)
         #Queued,Completed,Failed,Transfering,Running,Retrieving
@@ -668,6 +670,10 @@ def job_run(context, env, script, params, OUTPUTS):
         endstate = 'Completed'
     except Exception as e:
         # TODO: set job status and return value
+        LOG.error('Unexpected exception in job_run %s', e)
+        if status is None:
+            status = {}
+        status['task'] = 'Failed'
         raise e
     finally:
         status['task'] = 'Cleanup'
