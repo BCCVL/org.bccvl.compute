@@ -5,16 +5,6 @@ from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope.schema.interfaces import IVocabularyFactory
 
 
-biomod_prevalance_vocab = SimpleVocabulary.fromValues([
-    None, 0, 1
-])
-
-
-@provider(IVocabularyFactory)
-def biomod_prevalance_vocab_factory(context):
-    return biomod_prevalance_vocab
-
-
 brt_var_monotone_vocab = SimpleVocabulary([
     SimpleTerm(-1, '-1', u'-1'),
     SimpleTerm(1, '+1', u'+1'),
