@@ -5,7 +5,6 @@
 
 .. moduleauthor:: Gerhard Weis <g.weis@griffith.edu.au>
 """
-from itertools import chain
 import os
 import os.path
 from tempfile import mkdtemp, mkstemp
@@ -19,11 +18,6 @@ from plone.uuid.interfaces import IUUID
 from plone.app.uuid.utils import uuidToObject
 from org.bccvl.site.browser.xmlrpc import getbiolayermetadata
 import json
-from zc.async.job import Job
-from zc.async import local
-from plone.app.async.interfaces import IAsyncService
-from plone.app.async.service import job_success_callback, job_failure_callback
-from twisted.python.failure import Failure
 from time import sleep
 from pkg_resources import resource_filename
 import transaction
@@ -34,8 +28,6 @@ from org.bccvl.site.namespace import DWC
 import paramiko
 
 import logging
-from zc.async.utils import tracelog
-tracelog.setLevel(logging.WARN)
 LOG = logging.getLogger(__name__)
 
 DATA_MOVER = 'http://127.0.0.1:10700/data_mover'
