@@ -18,10 +18,6 @@
       />
 
     <utility
-        component=".vocabularies.biomod_prevalance_vocab_factory"
-        name="biomod_prevalance_vocab" />
-
-    <utility
         component=".vocabularies.brt_var_monotone_vocab_factory"
         name="brt_var_monotone_vocab" />
 

@@ -6,20 +6,25 @@
    <field name="nb_run_eval" type="zope.schema.Int">
       <default>10</default>
       <title>n-fold cross validation</title>
+      <min>1</min>
     </field>
     <field name="data_split" type="zope.schema.Int">
       <default>100</default>
       <title>data split</title>
+      <min>0</min>
+      <max>100</max>
     </field>
-    <field name='prevalence' type='zope.schema.Choice'>
+    <field name='prevalence' type='zope.schema.Decimal'>
       <required>False</required>
       <title>weighted response weights</title>
-      <vocabulary>biomod_prevalance_vocab</vocabulary>
+      <min>0</min>
+      <max>1</max>
     </field>
     <field name="var_import" type="zope.schema.Int">
       <default>0</default>
       <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
       <title>resampling</title>
+      <min>0</min>
     </field>
     <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
@@ -31,18 +36,21 @@
       <description>nb of cross validation to find best size and decay parameters</description>
       <required>False</required>
       <title>NbCV</title>
+      <min>1</min>
     </field>
     <field name="rang" type="zope.schema.Decimal">
       <default>0.1</default>
       <description>Initial random weights</description>
       <required>False</required>
       <title>rang</title>
+      <min>0</min>
     </field>
     <field name="maxit" type="zope.schema.Int">
       <default>100</default>
       <description>Maximum number of iterations</description>
       <required>False</required>
       <title>maxit</title>
+      <min>0</min>
     </field>
   </schema>
 </model>
