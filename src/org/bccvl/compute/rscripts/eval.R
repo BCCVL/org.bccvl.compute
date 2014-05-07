@@ -421,8 +421,6 @@ bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
         dimnames(permvarimpt.out) = list(env.vars, c("init.auc", "sample.auc", "change.auc", "percent"))
         permvarimpt.out[,"init.auc"] = rep(init.auc, length(env.vars))
         # create a copy of the occurrence and background environmental data
-        sample.p = p.swd[,env.vars]
-        sample.a = a.swd[,env.vars]
 		# check for and remove any NA's present in the data
 		no.na.sample.p = na.omit(sample.p); no.na.sample.a = na.omit(sample.a)
 		if (nrow(no.na.sample.p) != nrow(sample.p)) {
@@ -431,6 +429,8 @@ bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
 		if (nrow(no.na.sample.a) != nrow(sample.a)) {
 			write(paste("bccvl.calculatePermutationVarImpt(): NA's were removed from absence data!"), stdout())
 		}
+        sample.p = p.swd[,env.vars, drop=FALSE]
+        sample.a = a.swd[,env.vars, drop=FALSE]
         # for each predictor variable
         for (v in 1:length(env.vars)) {
 			# resample from that variables' values, keeping other variable values the same
