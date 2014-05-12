@@ -8,6 +8,9 @@ from plone.app.uuid.utils import uuidToObject
 from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod
 from copy import deepcopy
+from plone import api
+import tempfile
+from org.bccvl.tasks.compute import sdm_task
 
 
 def get_project_params(result):
@@ -101,9 +104,20 @@ def execute(result, func):
 
 
     """
-    # TODO: CREATE WorkEnv in job
-    # workenv = WorkEnvLocal
-    env = WorkEnv()
     params = get_project_params(result)
     script = generate_project_script()
-    return queue_job(result, 'Projection', env, script, params, OUTPUTS)
+    ### plone context for this job
+    context = {
+        'context': '/'.join(result.getPhysicalPath()),
+        'userid': api.user.get_current().getId()
+    }
+    ### add result infos
+    params['result'] = {
+        'results_dir': tempfile.mkdtemp(),
+        'outputs': OUTPUTS
+    }
+    params['worker']['script'] = {
+        'name': 'projection.R',
+        'script': script
+    }
+    return sdm_task.delay(params, context)

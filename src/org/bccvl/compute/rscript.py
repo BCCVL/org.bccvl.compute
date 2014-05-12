@@ -2,10 +2,13 @@ from pkg_resources import resource_string
 import logging
 import json
 import re
+import tempfile
 from copy import deepcopy
 from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
 from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod
+from org.bccvl.tasks.compute import sdm_task
+from plone import api
 
 LOG = logging.getLogger(__name__)
 
@@ -117,7 +120,21 @@ def execute_sdm(result, toolkit):
         LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
                   toolkit.getId(), e)
         OUTPUTS = {}
-    env = WorkEnv()
     params = get_toolkit_params(result)
     script = generate_sdm_script(toolkit.script)
-    return queue_job(result, toolkit.getId(), env, script, params, OUTPUTS)
+    ###### generate plone context infos
+    context = {
+        'context': '/'.join(result.getPhysicalPath()),
+        'userid': api.user.get_current().getId()
+    }
+    ### complete job infos
+    params['result'] = {
+        'results_dir': tempfile.mkdtemp(),
+        'outputs': OUTPUTS
+    }
+    params['worker']['script'] = {
+        'name': '{}.R'.format(toolkit.getId()),
+        'script': script
+    }
+    ### send job to queue
+    return sdm_task.delay(params, context)
