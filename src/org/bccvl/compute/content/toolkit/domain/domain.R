@@ -80,7 +80,7 @@ if (!all(enviro.data.type=="continuous")) {
     warning("domain not run because categorical data cannot be used")
 } else {
     # run domain with matrix of enviro data
-    model.sdm = domain(x=occur[,names(current.climate.scenario)])
+    model.sdm = domain(x=occur[,names(current.climate.scenario), drop=FALSE])
     # save out the model object
     bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
     # predict for given climate scenario

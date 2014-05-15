@@ -81,7 +81,7 @@ if (!all(enviro.data.type=="continuous")) {
     warning("bioclim not run because categorical data cannot be used")
 } else {
     # run bioclim with matrix of enviro data
-    model.sdm = bioclim(x=occur[,names(current.climate.scenario)])
+    model.sdm = bioclim(x=occur[,names(current.climate.scenario), drop=FALSE])
     # save out the model object
     bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
     # predict for given climate scenario
