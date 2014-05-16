@@ -11,6 +11,7 @@ from copy import deepcopy
 from plone import api
 import tempfile
 from org.bccvl.tasks.compute import sdm_task
+from org.bccvl.tasks.plone import after_commit_task
 
 
 def get_project_params(result):
@@ -120,4 +121,4 @@ def execute(result, func):
         'name': 'projection.R',
         'script': script
     }
-    return sdm_task.delay(params, context)
+    after_commit_task(sdm_task, params, context)

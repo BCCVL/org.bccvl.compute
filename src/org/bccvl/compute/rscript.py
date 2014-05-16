@@ -8,6 +8,7 @@ from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
 from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod
 from org.bccvl.tasks.compute import sdm_task
+from org.bccvl.tasks.plone import after_commit_task
 from plone import api
 
 LOG = logging.getLogger(__name__)
@@ -137,4 +138,4 @@ def execute_sdm(result, toolkit):
         'script': script
     }
     ### send job to queue
-    return sdm_task.delay(params, context)
+    after_commit_task(sdm_task, params, context)
