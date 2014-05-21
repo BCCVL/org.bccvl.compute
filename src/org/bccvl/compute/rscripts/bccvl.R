@@ -3,10 +3,10 @@
 #        - don't do install.packages?
 #        -
 # setup R environment
-if (!file.exists(Sys.getenv("R_LIBS_USER"))) {
-    dir.create(Sys.getenv("R_LIBS_USER"), recursive=TRUE);
-}
-.libPaths(Sys.getenv("R_LIBS_USER"))
+#if (!file.exists(Sys.getenv("R_LIBS_USER"))) {
+#    dir.create(Sys.getenv("R_LIBS_USER"), recursive=TRUE);
+#}
+#.libPaths(Sys.getenv("R_LIBS_USER"))
 # set CRAN mirror in case we need to download something
 
 r <- getOption("repos")
