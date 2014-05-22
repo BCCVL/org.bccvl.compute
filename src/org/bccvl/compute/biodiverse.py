@@ -88,12 +88,13 @@ def execute(result, toolkit):
 
 
     """
-    try:
-        OUTPUTS = json.loads(toolkit.output)
-    except (ValueError, TypeError) as e:
-        LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
-                  toolkit.getId(), e)
-        OUTPUTS = {}
+    # FIXME: biodiverse is not yet a content based toolkit
+    # try:
+    #     OUTPUTS = json.loads(toolkit.output)
+    # except (ValueError, TypeError) as e:
+    #     LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
+    #               toolkit.getId(), e)
+    #     OUTPUTS = {}
     params = get_biodiverse_params(result)
     script = generate_biodiverse_script()
     context = {
