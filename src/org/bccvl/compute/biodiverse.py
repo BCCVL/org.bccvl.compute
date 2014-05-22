@@ -99,7 +99,7 @@ def execute(result, toolkit):
     script = generate_biodiverse_script()
     context = {
         'context': '/'.join(result.getPhysicalPath()),
-        'userid': api.get_current().getId()
+        'userid': api.user.get_current().getId()
     }
     params['result'] = {
         'results_dir': tempfile.mkdtemp(),
