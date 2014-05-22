@@ -4,7 +4,7 @@ import json
 import re
 import tempfile
 from copy import deepcopy
-from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
+from org.bccvl.compute.utils import getdatasetparams
 from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod
 from org.bccvl.tasks.compute import sdm_task
