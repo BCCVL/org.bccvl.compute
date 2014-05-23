@@ -9,6 +9,10 @@
 #.libPaths(Sys.getenv("R_LIBS_USER"))
 # set CRAN mirror in case we need to download something
 
+## TODO: setup CRAN mirror in .Renviron
+## see http://stat.ethz.ch/R-manual/R-devel/library/base/html/Startup.html
+## don't install here... just require
+
 r <- getOption("repos")
 r["CRAN"] <- "http://cran.ms.unimelb.edu.au/"
 options(repos=r)
