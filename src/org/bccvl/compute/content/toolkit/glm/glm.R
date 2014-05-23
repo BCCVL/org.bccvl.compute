@@ -51,7 +51,7 @@ projection.name = "current"  #basename(enviro.data.current)
 model.options.glm <- list(
 	type = bccvl.params$type,	#"simple", "quadratic" or "polynomial"; switched off if myFormula is not NULL
 	interaction.level = bccvl.params$interaction_level, #integer corresponding to the interaction level between variables considered; switched off if myFormula is not NULL
-	myFormula = NULL, #specific formula; if not NULL, type and interaction.level are args are switched off
+	# myFormula = NULL, #specific formula; if not NULL, type and interaction.level are args are switched off
 	test = bccvl.params$test, #"AIC", "BIC" or "none"
 	family = bccvl.params$family, #"binomial", "gaussian", "gamma", "inverse.gaussian", "poisson", "quasi", "quasibinomial", "quasipoisson"
 	mustart = bccvl.params$mustart, #starting values for the vector of means
