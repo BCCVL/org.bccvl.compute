@@ -7,7 +7,7 @@ from copy import deepcopy
 from org.bccvl.compute.utils import getdatasetparams
 from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod
-from org.bccvl.tasks.compute import sdm_task
+from org.bccvl.tasks.compute import r_task
 from org.bccvl.tasks.plone import after_commit_task
 from plone import api
 
@@ -138,4 +138,4 @@ def execute_sdm(result, toolkit):
         'script': script
     }
     ### send job to queue
-    after_commit_task(sdm_task, params, context)
+    after_commit_task(r_task, params, context)

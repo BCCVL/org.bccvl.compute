@@ -10,7 +10,7 @@ from org.bccvl.site.interfaces import IComputeMethod
 from copy import deepcopy
 from plone import api
 import tempfile
-from org.bccvl.tasks.compute import sdm_task
+from org.bccvl.tasks.compute import r_task
 from org.bccvl.tasks.plone import after_commit_task
 
 
@@ -121,4 +121,4 @@ def execute(result, func):
         'name': 'projection.R',
         'script': script
     }
-    after_commit_task(sdm_task, params, context)
+    after_commit_task(r_task, params, context)

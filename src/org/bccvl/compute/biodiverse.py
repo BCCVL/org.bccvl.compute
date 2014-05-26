@@ -5,7 +5,7 @@ from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod
 from plone import api
 from copy import deepcopy
-from org.bccvl.tasks.compute import biodiverse_task
+from org.bccvl.tasks.compute import perl_task
 from org.bccvl.tasks.plone import after_commit_task
 import json
 import logging
@@ -110,4 +110,4 @@ def execute(result, toolkit):
         'script': script,
     }
     ### send job to queue
-    after_commit_task(biodiverse_task, params, context)
+    after_commit_task(perl_task, params, context)
