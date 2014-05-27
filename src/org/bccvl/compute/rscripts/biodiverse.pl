@@ -41,6 +41,7 @@ chdir($outdir);
 # subroutine to reproject a given gdal file and write the
 # result to given output folder
 # return full path of new file
+# TODO: make sure we generate unique filenames.... maybe use full path within input to generate output?
 sub gdalwarp {
     my ($infile, $outdir, $srs) = @_;
     my ($name, $path, $suffix) = fileparse($infile, qr/\.[^.]*/);
