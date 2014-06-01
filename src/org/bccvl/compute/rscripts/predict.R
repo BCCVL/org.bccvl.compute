@@ -91,12 +91,12 @@ projectdataset <- function(model.obj, futuredata, projection.name, species) {
 modelfile <- sdm.model.file
 if (tolower(file_ext(modelfile)) == "zip") {
     # assume we have been given a zip file and the model file has the same name
-    # as the basename(zip) within a subfolder with the same name
-    zipdir = file_path_sans_ext(modelfile)
-    zipfile = basename(zipdir)
-    modelfile = file.path(zipdir, zipfile)
+    # as the basename(zip) in the same folder as the zip
+    modeldir = dirname(modelfile)
+    modelfile = file_path_sans_ext(basename(modelfile))
+    modelfile = file.path(modeldir, modelfile)
     # we'll have to change wd so that biomod can load data from model subfolders'
-    setwd(zipdir)
+    setwd(modeldir)
     # TODO: could make the part with getModelOjebct more intelligent...
     #       e.g. check if loaded model is a biomod model and change wd
 }
