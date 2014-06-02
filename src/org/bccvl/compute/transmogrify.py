@@ -20,7 +20,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from plone.app.uuid.utils import uuidToObject
 from gu.z3cform.rdf.interfaces import IGraph
 from csv import DictReader
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -105,7 +105,11 @@ def extractThresholdValues(fname):
                 break
         try:
             for row in dictreader:
-                thresholds[row['']] = Decimal(row[name])
+                try:
+                    thresholds[row['']] = Decimal(row[name])
+                except (TypeError, InvalidOperation) as e:
+                    LOG.warn("Couldn't parse threshold value '%s' (%s) from file '%s': %s",
+                             name, row[name], fname, repr(e))
         except KeyError:
             LOG.warn("Couldn't extract Threshold '%s' from file '%s'",
                      name, fname)
