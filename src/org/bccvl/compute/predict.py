@@ -108,9 +108,17 @@ def execute(result, func):
     params = get_project_params(result)
     script = generate_project_script()
     ### plone context for this job
+    import pdb; pdb.set_trace()
+    member = api.user.get_current()
     context = {
         'context': '/'.join(result.getPhysicalPath()),
-        'userid': api.user.get_current().getId()
+        'user': {'id': member.getUserName(),
+                 'email': member.getProperty('email'),
+                 'fullname': member.getProperty('fullname')
+                 },
+        'experiment': {'title': result.__parent__.title,
+                       'url': result.__parent__.absolute_url()
+                       }
     }
     ### add result infos
     params['result'] = {

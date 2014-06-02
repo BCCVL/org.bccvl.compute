@@ -124,9 +124,16 @@ def execute_sdm(result, toolkit):
     params = get_toolkit_params(result)
     script = generate_sdm_script(toolkit.script)
     ###### generate plone context infos
+    member = api.user.get_current()
     context = {
         'context': '/'.join(result.getPhysicalPath()),
-        'userid': api.user.get_current().getId()
+        'user': {'id': member.getUserName(),
+                 'email': member.getProperty('email'),
+                 'fullname': member.getProperty('fullname')
+                 },
+        'experiment': {'title': result.__parent__.title,
+                       'url': result.__parent__.absolute_url()
+                       }
     }
     ### complete job infos
     params['result'] = {

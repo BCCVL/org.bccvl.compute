@@ -97,9 +97,16 @@ def execute(result, toolkit):
     #     OUTPUTS = {}
     params = get_biodiverse_params(result)
     script = generate_biodiverse_script()
+    member = api.user.get_current()
     context = {
         'context': '/'.join(result.getPhysicalPath()),
-        'userid': api.user.get_current().getId()
+        'user': {'id': member.getUserName(),
+                 'email': member.getProperty('email'),
+                 'fullname': member.getProperty('fullname')
+                 },
+        'experiment': {'title': result.__parent__.title,
+                       'url': result.__parent__.absolute_url()
+                       }
     }
     params['result'] = {
         'results_dir': tempfile.mkdtemp(),
