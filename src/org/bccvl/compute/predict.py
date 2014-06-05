@@ -108,7 +108,6 @@ def execute(result, func):
     params = get_project_params(result)
     script = generate_project_script()
     ### plone context for this job
-    import pdb; pdb.set_trace()
     member = api.user.get_current()
     context = {
         'context': '/'.join(result.getPhysicalPath()),
