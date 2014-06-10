@@ -1,6 +1,6 @@
 from pkg_resources import resource_string
 import re
-from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
+from org.bccvl.compute.utils import getdatasetparams
 from gu.z3cform.rdf.interfaces import IGraph
 from org.bccvl.site.namespace import BIOCLIM, DWC
 from plone.app.uuid.utils import uuidToObject

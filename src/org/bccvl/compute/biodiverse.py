@@ -7,9 +7,9 @@ from plone import api
 from copy import deepcopy
 from org.bccvl.tasks.compute import perl_task
 from org.bccvl.tasks.plone import after_commit_task
-import json
 import logging
 import tempfile
+
 
 LOG = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ def generate_biodiverse_script():
         resource_string('org.bccvl.compute', 'rscripts/biodiverse.pl'),
     ])
     return script
+
 
 OUTPUTS = {
     'files': {
