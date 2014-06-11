@@ -1,6 +1,6 @@
 from pkg_resources import resource_string
 import re
-from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
+from org.bccvl.compute.utils import getdatasetparams
 from gu.z3cform.rdf.interfaces import IGraph
 from org.bccvl.site.namespace import BIOCLIM, DWC
 from plone.app.uuid.utils import uuidToObject
@@ -8,6 +8,10 @@ from plone.app.uuid.utils import uuidToObject
 from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod
 from copy import deepcopy
+from plone import api
+import tempfile
+from org.bccvl.tasks.compute import r_task
+from org.bccvl.tasks.plone import after_commit_task
 
 
 def get_project_params(result):
@@ -101,9 +105,27 @@ def execute(result, func):
 
 
     """
-    # TODO: CREATE WorkEnv in job
-    # workenv = WorkEnvLocal
-    env = WorkEnv()
     params = get_project_params(result)
     script = generate_project_script()
-    return queue_job(result, 'Projection', env, script, params, OUTPUTS)
+    ### plone context for this job
+    member = api.user.get_current()
+    context = {
+        'context': '/'.join(result.getPhysicalPath()),
+        'user': {'id': member.getUserName(),
+                 'email': member.getProperty('email'),
+                 'fullname': member.getProperty('fullname')
+                 },
+        'experiment': {'title': result.__parent__.title,
+                       'url': result.__parent__.absolute_url()
+                       }
+    }
+    ### add result infos
+    params['result'] = {
+        'results_dir': tempfile.mkdtemp(),
+        'outputs': OUTPUTS
+    }
+    params['worker']['script'] = {
+        'name': 'projection.R',
+        'script': script
+    }
+    after_commit_task(r_task, params, context)

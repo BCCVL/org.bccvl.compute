@@ -5,7 +5,7 @@ use 5.010;
 
 use rlib;
 
-use Getopt::Long::Descriptive;
+use Biodiverse::Config ;
 
 use Carp;
 use English qw { -no_match_vars };
@@ -41,6 +41,7 @@ chdir($outdir);
 # subroutine to reproject a given gdal file and write the
 # result to given output folder
 # return full path of new file
+# TODO: make sure we generate unique filenames.... maybe use full path within input to generate output?
 sub gdalwarp {
     my ($infile, $outdir, $srs) = @_;
     my ($name, $path, $suffix) = fileparse($infile, qr/\.[^.]*/);
@@ -55,7 +56,8 @@ sub gdalwarp {
 
 ######################################
 # subroutine to set all values below threshold in
-# a rasterfile to No_Value
+# a rasterfile to 0 and others to 1. Leave Nodata as is.
+# -> essentially a binary transformation
 # subroutine assumes there is only one band in the file
 sub apply_threshold {
     # TODO: should this create a BinaryMap ? 0 for below threshold and 1 for above?
@@ -88,9 +90,7 @@ sub apply_threshold {
                     if (defined($nodata) && $val == $nodata) {
                         next;
                     }
-                    if ($val < $threshold ) {
-                        $row->[$col_i] = 0 ;
-                    }
+                    $row->[$col_i] = $val < $threshold ? 0 : 1;
                 }
             }
             # write block back to file
@@ -173,6 +173,7 @@ $bd->save (filename => $out_pfx);
 #  export the files
 $sp->export (
     format => 'ArcInfo asciigrid files',
+#   format => 'GeoTIFF',
     file   => $out_pfx,
     list   => 'SPATIAL_RESULTS',
 );

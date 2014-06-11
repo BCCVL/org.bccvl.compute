@@ -1,9 +1,17 @@
 from pkg_resources import resource_string
-from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
+from org.bccvl.compute.utils import getdatasetparams
 # do this dynamically in site module?
 from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod
+from plone import api
 from copy import deepcopy
+from org.bccvl.tasks.compute import perl_task
+from org.bccvl.tasks.plone import after_commit_task
+import logging
+import tempfile
+
+
+LOG = logging.getLogger(__name__)
 
 
 def get_biodiverse_params(result):
@@ -33,6 +41,7 @@ def generate_biodiverse_script():
         resource_string('org.bccvl.compute', 'rscripts/biodiverse.pl'),
     ])
     return script
+
 
 OUTPUTS = {
     'files': {
@@ -64,7 +73,7 @@ OUTPUTS = {
 
 
 @provider(IComputeMethod)
-def execute(result, func):
+def execute(result, toolkit):
     """
     This function takes an experiment and executes.
 
@@ -80,9 +89,33 @@ def execute(result, func):
 
 
     """
-    # TODO: CREATE WorkEnv in job
-    # workenv = WorkEnvLocal
-    env = WorkEnv()
+    # FIXME: biodiverse is not yet a content based toolkit
+    # try:
+    #     OUTPUTS = json.loads(toolkit.output)
+    # except (ValueError, TypeError) as e:
+    #     LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
+    #               toolkit.getId(), e)
+    #     OUTPUTS = {}
     params = get_biodiverse_params(result)
     script = generate_biodiverse_script()
-    return queue_job(result, 'Biodiverse', env, script, params, OUTPUTS)
+    member = api.user.get_current()
+    context = {
+        'context': '/'.join(result.getPhysicalPath()),
+        'user': {'id': member.getUserName(),
+                 'email': member.getProperty('email'),
+                 'fullname': member.getProperty('fullname')
+                 },
+        'experiment': {'title': result.__parent__.title,
+                       'url': result.__parent__.absolute_url()
+                       }
+    }
+    params['result'] = {
+        'results_dir': tempfile.mkdtemp(),
+        'outputs': OUTPUTS
+    }
+    params['worker']['script'] = {
+        'name': 'biodiverse.pl',
+        'script': script,
+    }
+    ### send job to queue
+    after_commit_task(perl_task, params, context)

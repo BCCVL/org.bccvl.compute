@@ -2,10 +2,14 @@ from pkg_resources import resource_string
 import logging
 import json
 import re
+import tempfile
 from copy import deepcopy
-from org.bccvl.compute.utils import WorkEnv, queue_job, getdatasetparams
+from org.bccvl.compute.utils import getdatasetparams
 from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod
+from org.bccvl.tasks.compute import r_task
+from org.bccvl.tasks.plone import after_commit_task
+from plone import api
 
 LOG = logging.getLogger(__name__)
 
@@ -117,7 +121,28 @@ def execute_sdm(result, toolkit):
         LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
                   toolkit.getId(), e)
         OUTPUTS = {}
-    env = WorkEnv()
     params = get_toolkit_params(result)
     script = generate_sdm_script(toolkit.script)
-    return queue_job(result, toolkit.getId(), env, script, params, OUTPUTS)
+    ###### generate plone context infos
+    member = api.user.get_current()
+    context = {
+        'context': '/'.join(result.getPhysicalPath()),
+        'user': {'id': member.getUserName(),
+                 'email': member.getProperty('email'),
+                 'fullname': member.getProperty('fullname')
+                 },
+        'experiment': {'title': result.__parent__.title,
+                       'url': result.__parent__.absolute_url()
+                       }
+    }
+    ### complete job infos
+    params['result'] = {
+        'results_dir': tempfile.mkdtemp(),
+        'outputs': OUTPUTS
+    }
+    params['worker']['script'] = {
+        'name': '{}.R'.format(toolkit.getId()),
+        'script': script
+    }
+    ### send job to queue
+    after_commit_task(r_task, params, context)

@@ -232,6 +232,7 @@ model.proj <-
                       keep.in.memory      = opt.biomod.keep.in.memory,
                       output.format       = opt.biomod.output.format)
 # convert projection output from grd to gtiff
+# TODO: get proj4string in here somewhere and use in grdtogtiff
 bccvl.grdtogtiff(file.path(getwd(),
                            biomod.species.name,
                            paste("proj", projection.name, sep="_")))

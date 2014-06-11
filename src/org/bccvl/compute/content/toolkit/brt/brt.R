@@ -31,8 +31,8 @@ brt.fold.vector = NULL #a fold vector to be read in for cross validation with of
 brt.tree.complexity = bccvl.params$tree_complexity #sets the complexity of individual trees
 brt.learning.rate = bccvl.params$learning_rate #sets the weight applied to individual trees
 brt.bag.fraction = bccvl.params$bag_fraction #sets the proportion of observations used in selecting variables
-#brt.site.weights = rep(1, nrow(data)) #allows varying weighting for sites
-#brt.var.monotone = rep(0, length(gbm.x)) #restricts responses to individual predictors to monotone
+brt.site.weights = NULL # rep(1, nrow(data)) #allows varying weighting for sites
+brt.var.monotone = NULL # rep(0, length(gbm.x)) #restricts responses to individual predictors to monotone
 brt.n.folds = bccvl.params$n_folds #number of folds
 brt.prev.stratify = bccvl.params$prev_stratify #prevalence stratify the folds - only for presence/absence data
 brt.family = bccvl.params$family #family - bernoulli (=binomial), poisson, laplace or gaussian
@@ -47,7 +47,7 @@ brt.plot.folds = FALSE #Logical. plot the individual folds as well
 brt.verbose = FALSE #Logical. control amount of screen reporting
 brt.silent = FALSE #Logical. to allow running with no output for simplifying model)
 brt.keep.fold.models = FALSE #Logical. keep the fold models from cross valiation
-brt.keep.fold.vector = FALSE #Logical. allows the vector defining fold membership to be kept
+brt.keep.fold.vector = TRUE #Logical. allows the vector defining fold membership to be kept
 brt.keep.fold.fit = FALSE #Logical. allows the predicted values for observations from cross-validation to be kept
 projection.name = "current"
 
@@ -143,8 +143,8 @@ model.sdm <- gbm.step(
         tree.complexity = brt.tree.complexity,
         learning.rate = brt.learning.rate,
         bag.fraction = brt.bag.fraction,
-        #site.weights = brt.site.weights,
-        #var.monotone = brt.var.monotone,
+        site.weights = brt.site.weights,
+        var.monotone = brt.var.monotone,
         n.folds = brt.n.folds,
         prev.stratify = brt.prev.stratify,
         family = brt.family,

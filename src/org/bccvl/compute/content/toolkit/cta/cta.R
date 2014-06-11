@@ -50,8 +50,8 @@ projection.name = "current"  #basename(enviro.data.current)
 # model-specific arguments to create a biomod model
 model.options.cta <- list(
 	method = bccvl.params$method, #"anova", "poisson", "class" or "exp"
-	parms = "default", #optional parameters for the splitting function
-	cost = NULL, #a vector of non-negative costs, one for each variable in the model. Defaults to one for all variables
+	# parms = "default", #optional parameters for the splitting function
+	# cost = NULL, #a vector of non-negative costs, one for each variable in the model. Defaults to one for all variables
 	control = list(
 		xval = bccvl.params$control_xval, #number of cross-validations
 		minbucket = bccvl.params$control_minbucket, #the minimum number of observations in any terminal <leaf> node
