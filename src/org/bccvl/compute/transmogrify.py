@@ -237,7 +237,10 @@ class ResultSource(object):
                 filelist.add(os.path.join(self.path, root, name))
 
         # import defined files:
-        for fileglob, filedef in self.outputmap.get('files', {}).items():
+        # sort list of globs with longest first:
+        globlist = sorted(self.outputmap.get('files', {}).items(),
+                          key=lambda item: (-len(item[0]), item[0]))
+        for fileglob, filedef in globlist:
             for fname in glob.glob(os.path.join(self.path, fileglob)):
                 item = self.createItem(fname, filedef)
                 yield item
