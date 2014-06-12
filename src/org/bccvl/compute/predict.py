@@ -72,7 +72,12 @@ OUTPUTS = {
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript"
         },
-        '*.tif': {
+        "*ClampingMask.tif": {
+            "title": "Clamping Mask",
+            "genre": "DataGenreClampingMask",
+            "mimetype": "image/geotiff"
+        },
+        'proj_*.tif': {
             'title': 'Future Projection',
             'genre': 'DataGenreFP',
             'mimetype': 'image/geotiff',
