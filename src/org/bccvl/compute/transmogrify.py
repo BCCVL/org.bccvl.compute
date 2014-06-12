@@ -253,16 +253,20 @@ class ResultSource(object):
         for archname, archdef in self.outputmap.get('archives', {}).items():
             # create archive
             farchname = os.path.join(self.path, archname)
+            empty = True
             with ZipFile(farchname, 'w', ZIP_DEFLATED) as zipf:
                 for fileglob in archdef['files']:
                     absglob = os.path.join(self.path, fileglob)
                     for fname in glob.glob(absglob):
+                        empty = False
                         zipf.write(fname, os.path.relpath(fname, self.path))
                         # discard all archived file from filelist
                         filelist.discard(fname)
             # create item of archive
-            item = self.createItem(farchname, archdef)
-            yield item
+            if not empty:
+                # only import non empty zip files
+                item = self.createItem(farchname, archdef)
+                yield item
 
         # still something left?
         LOG.info("check file names: %s", ", ".join(files))
