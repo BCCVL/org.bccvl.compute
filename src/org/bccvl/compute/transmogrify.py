@@ -242,8 +242,11 @@ class ResultSource(object):
                           key=lambda item: (-len(item[0]), item[0]))
         for fileglob, filedef in globlist:
             for fname in glob.glob(os.path.join(self.path, fileglob)):
-                item = self.createItem(fname, filedef)
-                yield item
+                if fname in filelist:
+                    # we import only if we haven't done so already
+                    # otherwise a 2nd glob may match again
+                    item = self.createItem(fname, filedef)
+                    yield item
                 filelist.discard(fname)
 
         # import archives
