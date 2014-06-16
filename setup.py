@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-import os
 
 version = '1.5.1-dev'
 
@@ -27,8 +26,13 @@ setup(
     zip_safe=False,
     install_requires=[
         'setuptools',  # distribute
-        'paramiko',
+        'gu.transmogrifier',
     ],
+    extras_require={
+        'test': [
+            'org.bccvl.testsetup'
+        ]
+    },
     entry_points="""
     # -*- Entry points: -*-
     #[z3c.autoinclude.plugin]
