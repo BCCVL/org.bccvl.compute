@@ -1,4 +1,3 @@
-from datetime import datetime
 from itertools import chain
 import mimetypes
 import os.path
@@ -7,12 +6,14 @@ import re
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from zope.interface import implementer, provider
-from org.bccvl.site.namespace import BCCPROP, BCCVOCAB, BIOCLIM, DWC, BCCEMSC, BCCGCM
-from org.bccvl.site.content.interfaces import IProjectionExperiment, ISDMExperiment
+from org.bccvl.site.namespace import (BCCPROP, BCCVOCAB, BIOCLIM,
+                                      DWC, BCCEMSC, BCCGCM)
+from org.bccvl.site.content.interfaces import (IProjectionExperiment,
+                                               ISDMExperiment)
 from gu.plone.rdf.namespace import CVOCAB
 from ordf.graph import Graph
 from ordf.namespace import DC
-from rdflib import RDF, URIRef, Literal
+from rdflib import RDF, Literal
 from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
 from Products.CMFCore.utils import getToolByName
@@ -68,28 +69,31 @@ def extractThresholdValues(fname):
     # this method might be called multiple times for one item
 
     # There are various formats:
-    #   combined.modelEvaluation: Threshold Name, Testing.data, Cutoff, Sensitivity, Specificity
-    #   biomod2.modelEvaluation: Threshold Name, Testing.data, Cutoff.*, Sensitivity.*, Specificity.*
+    #   combined.modelEvaluation: Threshold Name, Testing.data, Cutoff,
+    #                             Sensitivity, Specificity
+    #   biomod2.modelEvaluation: Threshold Name, Testing.data, Cutoff.*,
+    #                            Sensitivity.*, Specificity.*
     #   maxentResults.csv: Species,<various columns with interesting values>
-    #                              <threshold name><space><cumulative threshold,logistic threshold,area,training omission>"
-    # FIXME: this is really ugly and csv format detection should be done differently
+    #                <threshold name><space><cumulative threshold,
+    #                              logistic threshold,area,training omission>
+    # FIXME: this is really ugly and csv format detection should be done
+    #        differently
     thresholds = {}
     if fname.endswith('maxentResults.csv'):
         csvfile = open(fname, 'r')
         dictreader = DictReader(csvfile)
         row = dictreader.next()
         # There is only one row in maxentResults
-        for name in ('Fixed cumulative value 1',
-                     'Fixed cumulative value 5',
-                     'Fixed cumulative value 10',
-                     'Minimum training presence',
-                     '10 percentile training presence',
-                     '10 percentile training presence',
-                     'Equal training sensitivity and specificity',
-                     'Maximum training sensitivity plus specificity',
-                     'Balance training omission, predicted area and threshold value',
-                     'Equate entropy of thresholded and original distributions',
-                     ):
+        namelist = (
+            'Fixed cumulative value 1', 'Fixed cumulative value 5',
+            'Fixed cumulative value 10', 'Minimum training presence',
+            '10 percentile training presence',
+            '10 percentile training presence',
+            'Equal training sensitivity and specificity',
+            'Maximum training sensitivity plus specificity',
+            'Balance training omission, predicted area and threshold value',
+            'Equate entropy of thresholded and original distributions')
+        for name in namelist:
             # We extract only 'cumulative threshold'' values
             threshold = '{} cumulative threshold'.format(name)
             thresholds[threshold] = Decimal(row[threshold])
@@ -108,7 +112,8 @@ def extractThresholdValues(fname):
                 try:
                     thresholds[row['']] = Decimal(row[name])
                 except (TypeError, InvalidOperation) as e:
-                    LOG.warn("Couldn't parse threshold value '%s' (%s) from file '%s': %s",
+                    LOG.warn("Couldn't parse threshold value '%s' (%s) from"
+                             "file '%s': %s",
                              name, row[name], fname, repr(e))
         except KeyError:
             LOG.warn("Couldn't extract Threshold '%s' from file '%s'",
@@ -179,7 +184,8 @@ class ResultSource(object):
                              BCCEMSC[m.group(1)]))
                     rdf.add((rdf.identifier, BCCPROP['gcm'],
                              BCCGCM[m.group(2)]))
-                    year = Literal("start=%s; end=%s; scheme=W3C-DTF;" % (m.group(3), m.group(3)),
+                    year = Literal("start={0}; end={0}; scheme=W3C-DTF;"
+                                   .format((m.group(3), m.group(3))),
                                    datatype=DC['Period'])
                     rdf.add((rdf.identifier, DC['temporal'], year))
                 else:
@@ -274,4 +280,72 @@ class ResultSource(object):
             LOG.info("Importing undefined item %s", fname)
             item = self.createItem(fname, {})
             # TODO: what output info do I want here?
+            yield item
+
+
+@provider(ISectionBlueprint)
+@implementer(ISection)
+class FileMetadata(object):
+
+    """Use hachoir library to extract metadata from file and try to do.
+
+    something meaningful with.
+
+    metadata is stored under item["_filemetadata"] as a simple dict as
+    returned by hachoir.
+    """
+
+    def __init__(self, transmogrifier, name, options, previous):
+        """missing docstring."""
+        self.transmogrifier = transmogrifier
+        self.name = name
+        self.options = options
+        self.previous = previous
+        self.context = transmogrifier.context
+
+        # keys for sections further down the chain
+        self.fileskey = options.get('files-key', '_files').strip()
+        self.filemetadatakey = options.get('filemetadata-key',
+                                           '_filemetadata').strip()
+
+    def __iter__(self):
+        """missing docstring."""        # exhaust previous iterator
+        for item in self.previous:
+
+            # check if we have some filecontent to store (IFile stores in attr
+            # file)
+            fileattr = item.get('file')
+            if not fileattr:
+                yield item
+                continue
+
+            # get files atteched to this item
+            files = item.setdefault(self.fileskey, {})
+            # no files .. can't do anything
+            if not files:
+                yield item
+                continue
+
+            # replace attributes
+            fileitem = files[fileattr['file']]
+            if not fileitem:
+                # the file we look for is not in files list
+                yield item
+                continue
+
+            # ok .. everything ready let's try our luck
+            # fileattr ... contenttype, file, filename
+            # fileitem ... data, name
+            from .mdextractor import MetadataExtractor
+            mdextractor = MetadataExtractor()
+            #mdextractor = getUtility(IMetadataExtractor)
+            md = mdextractor.from_string(fileitem['data'],
+                                         item['file']['contenttype'])
+            item['_filemetadata'] = {
+                fileitem['name']: md
+            }
+            if not hasattr(self.context, 'filemetadata'):
+                self.context.filemetadata = []
+            self.context.filemetadata.append(item['_filemetadata'])
+
             yield item
