@@ -339,13 +339,17 @@ class FileMetadata(object):
             from .mdextractor import MetadataExtractor
             mdextractor = MetadataExtractor()
             # mdextractor = getUtility(IMetadataExtractor)
-            md = mdextractor.from_string(fileitem['data'],
-                                         item['file']['contenttype'])
-            item['_filemetadata'] = {
-                fileitem['name']: md
-            }
-            if not hasattr(self.context, 'filemetadata'):
-                self.context.filemetadata = []
-            self.context.filemetadata.append(item['_filemetadata'])
+            try:
+                md = mdextractor.from_string(fileitem['data'],
+                                             item['file']['contenttype'])
+                item['_filemetadata'] = {
+                    fileitem['name']: md
+                }
+                if not hasattr(self.context, 'filemetadata'):
+                    self.context.filemetadata = []
+                self.context.filemetadata.append(item['_filemetadata'])
+            except:
+                # FIXME: needd to log something here
+                pass
 
             yield item

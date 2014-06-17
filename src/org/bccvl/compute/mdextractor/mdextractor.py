@@ -11,7 +11,9 @@ class MetadataExtractor(object):
     extractors = {}
 
     def from_string(self, data, mime_type):
-        md = self.extractors[mime_type].from_string(data)
+        md = None
+        if mime_type in self.extractors:
+            md = self.extractors[mime_type].from_string(data)
         return md
 
 
