@@ -348,7 +348,7 @@ class FileMetadata(object):
                 if not hasattr(self.context, 'filemetadata'):
                     self.context.filemetadata = []
                 self.context.filemetadata.append(item['_filemetadata'])
-            except:
+            except Exception, ex:
                 # FIXME: needd to log something here
                 pass
 
