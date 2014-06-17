@@ -12,6 +12,7 @@ from plone.app.uuid.utils import uuidToObject
 from org.bccvl.site.browser.xmlrpc import getbiolayermetadata
 from gu.z3cform.rdf.interfaces import IGraph
 from org.bccvl.site.namespace import DWC
+from org.bccvl.site.interfaces import IDownloadInfo
 
 import logging
 LOG = logging.getLogger(__name__)
@@ -19,7 +20,6 @@ LOG = logging.getLogger(__name__)
 DATA_MOVER = 'http://127.0.0.1:10700/data_mover'
 COMPUTE_HOST = 'localhost'
 COMPUTE_USER = 'bccvl'
-INTERNAL_URL = 'http://127.0.0.1:8201'
 
 
 def decimal_encoder(o):
@@ -39,30 +39,13 @@ def getDatasetInfo(datasetitem, uuid):
     #######
     #  species
 
-    int_url = os.environ.get("INTERNAL_URL", INTERNAL_URL)
     # get filename
-    fileob = datasetitem.file
-    if datasetitem.file is None or datasetitem.file.filename is None:
-        # TODO: What to do here? the download url doesn't make sense
-        #        for now use id as filename
-        filename = datasetitem.getId()
-    else:
-        filename = fileob.filename
-    # generate downloaurl
-    downloadurl = '{}/@@download/file/{}'.format(
-        datasetitem.absolute_url(),
-        filename
-    )
-    internalurl = '{}/{}/@@download/file/{}'.format(
-        int_url,
-        "/".join(datasetitem.getPhysicalPath()),
-        filename
-    )
+    info = IDownloadInfo(datasetitem)
     return {
         'uuid': uuid,
-        'filename': filename,
-        'downloadurl': downloadurl,
-        'internalurl':  internalurl
+        'filename': info['filename'],
+        'downloadurl': info['url'],
+        'internalurl':  info['alturl'][0]
     }
 
 
