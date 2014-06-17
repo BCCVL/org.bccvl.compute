@@ -343,13 +343,13 @@ class FileMetadata(object):
                 md = mdextractor.from_string(fileitem['data'],
                                              item['file']['contenttype'])
                 item['_filemetadata'] = {
-                    fileitem['name']: md
+                    item['file']['filename']: md
                 }
                 if not hasattr(self.context, 'filemetadata'):
                     self.context.filemetadata = []
                 self.context.filemetadata.append(item['_filemetadata'])
-            except Exception, ex:
-                # FIXME: needd to log something here
-                pass
+            except Exception as ex:
+                LOG.warn("Couldn't extract metadata from file: %s : %s",
+                         item['file']['filename'], repr(ex))
 
             yield item
