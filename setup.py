@@ -27,15 +27,15 @@ setup(
     install_requires=[
         'setuptools',  # distribute
         'gu.transmogrifier',
+        'GDAL',
+        'python-xmp-toolkit',
+        # 'hachoir-core',
+        # 'hachoir-parser',
+        # 'hachoir-metadata',
     ],
     extras_require={
         'test': [
             'org.bccvl.testsetup',
-            # 'hachoir-core',
-            # 'hachoir-parser',
-            # 'hachoir-metadata',
-            'GDAL',
-            'python-xmp-toolkit',
         ]
     },
     entry_points="""
