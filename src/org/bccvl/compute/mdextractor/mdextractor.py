@@ -70,6 +70,7 @@ class TiffExtractor(object):
         gdal.FileFromMemBuffer(memname, data)
         ds = gdal.Open(memname, gdal.GA_ReadOnly)
 
+        # TODO: get bounding box
         geotransform = ds.GetGeoTransform()
         projref = ds.GetProjectionRef()
         spref = osr.SpatialReference(projref)

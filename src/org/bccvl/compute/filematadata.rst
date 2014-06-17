@@ -36,9 +36,9 @@ First we'll need a simple data source and a transomgrifiec pipeline
     >>> subitem = item['mini_current_50to00_.3/bioclim_05.tif']
     >>> subitem['metadata']['srs']
     'EPSG:4326'
-    >>> plone.items[3]['absence.csv']['headers']
+    >>> plone.items[2]['absence.csv']['headers']
     ['lon', 'lat']
-    >>> plone.items[3]['absence.csv']['rows']
+    >>> plone.items[2]['absence.csv']['rows']
     400
-    >>> plone.items[4]['occurrence.csv']['bounds']
+    >>> plone.items[3]['occurrence.csv']['bounds']
     [-27.983333, 152.75786, -27.08149, 153.45]

@@ -1,0 +1,13 @@
+{
+  "_type": "org.bccvl.content.dataset",
+  "title": "Koala - Mini absence dataset for Redland City",
+  "file": {
+          "file": "absence.csv",
+          "contenttype": "text/csv",
+          "filename": "absence.csv"
+          },
+  "_transitions": "publish",
+  "_rdf": {
+          "file": "absence.ttl",
+          "contenttype": "text/turtle"}
+}

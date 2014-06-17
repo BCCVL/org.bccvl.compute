@@ -1,0 +1,10 @@
+@prefix owl:      <http://www.w3.org/2002/07/owl#> .
+@prefix bccprop:  <http://namespaces.bccvl.org.au/prop#> .
+@prefix bccvocab: <http://namespaces.bccvl.org.au/vocab#> .
+@prefix cvocab:   <http://namespaces.griffith.edu.au/collection_vocab#> .
+
+_:current a cvocab:Dataset, owl:Thing ;
+    bccprop:datagenre bccvocab:DataGenreE ;
+    bccprop:resolution bccvocab:Resolution30s ;
+#    bccprop:hasArchiveItem ... ? -> nfo:ArchiveItem
+    .

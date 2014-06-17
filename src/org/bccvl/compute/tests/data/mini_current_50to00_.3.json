@@ -1,0 +1,14 @@
+{
+  "_type": "org.bccvl.content.dataset",
+  "title": "Current climate layers for Redland City, 30\" (~1km)",
+  "file": {
+      "contenttype": "application/zip",
+      "filename": "mini_current_50to00_.3.zip",
+      "file": "mini_current_50to00_.3.zip"
+  },
+  "_transitions": "publish",
+  "_rdf": {
+      "file": "mini_current_50to00_.3.ttl",
+      "contenttype": "text/turtle"
+  }
+}

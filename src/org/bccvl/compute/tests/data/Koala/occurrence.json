@@ -1,0 +1,13 @@
+{
+  "_type": "org.bccvl.content.dataset",
+  "title": "Koala - Mini occurrence dataset for Redland City",
+  "file": {
+          "file": "occurrence.csv",
+          "contenttype": "text/csv",
+          "filename": "occurrence.csv"
+          },
+  "_transitions": "publish",
+  "_rdf": {
+          "file": "occurrence.ttl",
+          "contenttype": "text/turtle"}
+}
