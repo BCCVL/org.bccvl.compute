@@ -30,7 +30,12 @@ setup(
     ],
     extras_require={
         'test': [
-            'org.bccvl.testsetup'
+            'org.bccvl.testsetup',
+            # 'hachoir-core',
+            # 'hachoir-parser',
+            # 'hachoir-metadata',
+            'GDAL',
+            'python-xmp-toolkit',
         ]
     },
     entry_points="""

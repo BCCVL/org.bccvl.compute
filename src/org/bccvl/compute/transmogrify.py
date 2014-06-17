@@ -338,7 +338,7 @@ class FileMetadata(object):
             # fileitem ... data, name
             from .mdextractor import MetadataExtractor
             mdextractor = MetadataExtractor()
-            #mdextractor = getUtility(IMetadataExtractor)
+            # mdextractor = getUtility(IMetadataExtractor)
             md = mdextractor.from_string(fileitem['data'],
                                          item['file']['contenttype'])
             item['_filemetadata'] = {

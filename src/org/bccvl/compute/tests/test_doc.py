@@ -5,6 +5,7 @@ import zope.security
 import collective.transmogrifier
 from collective.transmogrifier.tests import setUp as baseSetUp, tearDown
 import gu.transmogrifier
+import gu.transmogrifier.tests
 from Products.Five import zcml
 import org.bccvl.compute
 
