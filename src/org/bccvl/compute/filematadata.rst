@@ -32,6 +32,10 @@ First we'll need a simple data source and a transomgrifiec pipeline
 
     Check a few values
 
+    >>> import pprint
+    >>> pprint.pprint(plone.items)
+
+
     >>> item = plone.items[1]['mini_current_50to00_.3.zip']
     >>> subitem = item['mini_current_50to00_.3/bioclim_05.tif']
     >>> subitem['metadata']['srs']
