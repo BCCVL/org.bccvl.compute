@@ -16,14 +16,19 @@ class MetadataExtractor(object):
             md = self.extractors[mime_type].from_string(data)
         return md
 
+    def from_file(self, path, mime_type):
+        md = None
+        if mime_type in self.extractors:
+            md = self.extractors[mime_type].from_file(path)
+        return md
+
 
 # TODO: FilesystemExtractor .... size, etc....
 class ZipExtractor(object):
 
-    def from_string(self, data):
+    def from_fileob(self, fileob):
         ret = {}
-        bytesio = BytesIO(data)
-        with zipfile.ZipFile(bytesio, 'r') as zipf:
+        with zipfile.ZipFile(fileob, 'r') as zipf:
             # TODO: zipfile itself may have some metadata, e.g. comment
             for zipinfo in zipf.infolist():
                 if zipinfo.filename.endswith('/'):
@@ -49,6 +54,14 @@ class ZipExtractor(object):
 
         return ret
 
+    def from_file(self, path):
+        fileob = open(path, 'r')
+        return self.from_fileob(fileob)
+
+    def from_string(self, data):
+        bytesio = BytesIO(data)
+        return self.from_fileob(bytesio)
+
 
 class TiffExtractor(object):
 
@@ -65,12 +78,24 @@ class TiffExtractor(object):
                     yield subitem
             yield xmpitem
 
+    def from_file(self, path):
+        return self._get_gdal_metadata(path)
+
     def from_string(self, data):
+        from osgeo import gdal
+        memname = '/vsimem/{0}'.format(str(uuid.uuid4()))
+        try:
+            gdal.FileFromMemBuffer(memname, data)
+
+            ret = self._get_gdal_metadata(memname)
+        finally:
+            gdal.Unlink(memname)
+        return ret
+
+    def _get_gdal_metadata(self, filename):
         # let's do GDAL here ? if it fails do Hachoir
         from osgeo import gdal, osr
-        memname = '/vsimem/{0}'.format(str(uuid.uuid4()))
-        gdal.FileFromMemBuffer(memname, data)
-        ds = gdal.Open(memname, gdal.GA_ReadOnly)
+        ds = gdal.Open(filename, gdal.GA_ReadOnly)
 
         # TODO: get bounding box
         geotransform = ds.GetGeoTransform()
@@ -162,7 +187,6 @@ class TiffExtractor(object):
             data['band'].append(banddata)
 
         ds = None
-        gdal.Unlink(memname)
 
         # HACHOIR Tif extractor:
         # ret = {}
@@ -180,12 +204,8 @@ class TiffExtractor(object):
 
 class CSVExtractor(object):
 
-    def from_string(self, data):
-        # collect header names, and number of rows.
-        # assume we have occurrence / absence file.
-        # and find bounding box coordinates
-        csvfile = StringIO(data.decode('utf-8'))
-        csvreader = csv.reader(csvfile)
+    def from_fileob(self, bytesio):
+        csvreader = csv.reader(bytesio)
         headers = csvreader.next()
         bounds = [float("Inf"), float("Inf"),
                   float("-Inf"), float("-Inf")]
@@ -214,6 +234,17 @@ class CSVExtractor(object):
         }
 
         return data
+
+    def from_file(self, path):
+        csvfile = open(path, 'r')
+        return self.from_fileob(csvfile)
+
+    def from_string(self, data):
+        # collect header names, and number of rows.
+        # assume we have occurrence / absence file.
+        # and find bounding box coordinates
+        csvfile = StringIO(data.decode('utf-8'))
+        return self.from_fileob(csvfile)
 
 
 class HachoirExtractor(object):

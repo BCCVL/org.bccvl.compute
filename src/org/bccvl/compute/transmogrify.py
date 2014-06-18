@@ -1,8 +1,12 @@
 from itertools import chain
 import mimetypes
+import tempfile
+import shutil
 import os.path
 import glob
 import re
+from urllib2 import urlopen
+from io import BytesIO
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from zope.interface import implementer, provider
@@ -308,48 +312,78 @@ class FileMetadata(object):
         self.filemetadatakey = options.get('filemetadata-key',
                                            '_filemetadata').strip()
 
+    def _place_file_on_filesystem(self, file):
+        tmpfd, tmpname = tempfile.mkstemp()
+        tmpfile = os.fdopen(tmpfd, 'w')
+        shutil.copyfileobj(file, tmpfile)
+        tmpfile.close()
+        # TODO: catch exception during copy and cleanup if necessary
+        return tmpname
+
     def __iter__(self):
         """missing docstring."""        # exhaust previous iterator
         for item in self.previous:
 
-            # check if we have some filecontent to store (IFile stores in attr
-            # file)
+            # check if we have a dataset
+            if item['_type'] not in ('org.bccvl.content.dataset',
+                                     'org.bccvl.content.remotedataset'):
+                # not a dataset
+                yield item
+                continue
+
             fileattr = item.get('file')
-            if not fileattr:
+            urlattr = item.get('remoteUrl')
+            if not fileattr and not urlattr:
+                # nothing to inspect
                 yield item
                 continue
 
-            # get files atteched to this item
-            files = item.setdefault(self.fileskey, {})
-            # no files .. can't do anything
-            if not files:
-                yield item
-                continue
+            # check if we have a file
+            if fileattr:
+                files = item.setdefault(self.fileskey, {})
+                if not files:
+                    # we have a file but no data for it
+                    yield item
+                    continue
+                fileitem = files[fileattr['file']]
+                if not fileitem:
+                    # our file is not in the _files list
+                    yield item
+                    continue
+                fileio = BytesIO(fileitem['data'])
+                filect = item['file']['contenttype']
+                filename = item['file']['filename']
 
-            # replace attributes
-            fileitem = files[fileattr['file']]
-            if not fileitem:
-                # the file we look for is not in files list
-                yield item
-                continue
+            elif urlattr:
+                # check if our url works
+                try:
+                    # try to fetch the file for inspection
+                    fileio = urlopen(urlattr)
+                    filect = fileio.headers.get('content-type', 'application/octet-stream')
+                    filename = urlattr
+                except Exception as ex:
+                    LOG.warn("Can't fetch url %s for metadata extraction.",
+                             urlattr)
+                    yield item
+                    continue
+
+            tmpfile = self._place_file_on_filesystem(fileio)
+
 
             # ok .. everything ready let's try our luck
-            # fileattr ... contenttype, file, filename
-            # fileitem ... data, name
+            # fileio ... stream to read data from
+            # filect ... the supposed content type of the file
             from .mdextractor import MetadataExtractor
             mdextractor = MetadataExtractor()
             # mdextractor = getUtility(IMetadataExtractor)
             try:
-                md = mdextractor.from_string(fileitem['data'],
-                                             item['file']['contenttype'])
+                md = mdextractor.from_file(tmpfile, filect)
                 item['_filemetadata'] = {
-                    item['file']['filename']: md
+                    filename: md
                 }
-                if not hasattr(self.context, 'filemetadata'):
-                    self.context.filemetadata = []
-                self.context.filemetadata.append(item['_filemetadata'])
             except Exception as ex:
                 LOG.warn("Couldn't extract metadata from file: %s : %s",
-                         item['file']['filename'], repr(ex))
-
+                         filename, repr(ex))
+            finally:
+                os.unlink(tmpfile)
             yield item
