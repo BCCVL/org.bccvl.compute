@@ -312,10 +312,10 @@ class FileMetadata(object):
         self.filemetadatakey = options.get('filemetadata-key',
                                            '_filemetadata').strip()
 
-    def _place_file_on_filesystem(self, file):
+    def _place_file_on_filesystem(self, data):
         tmpfd, tmpname = tempfile.mkstemp()
         tmpfile = os.fdopen(tmpfd, 'w')
-        shutil.copyfileobj(file, tmpfile)
+        tmpfile.write(data)
         tmpfile.close()
         # TODO: catch exception during copy and cleanup if necessary
         return tmpname
@@ -323,7 +323,7 @@ class FileMetadata(object):
     def __iter__(self):
         """missing docstring."""        # exhaust previous iterator
         for item in self.previous:
-
+            tmpfile = None
             # check if we have a dataset
             if item['_type'] not in ('org.bccvl.content.dataset',
                                      'org.bccvl.content.remotedataset'):
@@ -331,44 +331,31 @@ class FileMetadata(object):
                 yield item
                 continue
 
-            fileattr = item.get('file')
-            urlattr = item.get('remoteUrl')
-            if not fileattr and not urlattr:
+            fileattr = (item.get('remoteUrl') or
+                        item.get('file', {}).get('file'))
+            if not fileattr:
                 # nothing to inspect
                 yield item
                 continue
 
             # check if we have a file
-            if fileattr:
-                files = item.setdefault(self.fileskey, {})
-                if not files:
-                    # we have a file but no data for it
-                    yield item
-                    continue
-                fileitem = files[fileattr['file']]
-                if not fileitem:
-                    # our file is not in the _files list
-                    yield item
-                    continue
-                fileio = BytesIO(fileitem['data'])
-                filect = item['file']['contenttype']
-                filename = item['file']['filename']
-
-            elif urlattr:
-                # check if our url works
-                try:
-                    # try to fetch the file for inspection
-                    fileio = urlopen(urlattr)
-                    filect = fileio.headers.get('content-type', 'application/octet-stream')
-                    filename = urlattr
-                except Exception as ex:
-                    LOG.warn("Can't fetch url %s for metadata extraction.",
-                             urlattr)
-                    yield item
-                    continue
-
-            tmpfile = self._place_file_on_filesystem(fileio)
-
+            files = item.setdefault(self.fileskey, {})
+            if not files:
+                # we have a file but no data for it
+                yield item
+                continue
+            fileitem = files.get(fileattr)
+            if not fileitem:
+                # our file is not in the _files list
+                yield item
+                continue
+            if 'path' in fileitem:
+                filepath = fileitem['path']
+            elif 'data' in fileitem:
+                tmpfile = self._place_file_on_filesystem(fileitem['data'])
+                filepath = tmpfile
+            filect = fileitem.get('contenttype') or item.get('file', {}).get('contenttype')
+            filename = fileitem.get('filename') or item.get('file', {}).get('filename')
 
             # ok .. everything ready let's try our luck
             # fileio ... stream to read data from
@@ -377,7 +364,7 @@ class FileMetadata(object):
             mdextractor = MetadataExtractor()
             # mdextractor = getUtility(IMetadataExtractor)
             try:
-                md = mdextractor.from_file(tmpfile, filect)
+                md = mdextractor.from_file(filepath, filect)
                 item['_filemetadata'] = {
                     filename: md
                 }
@@ -385,5 +372,6 @@ class FileMetadata(object):
                 LOG.warn("Couldn't extract metadata from file: %s : %s",
                          filename, repr(ex))
             finally:
-                os.unlink(tmpfile)
+                if tmpfile:
+                    os.unlink(tmpfile)
             yield item
