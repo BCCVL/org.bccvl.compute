@@ -9,7 +9,7 @@ import os
 import os.path
 from decimal import Decimal
 from plone.app.uuid.utils import uuidToObject
-from org.bccvl.site.browser.xmlrpc import getbiolayermetadata
+from org.bccvl.site.api.dataset import getbiolayermetadata
 from gu.z3cform.rdf.interfaces import IGraph
 from org.bccvl.site.namespace import DWC
 from org.bccvl.site.interfaces import IDownloadInfo
