@@ -189,7 +189,7 @@ class ResultSource(object):
                     rdf.add((rdf.identifier, BCCPROP['gcm'],
                              BCCGCM[m.group(2)]))
                     year = Literal("start={0}; end={0}; scheme=W3C-DTF;"
-                                   .format((m.group(3), m.group(3))),
+                                   .format(m.group(3)),
                                    datatype=DC['Period'])
                     rdf.add((rdf.identifier, DC['temporal'], year))
                 else:
