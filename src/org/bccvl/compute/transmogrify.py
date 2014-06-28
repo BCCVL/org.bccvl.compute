@@ -54,11 +54,11 @@ def addLayerInfo(graph, experiment):
         graph.add((graph.identifier, BIOCLIM['bioclimVariable'], layer))
 
 
-def addSpeciesInfo(graph, experiment):
-    if ISDMExperiment.providedBy(experiment):
-        spds = uuidToObject(experiment.species_occurrence_dataset)
-    if IProjectionExperiment.providedBy(experiment):
-        spds = uuidToObject(experiment.species_distribution_models)
+def addSpeciesInfo(graph, result):
+    if ISDMExperiment.providedBy(result.__parent__):
+        spds = uuidToObject(result.job_params['species_occurrence_dataset'])
+    if IProjectionExperiment.providedBy(result.__parent__):
+        spds = uuidToObject(result.job_params['species_distribution_models'])
     spmd = IGraph(spds)
     for prop in (DWC['scientificName'],
                  DWC['taxonID'],
@@ -174,11 +174,13 @@ class ResultSource(object):
                 rdf.add((rdf.identifier, BCCPROP['resolution'],
                          self.context.resolution))
                 # add species info
-                addSpeciesInfo(rdf, self.context.__parent__)
+                addSpeciesInfo(rdf, self.context)
             elif genreuri == BCCVOCAB['DataGenreFP']:
+                # TODO: resolution is also in job_params
+                #       self.conetxt.job_params['resolution'] ... shall we remove the attribute?
                 rdf.add((rdf.identifier, BCCPROP['resolution'],
                          self.context.resolution))
-                addSpeciesInfo(rdf, self.context.__parent__)
+                addSpeciesInfo(rdf, self.context)
 
                 # FIXME: find a cleaner way to attach metadata
                 filename = os.path.basename(fname)
