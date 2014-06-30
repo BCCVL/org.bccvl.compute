@@ -1,0 +1,11 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Linear Models",
+  "method": "org.bccvl.compute.sptraits.exetuce",
+  "intperpreter": "R",
+  "script": {"filename": "lm.R"},
+  "schema": {"filename": "lm.xml"},
+  "output": {"filename": "lm.txt"},
+  "_fileattributes": ["script", "schema", "output"],
+  "_transitions": "publish"
+}

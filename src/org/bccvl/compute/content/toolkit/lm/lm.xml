@@ -1,0 +1,72 @@
+<model xmlns:security="http://namespaces.plone.org/supermodel/security"
+       xmlns:marshal="http://namespaces.plone.org/supermodel/marshal"
+       xmlns:form="http://namespaces.plone.org/supermodel/form"
+       xmlns="http://namespaces.plone.org/supermodel/schema">
+  <schema based-on="zope.interface.Interface">
+    <field name="subset" type="zope.schema.TextLine">
+      <title>Subset</title>
+      <descirption>Optional vector that may be used to specify a subset of the data. Please specify a column included in the data model.</descirption>
+      <required>False</required>
+    </field>
+    <field name="weights" type="zope.schema.TextLine">
+      <title>Weights</title>
+      <descirption>Optional vector that may be used to specify weights. Please specify a column included in the data model.</descirption>
+      <required>False</required>
+    </field>
+    <field name="na_action" type="zope.schema.Choice">
+      <title>NA action</title>
+      <description></description>
+      <required>True</required>
+      <default>na.fail</default>
+      <vocabulary>lm_na_action_vocab</vocabulary>
+    </field>
+    <field name="method" type="zope.schema.TextLine">
+      <title>Method</title>
+      <descirption>No other method available yet.</descirption>
+      <default>qr</default>
+      <required>False</required>
+      <readonly>True</readonly>
+    </field>
+    <field name="model" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
+      <default>False</default>
+      <title>Model returned</title>
+      <required>False</required>
+    </field>
+    <field name="x" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
+      <default>False</default>
+      <title>x returned</title>
+      <required>False</required>
+    </field>
+    <field name="y" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
+      <default>False</default>
+      <title>y returned</title>
+      <required>False</required>
+    </field>
+    <field name="qr" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
+      <default>True</default>
+      <title>QR returned</title>
+      <required>False</required>
+    </field>
+    <field name="singular_ok" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
+      <default>True</default>
+      <title>Singular fit ok</title>
+      <required>False</required>
+    </field>
+    <field name="contrasts" type="zope.schema.TextLine">
+      <title>Contrasts</title>
+      <descirption>Optional list. Please specify a column included in the data model.</descirption>
+      <required>False</required>
+    </field>
+    <field name="offset" type="zope.schema.TextLine">
+      <title>Offset</title>
+      <descirption>Optional vector. Please specify a column included in the data model.</descirption>
+      <required>False</required>
+    </field>
+    <field name="other_args" type="zope.schema.TextLine">
+      <title>Other args</title>
+      <descirption>This field enables an expert user to specify arguments that can be passed to lower level regression functions.</descirption>
+      <required>False</required>
+    </field>
+
+  </schema>
+</model>

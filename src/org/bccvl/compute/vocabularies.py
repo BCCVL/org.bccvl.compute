@@ -27,3 +27,16 @@ brt_family_vocab = SimpleVocabulary([
 @provider(IVocabularyFactory)
 def brt_family_vocab_factory(context):
     return brt_family_vocab
+
+
+lm_na_action_vocab = SimpleVocabulary([
+    SimpleTerm('na.fail', 'na.fail', 'na.fail'),
+    SimpleTerm('na.omit', 'na.omit', 'na.omit'),
+    SimpleTerm('na.exclude', 'na.exclude', 'na.exclude'),
+    SimpleTerm(None, 'NULL', 'NULL')
+])
+
+
+@provider(IVocabularyFactory)
+def lm_na_action_vocab_factory(context):
+    return lm_na_action_vocab

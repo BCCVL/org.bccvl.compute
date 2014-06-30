@@ -31,6 +31,10 @@
         name="brt_family_vocab" />
 
     <utility
+        component=".vocabularies.lm_na_action_vocab_factory"
+        name="lm_na_action_vocab" />
+
+    <utility
         component=".rscript.execute_sdm"
         name="org.bccvl.site.content.interfaces.ISDMExperiment"
     />
