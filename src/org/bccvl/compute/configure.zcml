@@ -49,4 +49,9 @@
         name="org.bccvl.site.content.interfaces.IBiodiverseExperiment"
     />
 
+    <utility
+        component=".sptraits.execute"
+        name="org.bccvl.site.content.interfaces.ISpeciesTraitsExperiment"
+    />
+
 </configure>
