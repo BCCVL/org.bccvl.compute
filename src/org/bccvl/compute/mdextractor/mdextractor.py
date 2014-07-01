@@ -3,6 +3,8 @@ from io import BytesIO, StringIO
 import csv
 import zipfile
 import uuid
+import mimetypes
+import json
 
 
 #@implementer(IMetadataExtractor)
@@ -12,16 +14,24 @@ class MetadataExtractor(object):
 
     def from_string(self, data, mime_type):
         md = None
+        # TODO: catch all exceptions here?
         if mime_type in self.extractors:
             md = self.extractors[mime_type].from_string(data)
         return md
 
     def from_file(self, path, mime_type):
         md = None
+        # TODO: catch all exceptions here?
         if mime_type in self.extractors:
             md = self.extractors[mime_type].from_file(path)
         return md
 
+    def from_archive(self, archivepath, path, mime_type):
+        md = None
+        # TODO: catch all exceptions here?
+        if mime_type in self.extractors:
+            md = self.extractors[mime_type].from_archive(archivepath, path)
+        return md
 
 # TODO: FilesystemExtractor .... size, etc....
 class ZipExtractor(object):
@@ -34,6 +44,13 @@ class ZipExtractor(object):
                 if zipinfo.filename.endswith('/'):
                     # skip directories
                     continue
+                # Is this our speciel bccvl metadata file?
+                if zipinfo.filename.endswith('/bccvl/metadata.json'):
+                    ret['_bccvlmetadata'] = \
+                        json.load(zipf.open(zipinfo.filename, 'r'))
+                    # skip the rest
+                    continue
+
                 # interesting attributes on zipinfo
                 #     compress_size, compress_type
                 #     comment,
@@ -48,9 +65,10 @@ class ZipExtractor(object):
                 # all zip metadata collected, let's look at the data itself
                 extractor = MetadataExtractor()
                 # TODO: detect mime_type if possible first
-                ret[md['filename']]['metadata'] = \
-                    extractor.from_string(zipf.read(md['filename']),
-                                          'image/tiff')
+                mime, enc = mimetypes.guess_type(zipinfo.filename)
+                if mime:
+                    ret[md['filename']]['metadata'] = \
+                        extractor.from_archive(fileob.name, md['filename'], mime)
 
         return ret
 
@@ -83,6 +101,7 @@ class TiffExtractor(object):
 
     def from_string(self, data):
         from osgeo import gdal
+        # FIXME: need to add .aux.xml to vsimem as well
         memname = '/vsimem/{0}'.format(str(uuid.uuid4()))
         try:
             gdal.FileFromMemBuffer(memname, data)
@@ -92,9 +111,15 @@ class TiffExtractor(object):
             gdal.Unlink(memname)
         return ret
 
+    def from_archive(self, archivepath, path):
+        # use gdals VSI infrastructure to read files from zip file
+        vsiname = '/vsizip/{0}/{1}'.format(archivepath, path)
+        ret = self._get_gdal_metadata(vsiname)
+        return ret
+
     def _get_gdal_metadata(self, filename):
         # let's do GDAL here ? if it fails do Hachoir
-        from osgeo import gdal, osr
+        from osgeo import gdal, osr, gdalconst
         ds = gdal.Open(filename, gdal.GA_ReadOnly)
 
         # TODO: get bounding box
@@ -186,6 +211,65 @@ class TiffExtractor(object):
                 data['band'] = []
             data['band'].append(banddata)
 
+            # extract Raster Attribute table (if any)
+            rat = band.GetDefaultRAT()
+
+            def _getColValue(rat, row, col):
+                valtype = rat.GetTypeOfCol(col)
+                if valtype == gdalconst.GFT_Integer:
+                    return rat.GetValueAsInt(row, col)
+                if valtype == gdalconst.GFT_Real:
+                    return rat.GetValueAsDouble(row, col)
+                if valtype == gdalconst.GFT_String:
+                    return rat.GetValueAsString(row, col)
+                return None
+
+            GFU_MAP = {
+                gdalconst.GFU_Generic: 'Generic',
+                gdalconst.GFU_Max: 'Max',
+                gdalconst.GFU_MaxCount: 'MaxCount',
+                gdalconst.GFU_Min: 'Min',
+                gdalconst.GFU_MinMax: 'MinMax',
+                gdalconst.GFU_Name: 'Name',
+                gdalconst.GFU_PixelCount: 'PixelCount',
+                gdalconst.GFU_Red: 'Red',
+                gdalconst.GFU_Green: 'Green',
+                gdalconst.GFU_Blue: 'Blue',
+                gdalconst.GFU_Alpha: 'Alpha',
+                gdalconst.GFU_RedMin: 'RedMin',
+                gdalconst.GFU_GreenMin: 'GreenMin',
+                gdalconst.GFU_BlueMin: 'BlueMin',
+                gdalconst.GFU_AlphaMax: 'AlphaMin',
+                gdalconst.GFU_RedMax: 'RedMax',
+                gdalconst.GFU_GreenMax: 'GreenMax',
+                gdalconst.GFU_BlueMin: 'BlueMax',
+                gdalconst.GFU_AlphaMax: 'AlphaMax',
+            }
+
+            GFT_MAP = {
+                gdalconst.GFT_Integer: 'Integer',
+                gdalconst.GFT_Real: 'Real',
+                gdalconst.GFT_String: 'String',
+            }
+
+            if rat:
+                banddata['rat'] = {
+                    'rows': [
+                        [_getColValue(rat, rowidx, colidx)
+                         for colidx in range(0, rat.GetColumnCount())]
+                        for rowidx in range(0, rat.GetRowCount())
+                    ],
+                    'cols': [
+                        {'name': rat.GetNameOfCol(idx),
+                         'type': GFT_MAP[rat.GetTypeOfCol(idx)],
+                         'usage': GFU_MAP[rat.GetUsageOfCol(idx)],
+                         'idx': idx} for idx in range(0, rat.GetColumnCount())],
+                }
+                # Assume if there is a RAT we have categorical data
+                banddata['type'] = 'categorical'
+            else:
+                banddata['type'] = 'continuous'
+
         ds = None
 
         # HACHOIR Tif extractor:
@@ -246,6 +330,9 @@ class CSVExtractor(object):
         csvfile = StringIO(data.decode('utf-8'))
         return self.from_fileob(csvfile)
 
+    def from_archive(self, archivepath, path):
+        return
+
 
 class HachoirExtractor(object):
 
@@ -257,8 +344,6 @@ class HachoirExtractor(object):
         from hachoir_metadata import extractMetadata
         ret = extractMetadata(parser)
         #formated = md.exportPlaintext(line_prefix=u"")
-
-        import ipdb; ipdb.set_trace()
         return ret
 
 
