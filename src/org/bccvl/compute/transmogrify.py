@@ -318,10 +318,12 @@ class FileMetadata(object):
         self.filemetadatakey = options.get('filemetadata-key',
                                            '_filemetadata').strip()
 
-    def _place_file_on_filesystem(self, data):
-        tmpfd, tmpname = tempfile.mkstemp()
+    def _place_file_on_filesystem(self, fileitem):
+        _, ext = os.path.split(fileitem['name'])
+        # Add suffix to temp file to keep gdal's VSI happy
+        tmpfd, tmpname = tempfile.mkstemp(suffix=ext)
         tmpfile = os.fdopen(tmpfd, 'w')
-        tmpfile.write(data)
+        tmpfile.write(fileitem['data'])
         tmpfile.close()
         # TODO: catch exception during copy and cleanup if necessary
         return tmpname
@@ -355,13 +357,15 @@ class FileMetadata(object):
                 # our file is not in the _files list
                 yield item
                 continue
+            # get content type and filename
+            filect = fileitem.get('contenttype') or item.get('file', {}).get('contenttype')
+            filename = fileitem.get('filename') or item.get('file', {}).get('filename')
+            # get path to data on local filesystem
             if 'path' in fileitem:
                 filepath = fileitem['path']
             elif 'data' in fileitem:
-                tmpfile = self._place_file_on_filesystem(fileitem['data'])
+                tmpfile = self._place_file_on_filesystem(fileitem)
                 filepath = tmpfile
-            filect = fileitem.get('contenttype') or item.get('file', {}).get('contenttype')
-            filename = fileitem.get('filename') or item.get('file', {}).get('filename')
 
             # ok .. everything ready let's try our luck
             # fileio ... stream to read data from
