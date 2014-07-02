@@ -32,7 +32,8 @@ First we'll need a simple data source and a transomgrifiec pipeline
 
     Check a few values
 
-    >>> filemd = dict(((item.keys()[0], item[item.keys()[0]]) for item in plone.items if item is not None))
+    >>> filemd = dict(((item.keys()[0], item[item.keys()[0]])
+    ...                for item in plone.items if item is not None))
     >>> item = filemd['mini_current_50to00_.3.zip']
     >>> subitem = item['mini_current_50to00_.3/bioclim_05.tif']
     >>> subitem['metadata']['srs']

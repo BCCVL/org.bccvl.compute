@@ -34,7 +34,7 @@ def test_suite():
     suite = unittest.findTestCases(sys.modules[__name__])
     suite.addTests((
         doctest.DocFileSuite(
-            '../filematadata.rst',
+            '../filemetadata.rst',
             setUp=setUp, tearDown=tearDown,
             optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS),
     ))
