@@ -227,11 +227,15 @@ class ResultSource(object):
                 'file': 'rdf.ttl',
                 'contenttype': 'text/turtle',
             },
+            # FIXME: I think adding ofen file descriptors works just fine,
+            #        otherwise could use new 'path' feature with additional blueprint
             '_files': {
                 name: {
+                    'name': name,
                     'data': open(fname).read()
                 },
                 'rdf.ttl': {
+                    'name': 'rdf.ttl',
                     'data': rdf.serialize(format='turtle')
                 }
             }
