@@ -294,27 +294,30 @@ class CSVExtractor(object):
         bounds = [float("Inf"), float("Inf"),
                   float("-Inf"), float("-Inf")]
         species = set()
+        data = {}
         count = 0
-        lonidx = headers.index('lon')
-        latidx = headers.index('lat')
-        speciesidx = None
-        if 'species' in headers:
-            speciesidx = headers.index('species')
-        for row in csvreader:
-            count += 1
-            lat, lon = float(row[latidx]), float(row[lonidx])
-            bounds[0] = min(lat, bounds[0])
-            bounds[1] = min(lon, bounds[1])
-            bounds[2] = max(lat, bounds[2])
-            bounds[3] = max(lon, bounds[3])
-            if speciesidx is not None:
-                species.add(row[speciesidx])
+        if 'lat' in headers and 'lon' in headers:
+            # extract md about occurrences -> generate bounding box
+            lonidx = headers.index('lon') if 'lon' in headers else None
+            latidx = headers.index('lat')
+            speciesidx = None
+            if 'species' in headers:
+                speciesidx = headers.index('species')
+            for row in csvreader:
+                count += 1
+                lat, lon = float(row[latidx]), float(row[lonidx])
+                bounds[0] = min(lat, bounds[0])
+                bounds[1] = min(lon, bounds[1])
+                bounds[2] = max(lat, bounds[2])
+                bounds[3] = max(lon, bounds[3])
+                if speciesidx is not None:
+                    species.add(row[speciesidx])
+            data['rows'] = count
+            data['species'] = species
+            data['bounds'] = bounds
 
         data = {
             'headers': headers,
-            'rows': count,
-            'bounds': bounds,
-            'species': species
         }
 
         return data
