@@ -30,7 +30,7 @@
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript"
         },
-        "*.proj_current.tif": {
+        "*proj_current*.tif": {
             "title": "Projection to current",
             "genre": "DataGenreCP",
             "mimetype": "image/geotiff"
