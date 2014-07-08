@@ -316,9 +316,9 @@ class CSVExtractor(object):
             data['species'] = species
             data['bounds'] = bounds
 
-        data = {
+        data.update({
             'headers': headers,
-        }
+        })
 
         return data
 
