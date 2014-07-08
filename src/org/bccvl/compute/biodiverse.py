@@ -50,15 +50,50 @@ OUTPUTS = {
             "genre": "DataGenreLog",
             "mimetype": "text/plain"
         },
-        '*.tif': {
-            'title': 'Biodiverse output',
-            'genre': 'BiodiverseOutput',
-            'mimetype': 'image/geotiff',
+        'proj_*.tif': {
+            "title": "Binary input",
+            "genre": "DataGenreBinaryImage",
+            "mimetype": "image/geotiff"
         },
-        # TODO: is this a Cadcorp SIS Base Dataset? (a gis file)
+        '*ENDW_CWE.tif': {
+            "title": "Endemism whole - Corrected Weighted Endemism",
+            "genre": "DataGenreENDW_CWE",
+            "mimetype": "image/geotiff"
+        },
+        '*ENDW_WE.tif': {
+            "title": "Endemism whole - Weighted Endemism",
+            "genre": "DataGenreENDW_WE",
+            "mimetype": "image/geotiff"
+        },
+        '*ENDW_RICHNESS.tif': {
+            "title": "Endemism whole - Richness used in ENDW_CWE",
+            "genre": "DataGenreENDW_RICHNESS",
+            "mimetype": "image/geotiff"
+        },
+        '*ENDW_SINGLE.tif': {
+            "title": "Endemism whole - Unweigthed by the number of neighbours",
+            "genre": "DataGenreENDW_SINGLE",
+            "mimetype": "image/geotiff"
+        },
+        '*REDUNDANCY_SET1.tif': {
+            "title": "Redundancy - neigbour set 1",
+            "genre": "DataGenreREDUNDANCY_SET1",
+            "mimetype": "image/geotiff",
+        },
+        '*REDUNDANCY_SET2.tif': {
+            "title": "Redundancy - neigbour set 2",
+            "genre": "DataGenreREDUNDANCY_SET2",
+            "mimetype": "image/geotiff",
+        },
+        '*REDUNDANCY_ALL.tif': {
+            "title": "Redundancy - both neigbour sets",
+            "genre": "DataGenreREDUNDANCY_ALL",
+            "mimetype": "image/geotiff",
+        },
         '*.bds':  {
+            # Perl Storable package
             'title': 'Biodiverse output',
-            'genre': 'BiodiverseOutput',
+            'genre': 'BiodiverseModel',
             'mimetype': 'application/octet-stream',
         }
     },
