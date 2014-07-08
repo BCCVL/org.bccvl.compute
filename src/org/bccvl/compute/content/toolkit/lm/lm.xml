@@ -5,12 +5,12 @@
   <schema based-on="zope.interface.Interface">
     <field name="subset" type="zope.schema.TextLine">
       <title>Subset</title>
-      <descirption>Optional vector that may be used to specify a subset of the data. Please specify a column included in the data model.</descirption>
+      <description>Optional vector that may be used to specify a subset of the data. Please specify a column included in the data model.</description>
       <required>False</required>
     </field>
     <field name="weights" type="zope.schema.TextLine">
       <title>Weights</title>
-      <descirption>Optional vector that may be used to specify weights. Please specify a column included in the data model.</descirption>
+      <description>Optional vector that may be used to specify weights. Please specify a column included in the data model.</description>
       <required>False</required>
     </field>
     <field name="na_action" type="zope.schema.Choice">
@@ -20,12 +20,14 @@
       <default>na.fail</default>
       <vocabulary>lm_na_action_vocab</vocabulary>
     </field>
-    <field name="method" type="zope.schema.TextLine">
+    <field name="method" type="zope.schema.Choice">
       <title>Method</title>
-      <descirption>No other method available yet.</descirption>
+      <description>No other method available yet.</description>
+      <values>
+        <element>qr</element>
+      </values>
       <default>qr</default>
-      <required>False</required>
-      <readonly>True</readonly>
+      <required>True</required>
     </field>
     <field name="model" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>False</default>
@@ -54,17 +56,17 @@
     </field>
     <field name="contrasts" type="zope.schema.TextLine">
       <title>Contrasts</title>
-      <descirption>Optional list. Please specify a column included in the data model.</descirption>
+      <description>Optional list.</description>
       <required>False</required>
     </field>
     <field name="offset" type="zope.schema.TextLine">
       <title>Offset</title>
-      <descirption>Optional vector. Please specify a column included in the data model.</descirption>
+      <description>Optional vector. Please specify a column included in the data model.</description>
       <required>False</required>
     </field>
     <field name="other_args" type="zope.schema.TextLine">
       <title>Other args</title>
-      <descirption>This field enables an expert user to specify arguments that can be passed to lower level regression functions.</descirption>
+      <description>This field enables an expert user to specify arguments that can be passed to lower level regression functions.</description>
       <required>False</required>
     </field>
 
