@@ -1,0 +1,11 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Analysis of Variance",
+  "method": "org.bccvl.compute.sptraits.exetuce",
+  "intperpreter": "R",
+  "script": {"filename": "anova.R"},
+  "schema": {"filename": "anova.xml"},
+  "output": {"filename": "anova.txt"},
+  "_fileattributes": ["script", "schema", "output"],
+  "_transitions": "publish"
+}

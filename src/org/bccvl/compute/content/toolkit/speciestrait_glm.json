@@ -1,0 +1,11 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Generalized Linear Model",
+  "method": "org.bccvl.compute.sptraits.exetuce",
+  "intperpreter": "R",
+  "script": {"filename": "speciestrait_glm.R"},
+  "schema": {"filename": "speciestrait_glm.xml"},
+  "output": {"filename": "speciestrait_glm.txt"},
+  "_fileattributes": ["script", "schema", "output"],
+  "_transitions": "publish"
+}
