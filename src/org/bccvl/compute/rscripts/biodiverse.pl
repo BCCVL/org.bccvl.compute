@@ -46,11 +46,11 @@ sub gdalwarp {
     my ($infile, $outdir, $srs) = @_;
     my ($name, $path, $suffix) = fileparse($infile, qr/\.[^.]*/);
     my $destfile = File::Spec->catfile($outdir, $name . ".tif");
-    print "try to transform $_->{'filename'} to $destfile\n";
+    say "try to transform $_->{'filename'} to $destfile";
     system("gdalwarp", "-t_srs", $srs, $infile, $destfile);
     # TODO: $! .... knows whether it all went well
-    print "gdalwarp:", $!, "\n" ;
-    print $destfile, "\n" ;
+    say "gdalwarp:", $! ;
+    say $destfile;
     return $destfile;
 }
 
@@ -72,6 +72,7 @@ sub apply_threshold {
     # read vertical blocks until max height reached
     my $posh = 0 ;
     my $nodata = $band->NoDataValue();
+    my $allsame = undef;  # flag to see whether all raster values are 0 or 1 after thresholding
     while ($posh < $bandh) {
         # read horizontal blocks until max width reached
         my $posw = 0 ;
@@ -88,9 +89,20 @@ sub apply_threshold {
                 for(my $col_i = 0; $col_i < @{$row}; $col_i++) {
                     my $val = $row->[$col_i];
                     if (defined($nodata) && $val == $nodata) {
+                        # leave nodata points unchanged
+                        # if we have nodata, we assume there are a tleast a few point set.
+                        $allsame = -1;
                         next;
                     }
-                    $row->[$col_i] = $val < $threshold ? 0 : 1;
+                    my $newval = $val < $threshold ? 0 : 1;
+                    $row->[$col_i] = $newval;
+                    if (not defined($allsame)) {
+                        $allsame = $newval ;
+                    } else {
+                        if ($allsame >= 0 && $allsame != $newval) {
+                            $allsame = -1 ;
+                        }
+                    }
                 }
             }
             # write block back to file
@@ -103,7 +115,15 @@ sub apply_threshold {
     my ($min, $max, $mean, $stddev) = $band->ComputeStatistics(0);
     $band->SetStatistics($min, $max, $mean, $stddev);
     # Flush and close file
-    $dataset->FlushCache()
+    $dataset->FlushCache();
+    if (defined($allsame) && $allsame >= 0) {
+        # we have a problem here. after thresholding all data values are the same
+        # (0 or 1). We can't run the algorithm, but we can give the user meaningful
+        # message
+        say "Thresholding turned every single value in the raster to $allsame.";
+        say "Can't run algorithms.";
+        die "Please choose a better threshold.";
+    }
 }
 
 ##########################################
