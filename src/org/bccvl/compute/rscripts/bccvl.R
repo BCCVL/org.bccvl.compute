@@ -51,7 +51,8 @@ bccvl.err.null <- function (e) return(NULL)
 # TODO: shall we set projection here as well? use SpatialPoints?
 bccvl.species.read <- function(filename) {
     if (!is.null(filename)) {
-        return (read.csv(filename))
+        # assume the data is in species_name,longitude,latitude format
+        return (read.csv(filename, header=TRUE, colClasses=c("character","numeric","numeric")))
     }
 }
 
