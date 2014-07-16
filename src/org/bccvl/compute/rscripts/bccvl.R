@@ -51,8 +51,10 @@ bccvl.err.null <- function (e) return(NULL)
 # TODO: shall we set projection here as well? use SpatialPoints?
 bccvl.species.read <- function(filename) {
     if (!is.null(filename)) {
-        # assume the data is in species_name,longitude,latitude format
-        return (read.csv(filename, header=TRUE, colClasses=c("character","numeric","numeric")))
+        # We might loose precision of lon/lat when ronverting to double,
+        # However, given the nature of the numbers, and the resolution of raster files
+        # we deal with, this shouldn't be a problem.
+        return (read.csv(filename, colClasses=c("lon"="numeric", "lat"="numeric")))
     }
 }
 
