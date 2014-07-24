@@ -54,4 +54,10 @@
         name="org.bccvl.site.content.interfaces.ISpeciesTraitsExperiment"
     />
 
+    <utility
+        component=".ensemble.execute"
+        name="org.bccvl.site.content.interfaces.IEnsembleExperiment"
+    />
+
+
 </configure>
