@@ -4,6 +4,8 @@
 ## Build a raster stack from .tif files selected by the user
 rs = stack(lapply(bccvl.params$datasets, function(x) x$filename))
 
+output_dir = bccvl.env$outputdir
+
 ## Generate ensemble analyses
 
 r.mean = mean(rs)
