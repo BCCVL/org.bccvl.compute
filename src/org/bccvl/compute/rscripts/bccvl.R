@@ -140,8 +140,7 @@ bccvl.grdtogtiff <- function(folder) {
         # read grid raster
         grd <- raster(file.path(folder, grdfile))
         # write raster as geotiff
-        outputdir = bccvl.env$outputdir
-        filename = file.path(outputdir, paste(grdname, 'tif', sep="."))
+        filename = file.path(folder, paste(grdname, 'tif', sep="."))
         writeRaster(grd, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
         # remove grd files
         file.remove(file.path(folder, paste(grdname, c("grd","gri"), sep=".")))
