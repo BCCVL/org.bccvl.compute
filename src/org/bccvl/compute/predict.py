@@ -72,15 +72,22 @@ OUTPUTS = {
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript"
         },
-        "*ClampingMask.tif": {
-            "title": "Clamping Mask",
-            "genre": "DataGenreClampingMask",
-            "mimetype": "image/geotiff"
-        },
+        # Dismo projection output
         'proj_*.tif': {
             'title': 'Future Projection',
             'genre': 'DataGenreFP',
             'mimetype': 'image/geotiff',
+        },
+        # Biomod projection output
+        '*/proj_*/proj_*_ClampingMask.tif': {
+            "title": "Clamping Mask",
+            "genre": "DataGenreClampingMask",
+            "mimetype": "image/geotiff"
+        },
+        "*/proj_*/proj_*.tif": {
+            "title": "Future Projection",
+            "genre": "DataGenreFP",
+            "mimetype": "image/geotiff"
         },
     },
     'archives': {
