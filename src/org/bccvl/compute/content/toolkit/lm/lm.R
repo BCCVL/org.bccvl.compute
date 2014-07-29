@@ -51,7 +51,7 @@ if (! is.null(bccvl.params['singular_ok'])) {
 lm.result = lm(formula=lm.params$formula,
                data=lm.params$data,
                subset=lm.params$subset,
-               weights=lm.params$weigths,
+               weights=lm.params$weights,
                na.action=lm.params$na.action[[1]],
                method=lm.params$method,
                model=lm.params$model,
