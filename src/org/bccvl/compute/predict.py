@@ -133,4 +133,6 @@ def execute(result, func):
         'name': 'projection.R',
         'script': script
     }
+    # set debug flag
+    params['worker']['zipworkenv'] = api.env.debug_mode()
     after_commit_task(r_task, params, context)

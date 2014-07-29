@@ -118,7 +118,7 @@ def execute_sdm(result, toolkit):
     try:
         OUTPUTS = json.loads(toolkit.output)
     except (ValueError, TypeError) as e:
-        LOG.fatal("couldn't load OUTPUT form toolkit %s: %s",
+        LOG.fatal("couldn't load OUTPUT from toolkit %s: %s",
                   toolkit.getId(), e)
         OUTPUTS = {}
     params = get_toolkit_params(result)
@@ -144,5 +144,7 @@ def execute_sdm(result, toolkit):
         'name': '{}.R'.format(toolkit.getId()),
         'script': script
     }
+    # set debug flag
+    params['worker']['zipworkenv'] = api.env.debug_mode()
     ### send job to queue
     after_commit_task(r_task, params, context)

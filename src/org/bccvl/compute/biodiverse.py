@@ -152,5 +152,7 @@ def execute(result, toolkit):
         'name': 'biodiverse.pl',
         'script': script,
     }
+    # set debug flag
+    params['worker']['zipworkenv'] = api.env.debug_mode()
     ### send job to queue
     after_commit_task(perl_task, params, context)

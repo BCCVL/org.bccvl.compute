@@ -80,4 +80,6 @@ def execute(result, toolkit):
         'name': '{}.R'.format(toolkit.getId()),
         'script': script
     }
+    # set debug flag
+    params['worker']['zipworkenv'] = api.env.debug_mode()
     after_commit_task(r_task, params, context)
