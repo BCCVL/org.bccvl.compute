@@ -41,7 +41,7 @@ for (paramname in c('subset', 'weights', 'contrasts','offset')) {
 }
 
 # singular.ok has a different name in bccvl.params
-if (! is.null(bccvl.params['singura_ok'])) {
+if (! is.null(bccvl.params['singular_ok'])) {
     lm.params['singular.ok'] = bccvl.params$singular_ok
 } else {
     lm.params['singular.ok'] = lm.defaults$singular.ok
