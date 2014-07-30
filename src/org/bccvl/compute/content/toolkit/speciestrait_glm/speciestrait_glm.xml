@@ -86,10 +86,5 @@
       <description>Optional list.</description>
       <required>False</required>
     </field>
-    <field name="other_args" type="zope.schema.TextLine">
-      <title>Other args</title>
-      <description>This field enables an expert user to specify arguments that can be passed to lower level regression functions.</description>
-      <required>False</required>
-    </field>
   </schema>
 </model>

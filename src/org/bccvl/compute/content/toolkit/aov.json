@@ -3,9 +3,9 @@
   "title": "Analysis of Variance",
   "method": "org.bccvl.compute.sptraits.exetuce",
   "intperpreter": "R",
-  "script": {"filename": "anova.R"},
-  "schema": {"filename": "anova.xml"},
-  "output": {"filename": "anova.txt"},
+  "script": {"filename": "aov.R"},
+  "schema": {"filename": "aov.xml"},
+  "output": {"filename": "aov.txt"},
   "_fileattributes": ["script", "schema", "output"],
   "_transitions": "publish"
 }
