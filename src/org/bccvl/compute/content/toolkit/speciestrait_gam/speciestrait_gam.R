@@ -21,7 +21,6 @@ gam.defaults = list(family=gaussian(link=identity),
                    ea_start=NULL,
                    mu_start=NULL,
                    offset=NULL,
-                   control=gam.control(), #note NULL breaks the call to gam
                    method="gam.fit",
                    model=TRUE,
                    x=FALSE,
@@ -30,7 +29,7 @@ gam.defaults = list(family=gaussian(link=identity),
                    contrasts=NULL)
 
 # plain old parameters
-for (paramname in c('formula', 'family', 'na.action', 'control', 'method', 'model', 'x', 'y', 'include_intercept')) {
+for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y', 'include_intercept')) {
     if (! is.null(bccvl.params[[paramname]])) {
         gam.params[paramname] = bccvl.params[paramname]
     } else {
@@ -38,11 +37,6 @@ for (paramname in c('formula', 'family', 'na.action', 'control', 'method', 'mode
     }
 }
 
-if ( is.null(gam.params$control) ) {
-    #Note if this value is NULL gam will fail. Hard coding this for now. TODO discuss with Gerhard and Jon
-    gam.params$control=gam.control()
-    #Could print a warning
-}
 # parameters that sholud refer to a column in gam.data
 for (paramname in c('start', 'eta_start', 'mu_start', 'subset', 'weights', 'contrasts','offset')) {
     if (! is.null(bccvl.params[[paramname]])) {
@@ -72,7 +66,6 @@ gam.result = gam(formula=formula(gam.params$formula),
                  etastart=gam.params$eta_start,
                  mustart=gam.params$mu_start,
                  offset=gam.params$offset,
-                 control=gam.params$control,
                  method=gam.params$method,
                  model=gam.params$model,
                  x=gam.params$x,
