@@ -2,6 +2,7 @@
 ### gamlss.R ###
 
 # TODO: verify with Gerhard that this is the appropriate place to load this
+#install.packages("gamlss")
 library("gamlss")
 
 ## Get the data
