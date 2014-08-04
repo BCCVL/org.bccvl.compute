@@ -69,10 +69,16 @@ def getdatasetparams(uuid):
         dsinfo['species'] = unicode(species)
     # if we can get layermetadata, let's add it
     biomod = getbiolayermetadata(dsobj)
-    if biomod:
+    if biomod.get('layers'):
         dsinfo['layers'] = dict(((k, v['filename']) for
-                                 k, v in biomod.items()))
+                                 k, v in biomod['layers'].items()))
         # FIXME: get type from metadata
+        dsinfo['type'] = 'continuous'
+    if biomod.get('layer'):
+        dsinfo['layers'] = {
+            biomod['layer'],
+            biomod['filename']
+        }
         dsinfo['type'] = 'continuous'
     # return infoset
     return dsinfo
