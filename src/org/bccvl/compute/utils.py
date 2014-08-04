@@ -6,12 +6,11 @@
 .. moduleauthor:: Gerhard Weis <g.weis@griffith.edu.au>
 """
 import os
-import os.path
 from decimal import Decimal
 from plone.app.uuid.utils import uuidToObject
 from org.bccvl.site.api.dataset import getbiolayermetadata
-from gu.z3cform.rdf.interfaces import IGraph
-from org.bccvl.site.namespace import DWC
+from gu.z3cform.rdf.interfaces import IResource
+from org.bccvl.site.namespace import DWC, BCCPROP, BCCVOCAB
 from org.bccvl.site.interfaces import IDownloadInfo
 
 import logging
@@ -63,8 +62,9 @@ def getdatasetparams(uuid):
         return None
     dsinfo = getDatasetInfo(dsobj, uuid)
     # if we have species info add it
-    dsmd = IGraph(dsobj)
-    species = dsmd.value(dsmd.identifier, DWC['scientificName'])
+    dsmdr = IResource(dsobj)
+    species = dsmdr.value(DWC['scientificName'])
+    genre = dsmdr.value(BCCPROP['datagenre'])
     if species:
         dsinfo['species'] = unicode(species)
     # if we can get layermetadata, let's add it
@@ -74,11 +74,13 @@ def getdatasetparams(uuid):
                                  k, v in biomod['layers'].items()))
         # FIXME: get type from metadata
         dsinfo['type'] = 'continuous'
-    if biomod.get('layer'):
-        dsinfo['layers'] = {
-            biomod['layer'],
-            biomod['filename']
-        }
-        dsinfo['type'] = 'continuous'
+    if genre and genre.identifier in (BCCVOCAB['DataGenreFC'],
+                                      BCCVOCAB['DataGenreE']):
+        if biomod.get('layer'):
+            dsinfo['layers'] = {
+                biomod['layer'],
+                biomod['filename']
+            }
+            dsinfo['type'] = 'continuous'
     # return infoset
     return dsinfo
