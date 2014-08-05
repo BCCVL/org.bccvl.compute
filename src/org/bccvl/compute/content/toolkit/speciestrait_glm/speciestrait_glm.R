@@ -19,7 +19,6 @@ glm.defaults = list(family=gaussian(link=identity),
                    ea_start=NULL,
                    mu_start=NULL,
                    offset=NULL,
-                   control=list(), #note NULL breaks the call to glm
                    method="glm.fit",
                    model=TRUE,
                    x=FALSE,
@@ -28,7 +27,7 @@ glm.defaults = list(family=gaussian(link=identity),
                    contrasts=NULL)
 
 # plain old parameters
-for (paramname in c('formula', 'family', 'na.action', 'control', 'method', 'model', 'x', 'y', 'include_intercept')) {
+for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y', 'include_intercept')) {
     if (! is.null(bccvl.params[[paramname]])) {
         glm.params[paramname] = bccvl.params[paramname]
     } else {
@@ -36,11 +35,6 @@ for (paramname in c('formula', 'family', 'na.action', 'control', 'method', 'mode
     }
 }
 
-if ( is.null(glm.params$control) ) {
-    #Note if this value is NULL glm will fail. Hard coding this for now. TODO discuss with Gerhard and Jon
-    glm.params$control=list()
-    #Could print a warning
-}
 # parameters that sholud refer to a column in glm.data
 for (paramname in c('start', 'eta_start', 'mu_start', 'subset', 'weights', 'contrasts','offset')) {
     if (! is.null(bccvl.params[[paramname]])) {
@@ -70,7 +64,6 @@ glm.result = glm(formula=glm.params$formula,
                  etastart=glm.params$eta_start,
                  mustart=glm.params$mu_start,
                  offset=glm.params$offset,
-                 control=glm.params$control,
                  method=glm.params$method,
                  model=glm.params$model,
                  x=glm.params$x,

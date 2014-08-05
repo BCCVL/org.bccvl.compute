@@ -33,6 +33,7 @@ class MetadataExtractor(object):
             md = self.extractors[mime_type].from_archive(archivepath, path)
         return md
 
+
 # TODO: FilesystemExtractor .... size, etc....
 class ZipExtractor(object):
 
@@ -358,4 +359,3 @@ MetadataExtractor.extractors = {
     'image/geotiff': TiffExtractor(),
     'text/csv': CSVExtractor(),
 }
-

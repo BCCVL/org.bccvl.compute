@@ -227,15 +227,18 @@ class ResultSource(object):
                 'file': 'rdf.ttl',
                 'contenttype': 'text/turtle',
             },
-            # FIXME: I think adding ofen file descriptors works just fine,
+            # FIXME: I think adding open file descriptors works just fine,
             #        otherwise could use new 'path' feature with additional blueprint
             '_files': {
                 name: {
+                    # FIXME: is it name or filename as key?
                     'name': name,
-                    'data': open(fname).read()
+                    'path': fname,
+                    'data': open(fname, 'r')
                 },
                 'rdf.ttl': {
                     'name': 'rdf.ttl',
+                    # FIXME: seems like 'data' as fileobject is supported ... rdf reader should support it as well
                     'data': rdf.serialize(format='turtle')
                 }
             }
@@ -361,6 +364,7 @@ class FileMetadata(object):
             filect = fileitem.get('contenttype') or item.get('file', {}).get('contenttype')
             filename = fileitem.get('filename') or item.get('file', {}).get('filename')
             # get path to data on local filesystem
+            # FIXME: data might be file like object
             if 'path' in fileitem:
                 filepath = fileitem['path']
             elif 'data' in fileitem:

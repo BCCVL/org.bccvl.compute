@@ -11,11 +11,6 @@
             "mimetype": "text/plain"
         },
         "*.RData": {
-            "title": "Species Traits Model",
-            "genre": "DataGenreSM",
-            "mimetype": "text/x-r-data"
-        },
-        "*.RData": {
             "title": "R Species Traits Model object",
             "genre": "DataGenreSTModel",
             "mimetype": "application/x-r-data"

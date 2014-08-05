@@ -46,11 +46,6 @@
       <description>Optional vector. Please specify a column included in the data model.</description>
       <required>False</required>
     </field>
-    <field name="control" type="zope.schema.TextLine">
-      <title>Control</title>
-      <description></description>
-      <required>False</required>
-    </field>
     <field name="method" type="zope.schema.Choice">
       <title>Method</title>
       <description></description>
@@ -84,11 +79,6 @@
     <field name="contrasts" type="zope.schema.TextLine">
       <title>Contrasts</title>
       <description>Optional list.</description>
-      <required>False</required>
-    </field>
-    <field name="other_args" type="zope.schema.TextLine">
-      <title>Other args</title>
-      <description>This field enables an expert user to specify arguments that can be passed to lower level regression functions.</description>
       <required>False</required>
     </field>
   </schema>
