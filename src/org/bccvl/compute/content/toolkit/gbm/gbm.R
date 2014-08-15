@@ -49,20 +49,14 @@ projection.name = "current"  #basename(enviro.data.current)
 
 # model-specific arguments to create a biomod model
 model.options.gbm <- list(
+    distribution = bccvl.params$distribution, # "bernoulli", "gaussian", "laplace", "tdist", "huberized", "multinomial", "adaboost", "poisson", "coxph", "quantile", or "pairwise"
+    n.trees = bccvl.params$n_trees, # The total number of trees to fit
     interaction.depth = bccvl.params$interaction_depth, # Maximum depth of variable interactions
+    n.minobsinnode = bccvl.params$n_minobsinnode,
     shrinkage = bccvl.params$shrinkage, # A shrinkage parameter applied to each tree in the expansion
     bag.fraction = bccvl.params$bag_fraction, # The fraction of the training set observations randomly selected to propose the next tree in the expansion
     train.fraction = bccvl.params$train_fraction, # The first train.fraction * nrows(data) observations are used to fit the gbm
-    n.trees = bccvl.params$n_trees, # The total number of trees to fit
-    cv.folds =  bccvl.params$cv_folds, # Number of cross-validation folds to perform
-    distribution = list(
-        name = bccvl.params$distribution, # "bernoulli", "gaussian", "laplace", "tdist", "huberized", "multinomial", "adaboost", "poisson", "coxph", "quantile", or "pairwise"
-        alpha = bccvl.params$alpha, # The quantile to estimate (when name = "quantile")
-        df = bccvl.params$df, # Degrees of freedom (when name = "tdist")
-        group = bccvl.params$group, # Character vector with the column names of data that jointly indicate the group an instance belongs to (when name = "pairwise")
-        metric = bccvl.params$metric, # optional; "conc", "mrr", "map", or "ndcg" (when name = "pairwise")
-        max.rank = bccvl.params$max_rank # optional; for ndcg and mrr, a cut-off can be chosen using a positive integer parameter (when name = "pairwise")
-    )
+    cv.folds = bccvl.params$cv_folds # Number of cross-validation folds to perform
 )
 
 ############### BIOMOD2 Models ###############
@@ -196,31 +190,31 @@ formatBiomodData = function() {
 #
 ###############
 
-# myBiomodOptions <- BIOMOD_ModelingOptions(GBM = list(distribution = 'bernoulli', interaction.depth = 7, 
+# myBiomodOptions <- BIOMOD_ModelingOptions(GBM = list(distribution = 'bernoulli', interaction.depth = 7,
 #   shrinkage = 0.001, bag.fraction = 0.5, train.fraction = 1, n.trees = 500, cv.folds = 5))
 # n.trees : the total number of trees to fit. This is equivalent to the number of iterations and the number of basis functions in the additive expansion.
 # cv.folds : Number of cross-validation folds to perform. If cv.folds>1 then gbm, in addition to the usual fit, will perform a cross-validation, calculate an estimate of generalization error returned in cv.error.
-# distribution : either a character string specifying the name of the distribution to use or a list with a component name specifying the distribution and any additional parameters needed. 
+# distribution : either a character string specifying the name of the distribution to use or a list with a component name specifying the distribution and any additional parameters needed.
 #   If not specified, gbm will try to guess: if the response has only 2 unique values, bernoulli is assumed; otherwise, if the response is a factor, multinomial is assumed; otherwise, if the response has class "Surv", coxph is assumed; otherwise, gaussian is assumed.
 #   Currently available options are "gaussian" (squared error), "laplace" (absolute loss), "tdist" (t-distribution loss), "bernoulli" (logistic regression for 0-1 outcomes), "huberized" (huberized hinge loss for 0-1 outcomes), "multinomial" (classification when there are more than 2 classes), "adaboost" (the AdaBoost exponential loss for 0-1 outcomes), "poisson" (count outcomes), "coxph" (right censored observations), "quantile", or "pairwise" (ranking measure using the LambdaMart algorithm).
 #   If quantile regression is specified, distribution must be a list of the form list(name="quantile",alpha=0.25) where alpha is the quantile to estimate. The current version's quantile regression method does not handle non-constant weights and will stop.
 #   If "tdist" is specified, the default degrees of freedom is 4 and this can be controlled by specifying distribution=list(name="tdist", df=DF) where DF is your chosen degrees of freedom.
-#   If "pairwise" regression is specified, distribution must be a list of the form list(name="pairwise",group=...,metric=...,max.rank=...) (metric and max.rank are optional, see below). 
-#       group is a character vector with the column names of data that jointly indicate the group an instance belongs to (typically a query in Information Retrieval applications). For training, only pairs of instances from the same group and with different target labels can be considered. 
+#   If "pairwise" regression is specified, distribution must be a list of the form list(name="pairwise",group=...,metric=...,max.rank=...) (metric and max.rank are optional, see below).
+#       group is a character vector with the column names of data that jointly indicate the group an instance belongs to (typically a query in Information Retrieval applications). For training, only pairs of instances from the same group and with different target labels can be considered.
 #       metric is the IR measure to use, one of:
 #           conc - Fraction of concordant pairs; for binary labels, this is equivalent to the Area under the ROC Curve
 #           mrr - Mean reciprocal rank of the highest-ranked positive instance
 #           map - Mean average precision, a generalization of mrr to multiple positive instances
 #           ndcg - Normalized discounted cumulative gain. The score is the weighted sum (DCG) of the user-supplied target values, weighted by log(rank+1), and normalized to the maximum achievable value. This is the default if the user did not specify a metric.
-#               ndcg and conc allow arbitrary target values, while binary targets {0,1} are expected for conc and ndcg. 
+#               ndcg and conc allow arbitrary target values, while binary targets {0,1} are expected for conc and ndcg.
 #       For ndcg and mrr, a cut-off can be chosen using a positive integer parameter max.rank. If left unspecified, all ranks are taken into account.
 #   Note that splitting of instances into training and validation sets follows group boundaries and therefore only approximates the specified train.fraction ratio (the same applies to cross-validation folds). Internally, queries are randomly shuffled before training, to avoid bias.
 #   Weights can be used in conjunction with pairwise metrics, however it is assumed that they are constant for instances from the same group.
 #   For details and background on the algorithm, see e.g. Burges (2010).
 # interaction.depth : The maximum depth of variable interactions. 1 implies an additive model, 2 implies a model with up to 2-way interactions, etc.
 # shrinkage : a shrinkage parameter applied to each tree in the expansion. Also known as the learning rate or step-size reduction.
-# bag.fraction : the fraction of the training set observations randomly selected to propose the next tree in the expansion. This introduces randomnesses into the model fit. 
-#   If bag.fraction<1 then running the same model twice will result in similar but different fits. gbm uses the R random number generator so set.seed can ensure that the model can be reconstructed. 
+# bag.fraction : the fraction of the training set observations randomly selected to propose the next tree in the expansion. This introduces randomnesses into the model fit.
+#   If bag.fraction<1 then running the same model twice will result in similar but different fits. gbm uses the R random number generator so set.seed can ensure that the model can be reconstructed.
 #   Preferably, the user can save the returned gbm.object using save.
 # train.fraction : The first train.fraction * nrows(data) observations are used to fit the gbm and the remainder are used for computing out-of-sample estimates of the loss function.
 

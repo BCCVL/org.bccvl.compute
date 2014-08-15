@@ -35,11 +35,43 @@
       <title>do full models</title>
     </field>
     <!-- GBM Specific Configuration -->
+    <field name="distribution" type="zope.schema.Choice">
+      <default>bernoulli</default>
+      <title>distribution</title>
+      <values>
+        <element>bernoulli</element>
+        <element>gaussian</element>
+        <element>laplace</element>
+        <element>tdist</element>
+        <element>huberized</element>
+        <element>multinomial</element>
+        <element>adaboost</element>
+        <element>poisson</element>
+        <element>coxph</element>
+        <element>quantile</element>
+        <element>pairwise</element>
+      </values>
+    </field>
+    <field name="n_trees" type="zope.schema.Int">
+      <default>500</default>
+      <required>True</required>
+      <title>n trees</title>
+      <description>the total number of trees to fit</description>
+      <min>0</min>
+    </field>
     <field name="interaction_depth" type="zope.schema.Int">
       <default>7</default>
       <required>True</required>
       <title>interaction depth</title>
       <description>maximum depth of variable interactions</description>
+      <min>0</min>
+    </field>
+    <field name="n_minobsinnode" type="zope.schema.Int">
+      <default>5</default>
+      <required>False</required>
+      <title>Min observations in terminal node</title>
+      <description>minimum number of observations in the trees terminal
+          nodes</description>
       <min>0</min>
     </field>
     <field name='shrinkage' type='zope.schema.Decimal'>
@@ -64,75 +96,12 @@
       <description>the first train.fraction * nrows(data) observations are used to fit the gbm</description>
       <min>0</min>
     </field>
-    <field name="n_trees" type="zope.schema.Int">
-      <default>500</default>
-      <required>True</required>
-      <title>n trees</title>
-      <description>the total number of trees to fit</description>
-      <min>0</min>
-    </field>
     <field name="cv_folds" type="zope.schema.Int">
       <default>5</default>
       <required>True</required>
       <title>cv folds</title>
       <description>the number of cross-validation folds to perform</description>
       <min>0</min>
-    </field>
-    <field name="distribution" type="zope.schema.Choice">
-      <default>bernoulli</default>
-      <title>distribution</title>
-      <values>
-        <element>bernoulli</element>
-        <element>gaussian</element>
-        <element>laplace</element>
-        <element>tdist</element>
-        <element>huberized</element>
-        <element>multinomial</element>
-        <element>adaboost</element>
-        <element>poisson</element>
-        <element>coxph</element>
-        <element>quantile</element>
-        <element>pairwise</element>
-      </values>
-    </field>
-    <field name='alpha' type='zope.schema.Decimal'>
-      <default>0.25</default>
-      <required>True</required>
-      <title>alpha</title>
-      <description>the quantile to estimate (only used when distrubition = "quantile")</description>
-      <min>0</min>
-    </field>
-    <field name="df" type="zope.schema.Int">
-      <default>4</default>
-      <required>True</required>
-      <title>degrees of freedom</title>
-      <description>(only used when distribution = "tdist")</description>
-      <min>0</min>
-    </field>
-    <field name="group" type="zope.schema.TextLine">
-      <default></default>
-      <required>False</required>
-      <title>group</title>
-      <description>character vector with the column names of data that jointly indicate the group an instance belongs to (only used when distribution = "pairwise")</description>
-    </field>
-    <field name="metric" type="zope.schema.Choice">
-      <default></default>
-      <required>False</required>
-      <title>metric</title>
-      <values>
-        <element>conc</element>
-        <element>mrr</element>
-        <element>map</element>
-        <element>ndcg</element>
-      </values>
-      <description>(only used when distribution = "pairwise")</description>
-    </field>
-    <field name="max_rank" type="zope.schema.Int">
-      <default></default>
-      <required>False</required>
-      <title>max rank</title>
-      <description>a cut-off (only used when metric = "ndcg" or "mrr")</description>
-      <min>1</min>
     </field>
   </schema>
 </model>
