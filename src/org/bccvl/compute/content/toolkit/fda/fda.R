@@ -50,7 +50,7 @@ projection.name = "current"  #basename(enviro.data.current)
 
 # model-specific arguments to create a biomod model
 model.options.fda <- list(
-	model = bccvl.params$model #regression method used in optimal scaling; "polyreg", "mars", "bruto" or "gen.ridge"
+	method = bccvl.params$method #regression method used in optimal scaling; "polyreg", "mars", "bruto" or "gen.ridge"
 )
 
 ############### BIOMOD2 Models ###############

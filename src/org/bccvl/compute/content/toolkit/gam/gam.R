@@ -51,8 +51,6 @@ projection.name = "current"  #basename(enviro.data.current)
 model.options.gam <- list(
     algo = "GAM_mgcv", #"GAM_mgcv", "GAM_gam" or "BAM_mgcv"
     myFormula = NULL, #specific formula; if not NULL, type and interaction.level are args are switched off
-    type = "s_smoother", #the smoother used to generate the formula; only "s_smoother" available at time; switched off if myFormula is not NULL
-    interaction.level = bccvl.params$interaction_level, #integer corresponding to the interaction level between variables considered; switched off if myFormula is not NULL
     k = NULL, #a smooth term in a formula argument to gam (see gam s or mgcv s)
     family = bccvl.params$family, #"binomial", "bernoulli", "gaussian", "laplace", "tdist", "huberized", "multinomial", "adaboost", "poisson", "coxph", "quantile", or "pairwise"
     control = list(
@@ -71,7 +69,9 @@ model.options.gam <- list(
         idLinksBases = TRUE, #if smooth terms have their smoothing parameters linked via the id mechanism (see s), should they also have the same bases. Set this to FALSE only if you are sure you know what you are doing
         scalePenalty = TRUE, #this option rescales the penalty matrices to accomodate this problem. Probably should be set to FALSE if you are linking smoothing parameters but have set idLinkBases to FALSE
         keepData = FALSE #should a copy of the original data argument be kept in the gam object
-    )
+    ),
+    type = "s_smoother", #the smoother used to generate the formula; only "s_smoother" available at time; switched off if myFormula is not NULL
+    interaction.level = bccvl.params$interaction_level #integer corresponding to the interaction level between variables considered; switched off if myFormula is not NULL
 )
 
 ############### BIOMOD2 Models ###############
@@ -205,21 +205,21 @@ formatBiomodData = function() {
 #
 ###############
 
-# myBiomodOptions <- BIOMOD_ModelingOptions(GAM = list(algo = 'GAM_mgcv', type = 's_smoother', k = NULL, 
-#   interaction.level = 0, myFormula = NULL, family = 'binomial', 
+# myBiomodOptions <- BIOMOD_ModelingOptions(GAM = list(algo = 'GAM_mgcv', type = 's_smoother', k = NULL,
+#   interaction.level = 0, myFormula = NULL, family = 'binomial',
 #   control = gam.control(epsilon = 1e-06, trace = FALSE, maxit = 100)))
 # algo : either "GAM_mgcv" (default), "GAM_gam" or "BAM_mgcv" defining the chosen GAM function (see gam, gam resp. bam for more details)
-# myFormula : a typical formula object (see example). If not NULL, type and interaction.level args are switched off. 
+# myFormula : a typical formula object (see example). If not NULL, type and interaction.level args are switched off.
 #   You can choose to either:
-#   1) generate automatically the GAM formula by using the type and interaction.level arguments 
-#       type : the smother used to generate the formula. Only "s_smoother" available at time. 
+#   1) generate automatically the GAM formula by using the type and interaction.level arguments
+#       type : the smother used to generate the formula. Only "s_smoother" available at time.
 #       interaction.level : integer corresponding to the interaction level between variables considered. Consider that interactions quickly enlarge the number of effective variables used into the GAM. Interaction are not considered if you choosed "GAM_gam" algo
 #   2) or construct specific formula
 # k : a smooth term in a formula argument to gam (see gam s or mgcv s)
 # family : a description of the error distribution and link function to be used in the model. This can be a character string naming a family function, a family function or the result of a call to a family function. (See family for details of family functions.) BIOMOD only runs on presence-absence data so far, so binomial family by default.
 # control : see gam::gam.control or mgcv::gam.control
 #   gam::gam.control(epsilon=1e-07, bf.epsilon = 1e-07, maxit=30, bf.maxit = 30, trace=FALSE,...)
-#   mgcv::gam.control(irls.reg=0.0,epsilon = 1e-06, maxit = 100, mgcv.tol=1e-7,mgcv.half=15, trace = FALSE, rank.tol=.Machine$double.eps^0.5, nlm=list(), optim=list(), newton=list(), outerPIsteps=0, idLinksBases=TRUE, scalePenalty=TRUE, keepData=FALSE) 
+#   mgcv::gam.control(irls.reg=0.0,epsilon = 1e-06, maxit = 100, mgcv.tol=1e-7,mgcv.half=15, trace = FALSE, rank.tol=.Machine$double.eps^0.5, nlm=list(), optim=list(), newton=list(), outerPIsteps=0, idLinksBases=TRUE, scalePenalty=TRUE, keepData=FALSE)
 
 # 1. Format the data
 model.data = formatBiomodData()
