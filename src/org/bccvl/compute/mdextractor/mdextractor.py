@@ -126,6 +126,9 @@ class TiffExtractor(object):
         # TODO: get bounding box
         geotransform = ds.GetGeoTransform()
         projref = ds.GetProjectionRef()
+        if not projref:
+            # default to WGS84
+            projref = osr.GetWellKnownGeogCSAsWKT('EPSG:4326')
         spref = osr.SpatialReference(projref)
         data = {
             'size': (ds.RasterXSize, ds.RasterYSize),
@@ -136,7 +139,6 @@ class TiffExtractor(object):
             'origin': (geotransform[0], geotransform[3]),
             'Pxiel Size': (geotransform[1], geotransform[5]),
         }
-
         data.update(ds.GetMetadata_Dict())
         data.update(ds.GetMetadata_Dict('EXIF'))
         from libxmp.core import XMPMeta
@@ -190,13 +192,13 @@ class TiffExtractor(object):
         # Extract GDAL metadata
         for numband in range(1, ds.RasterCount+1):
             band = ds.GetRasterBand(numband)
-            (min, max, mean, stddev) = band.ComputeStatistics(False)
+            (min_, max_, mean, stddev) = band.ComputeStatistics(False)
             banddata = {
                 'data type': gdal.GetDataTypeName(band.DataType),
                 # band.GetRasterColorTable().GetCount() ... color table with
                 # count entries
-                'min': min,
-                'max': max,
+                'min': min_,
+                'max': max_,
                 'mean': mean,
                 'stddev': stddev,
                 'color interpretation': gdal.GetColorInterpretationName(band.GetColorInterpretation()),
