@@ -848,7 +848,7 @@ family_from_string <- function(s)
          
     fargs=gsub(pattern=".*\\(||\\)", 
                replacement="", 
-               gsub(pattern=f, 
+               sub(pattern=f, 
                     replacement="",
                     s)) #get the args inside the parentheses
     args=list()
