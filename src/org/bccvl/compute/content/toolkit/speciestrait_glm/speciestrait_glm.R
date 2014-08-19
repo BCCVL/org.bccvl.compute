@@ -11,7 +11,7 @@ glm.params = list(data=glm.data)
 
 ## set defaults for missing parameters according to R docs:
 ## see Jon Shuker's inputs specification for reference
-glm.defaults = list(family=gaussian(link=identity),
+glm.defaults = list(family="gaussian(link=identity)",
                    subset=NULL,
                    weights=NULL,
                    na.action=options("na.action")[[1]],
@@ -23,11 +23,10 @@ glm.defaults = list(family=gaussian(link=identity),
                    model=TRUE,
                    x=FALSE,
                    y=FALSE,
-                   include_intercept=TRUE,
                    contrasts=NULL)
 
 # plain old parameters
-for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y', 'include_intercept')) {
+for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y')) {
     if (! is.null(bccvl.params[[paramname]])) {
         glm.params[paramname] = bccvl.params[paramname]
     } else {
@@ -51,24 +50,25 @@ if (! is.null(bccvl.params['singular_ok'])) {
     glm.params['singular.ok'] = glm.defaults$singular.ok
 }
 
+# parse the family string (character) into a proper family object
+glm.params$family=family_from_string(glm.params$family)
 
 
 ## Run the regression
 glm.result = glm(formula=glm.params$formula,
-                 data=glm.params$data,
                  family=glm.params$family,
-                 subset=glm.params$subset,
+                 data=glm.params$data,
                  weights=glm.params$weights,
+                 subset=glm.params$subset,
                  na.action=glm.params$na.action[[1]],
                  start=glm.params$start,
                  etastart=glm.params$eta_start,
                  mustart=glm.params$mu_start,
                  offset=glm.params$offset,
-                 method=glm.params$method,
                  model=glm.params$model,
+                 method=glm.params$method,
                  x=glm.params$x,
                  y=glm.params$y,
-                 include_intercept=glm.params$include_intercept,
                  contrasts=glm.params$contrasts)
 
 ## Save the result to file

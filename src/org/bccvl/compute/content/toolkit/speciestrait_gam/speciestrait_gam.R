@@ -13,23 +13,21 @@ gam.params = list(data=gam.data)
 
 ## set defaults for missing parameters according to R docs:
 ## see Jon Shuker's inputs specification for reference
-gam.defaults = list(family=gaussian(link=identity),
+gam.defaults = list(family="gaussian(link=identity)",
                    subset=NULL,
                    weights=NULL,
                    na.action=options("na.action")[[1]],
                    start=NULL,
                    ea_start=NULL,
                    mu_start=NULL,
-                   offset=NULL,
                    method="gam.fit",
                    model=TRUE,
                    x=FALSE,
                    y=FALSE,
-                   include_intercept=TRUE,
                    contrasts=NULL)
 
 # plain old parameters
-for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y', 'include_intercept')) {
+for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y')) {
     if (! is.null(bccvl.params[[paramname]])) {
         gam.params[paramname] = bccvl.params[paramname]
     } else {
@@ -38,7 +36,7 @@ for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y
 }
 
 # parameters that sholud refer to a column in gam.data
-for (paramname in c('start', 'eta_start', 'mu_start', 'subset', 'weights', 'contrasts','offset')) {
+for (paramname in c('start', 'eta_start', 'mu_start', 'subset', 'weights', 'contrasts')) {
     if (! is.null(bccvl.params[[paramname]])) {
         gam.params[paramname] = gam.data[bccvl.params[[paramname]]]
     } else {
@@ -53,6 +51,8 @@ if (! is.null(bccvl.params['singular_ok'])) {
     gam.params['singular.ok'] = gam.defaults$singular.ok
 }
 
+# parse the family string (character) into a proper family object
+gam.params$family=family_from_string(glm.params$family)
 
 
 ## Build the model
@@ -65,12 +65,10 @@ gam.result = gam(formula=formula(gam.params$formula),
                  start=gam.params$start,
                  etastart=gam.params$eta_start,
                  mustart=gam.params$mu_start,
-                 offset=gam.params$offset,
                  method=gam.params$method,
                  model=gam.params$model,
                  x=gam.params$x,
                  y=gam.params$y,
-                 include_intercept=gam.params$include_intercept,
                  contrasts=gam.params$contrasts)
 
 ## Save the result to file
