@@ -52,7 +52,7 @@ if (! is.null(bccvl.params['singular_ok'])) {
 }
 
 # parse the family string (character) into a proper family object
-gam.params$family=family_from_string(glm.params$family)
+gam.params$family=family_from_string(gam.params$family)
 
 
 ## Build the model
