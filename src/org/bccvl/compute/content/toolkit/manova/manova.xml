@@ -9,7 +9,7 @@
       <required>False</required>
     </field>
     <field name="qr" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
-      <default>False</default>
+      <default>True</default>
       <title>QR returned</title>
       <required>False</required>
     </field>
