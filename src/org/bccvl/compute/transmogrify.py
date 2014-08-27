@@ -51,7 +51,7 @@ def guess_mimetype(name, mtr=None):
 
 def addLayerInfo(graph, experiment):
     for layer in set(chain(*experiment.environmental_datasets.values())):
-        graph.add((graph.identifier, BIOCLIM['bioclimVariable'], layer))
+        graph.set((graph.identifier, BIOCLIM['bioclimVariable'], layer))
 
 
 def addSpeciesInfo(graph, result):
@@ -65,7 +65,7 @@ def addSpeciesInfo(graph, result):
                  DWC['vernacularName']):
         val = spmd.value(spmd.identifier, prop)
         if val:
-            graph.add((graph.identifier, prop, val))
+            graph.set((graph.identifier, prop, val))
 
 
 def extractThresholdValues(fname):
@@ -158,27 +158,27 @@ class ResultSource(object):
         datasetid = normalizer.normalize(name)
 
         rdf = Graph()
-        rdf.add((rdf.identifier, DC['title'], Literal(name)))
+        rdf.set((rdf.identifier, DC['title'], Literal(name)))
         rdf.add((rdf.identifier, RDF['type'], CVOCAB['Dataset']))
         genre = info.get('genre', None)
 
         if genre:
             genreuri = BCCVOCAB[genre]
-            rdf.add((rdf.identifier, BCCPROP['datagenre'], genreuri))
+            rdf.set((rdf.identifier, BCCPROP['datagenre'], genreuri))
             # FIXME: attach species data to everything?
 
             #  resolution, toolkit, species, layers
             #  future: year, emsc, gcm
             if genreuri == BCCVOCAB['DataGenreSDMModel']:
                 addLayerInfo(rdf, self.context.__parent__)
-                rdf.add((rdf.identifier, BCCPROP['resolution'],
+                rdf.set((rdf.identifier, BCCPROP['resolution'],
                          self.context.resolution))
                 # add species info
                 addSpeciesInfo(rdf, self.context)
             elif genreuri == BCCVOCAB['DataGenreFP']:
                 # TODO: resolution is also in job_params
                 #       self.conetxt.job_params['resolution'] ... shall we remove the attribute?
-                rdf.add((rdf.identifier, BCCPROP['resolution'],
+                rdf.set((rdf.identifier, BCCPROP['resolution'],
                          self.context.resolution))
                 addSpeciesInfo(rdf, self.context)
 
@@ -186,14 +186,14 @@ class ResultSource(object):
                 filename = os.path.basename(fname)
                 m = re.match(r'^proj_(.*)_(.*)_(\d*)_.*\.tif$', filename)
                 if m:
-                    rdf.add((rdf.identifier, BCCPROP['emissionscenario'],
+                    rdf.set((rdf.identifier, BCCPROP['emissionscenario'],
                              BCCEMSC[m.group(1)]))
-                    rdf.add((rdf.identifier, BCCPROP['gcm'],
+                    rdf.set((rdf.identifier, BCCPROP['gcm'],
                              BCCGCM[m.group(2)]))
                     year = Literal("start={0}; end={0}; scheme=W3C-DTF;"
                                    .format(m.group(3)),
                                    datatype=DC['Period'])
-                    rdf.add((rdf.identifier, DC['temporal'], year))
+                    rdf.set((rdf.identifier, DC['temporal'], year))
                 else:
                     LOG.fatal('filename %s did not match regexp.', filename)
                 # exp.future_climate_datasets()
@@ -209,7 +209,7 @@ class ResultSource(object):
         if mimetype is None:
             mimetype = guess_mimetype(fname, mtr)
         if mimetype is not None:
-            rdf.add((rdf.identifier, DC['format'], Literal(mimetype)))
+            rdf.set((rdf.identifier, DC['format'], Literal(mimetype)))
 
         LOG.info("Ingest item: %s, %s", datasetid, name)
         return {
