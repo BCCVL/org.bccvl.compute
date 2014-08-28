@@ -51,7 +51,7 @@ def guess_mimetype(name, mtr=None):
 
 def addLayerInfo(graph, experiment):
     for layer in set(chain(*experiment.environmental_datasets.values())):
-        graph.set((graph.identifier, BIOCLIM['bioclimVariable'], layer))
+        graph.add((graph.identifier, BIOCLIM['bioclimVariable'], layer))
 
 
 def addSpeciesInfo(graph, result):
