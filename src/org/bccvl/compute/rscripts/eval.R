@@ -43,11 +43,20 @@ bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
 #    sensibility: the sensibility with this threshold
 #    specificity: the specificity with this threshold
 #
+# Note this function looks to be based on biomod2's Find.Optim.Stat function - see that
+# for the original reference
+#
 bccvl.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thresh=NULL) {
-    if(length(unique(Obs)) == 1 | length(unique(Fit)) == 1){
+    uniform_obs=length(unique(Obs)) == 1
+    uniform_fit=length(unique(Fit)) == 1
+    if( uniform_obs | uniform_fit ) {
+        msg=sprintf("Stat: %s.", Stat)
+        if (uniform_obs) msg=sprintf("%s Uniform observed data.", msg)
+        if (uniform_fit) msg=sprintf("%s Uniform fitted data.", msg)
+        msg=sprintf("%s Be careful with this model's predictions.", msg)
         # warning("\nObserved or fited data contains only a value.. Evaluation Methods switched off\n",immediate.=T)
         # best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA
-        warning("\nObserved or fited data contains a unique value.. Be carefull with this models predictions\n",immediate.=T)
+        warning(sprintf("\n%s\n", msg),immediate.=T)
         #best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA
     } #else {
     if(Stat != 'ROC'){
@@ -565,7 +574,7 @@ bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
 
 
 # function to save evaluate output for BIOMOD2 models
-bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
+bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
     # get and save the model evaluation statistics
     # EMG these must specified during model creation with the arg "models.eval.meth"
     evaluation = get_evaluations(biomod.model)
@@ -573,46 +582,76 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.name, biomod.model) {
 
     # get the model predictions and observed values
     predictions = getModelsPrediction(biomod.model)
+    total_models = length(dimnames(predictions)[[3]])
+
     # TODO: get_predictions is buggy; evaluation=FALSE works the wrong way round
     # predictions = get_predictions(biomod.model, evaluation=FALSE)
     obs = get_formal_data(biomod.model, "resp.var")
     # in case of pseudo absences we might have NA values in obs so replace them with 0
     obs = replace(obs, is.na(obs), 0)
-    # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
-    # TODO: model.accuracy is another global variable
-    combined.eval = sapply(model.accuracy, function(x){
-        return(bccvl.Find.Optim.Stat(Stat = x, Fit = predictions, Obs = obs))
-    })
-    # save all the model accuracy statistics provided in both dismo and biomod2
-    rownames(combined.eval) <- c("Testing.data","Cutoff","Sensitivity", "Specificity")
-    bccvl.write.csv(t(round(combined.eval, digits=3)), name="combined.modelEvaluation.csv")
 
-    # save AUC curve
-    require(pROC, quietly=T)
-    roc1 <- roc(as.numeric(obs), as.numeric(predictions), percent=T)
-    png(file=file.path(bccvl.env$outputdir, "pROC.png"))
-    plot(roc1, main=paste("AUC=",round(auc(roc1)/100,3),sep=""), legacy.axes=TRUE)
-    dev.off()
+    for ( i in 1:total_models )
+    {
+        model_name = dimnames(predictions)[[3]][i]  # will be FULL or RUN1 for eg
+        model_predictions = predictions[,,i,,drop=FALSE]
 
-    # get and save the variable importance estimates
-    variableImpt = get_variables_importance(biomod.model)
-    if (!is.na(variableImpt)) {
-    #EMG Note this will throw a warning message if variables (array) are returned
-        bccvl.write.csv(variableImpt, name="variableImportance.txt")
-    } else {
-        message("VarImport argument not specified during model creation!")
-        #EMG must create the model with the arg "VarImport" != 0
+        if (sum(is.na(model_predictions)) == length(model_predictions)) 
+        {
+            # somewhat adhoc method of determining that the model failed to predict anything
+            # Note that we can determine the computed and failed models by inspecting 
+            # biomod.model@models.computed and biomod.model@models.failed respectively, however
+            # dimnames (model_name) can't be used to match these in a straight forward
+            # manner (it may be possible, could go either way here. this way feels simpler)
+
+            # Warn that model n is being ignored. It most probably failed to build.
+            warning(sprintf("Warning: Model %i failed to generate. Not generating stats", i), immediate.=T)
+            next
+        }
+        # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+        # TODO: model.accuracy is another global variable
+        combined.eval = sapply(model.accuracy, function(x){
+            return(bccvl.Find.Optim.Stat(Stat = x, Fit = model_predictions, Obs = obs))
+        })
+        # save all the model accuracy statistics provided in both dismo and biomod2
+        rownames(combined.eval) <- c("Testing.data","Cutoff","Sensitivity", "Specificity")
+        #bccvl.write.csv(t(round(combined.eval, digits=3)), name="combined.modelEvaluation.csv")
+        bccvl.write.csv(t(round(combined.eval, digits=3)), name=paste("combined", model_name, "modelEvaluation.csv", sep="."))
+
+        # save AUC curve
+        require(pROC, quietly=T)
+        roc1 <- roc(as.numeric(obs), as.numeric(model_predictions), percent=T)
+        png(file=file.path(bccvl.env$outputdir, paste("pROC", model_name, "png", sep=".")))
+        plot(roc1, main=paste("AUC=",round(auc(roc1)/100,3),sep=""), legacy.axes=TRUE)
+        dev.off()
+
+        # get and save the variable importance estimates
+        variableImpt = get_variables_importance(biomod.model)
+        if (!is.na(variableImpt)) {
+        #EMG Note this will throw a warning message if variables (array) are returned
+            bccvl.write.csv(variableImpt, name=paste("variableImportance", model_name, "txt", sep="."))
+        } else {
+            message("VarImport argument not specified during model creation!")
+            #EMG must create the model with the arg "VarImport" != 0
+        }
     }
 
     # save response curves (Elith et al 2005)
     png(file=file.path(bccvl.env$outputdir, "mean_response_curves.png"))
     # TODO: check models parameter ... do I need it? shouldn't it be algo name?
     #       -> would make BIOMOD_LoadMadels call and parameter loaded.name pointless
-    test <- response.plot2(models = loaded.name,
-                           Data = get_formal_data(biomod.model,"expl.var"),
-                           show.variables = get_formal_data(biomod.model,"expl.var.names"),
-                           fixed.var.metric = "mean")
-     #, data_species = getModelsInputData(biomod.model,"resp.var"))
-     # EMG need to investigate why you would want to use this option - uses presence data only
-    dev.off()
+    #
+    # not sure what the comment above means - but ever since we moved to generating
+	# output from all models, we could just use biomod.model@models.computed
+    for(name in loaded.names)
+    {
+
+        png(file=file.path(bccvl.env$outputdir, sprintf("mean_response_curves_%s.png", name)))
+        test <- response.plot2(models = name,
+                               Data = get_formal_data(biomod.model,"expl.var"),
+                               show.variables = get_formal_data(biomod.model,"expl.var.names"),
+                               fixed.var.metric = "mean")
+         #, data_species = getModelsInputData(biomod.model,"resp.var"))
+         # EMG need to investigate why you would want to use this option - uses presence data only
+        dev.off()
+    }
 }
