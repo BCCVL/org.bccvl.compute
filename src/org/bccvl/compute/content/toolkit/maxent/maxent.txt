@@ -15,12 +15,12 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv"
         },
-        "mean_response_curves.png": {
+        "mean_response_curves*.png": {
             "title": "Mean Response Curves",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png"
         },
-        "pROC.png": {
+        "pROC*.png": {
             "title": "ROC curve",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png"
