@@ -1,0 +1,60 @@
+<model xmlns:security="http://namespaces.plone.org/supermodel/security"
+       xmlns:marshal="http://namespaces.plone.org/supermodel/marshal"
+       xmlns:form="http://namespaces.plone.org/supermodel/form"
+       xmlns="http://namespaces.plone.org/supermodel/schema">
+  <schema based-on="zope.interface.Interface">
+   <field name="nb_run_eval" type="zope.schema.Int">
+      <default>10</default>
+      <title>n-fold cross validation</title>
+      <min>1</min>
+    </field>
+    <field name="data_split" type="zope.schema.Int">
+      <default>100</default>
+      <title>data split</title>
+      <min>0</min>
+      <max>100</max>
+    </field>
+    <field name='prevalence' type='zope.schema.Decimal'>
+      <required>False</required>
+      <title>weighted response weights</title>
+      <min>0</min>
+      <max>1</max>
+    </field>
+    <field name="var_import" type="zope.schema.Int">
+      <default>0</default>
+      <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
+      <title>resampling</title>
+      <min>0</min>
+    </field>
+    <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
+      <default>True</default>
+      <description>calibrate &amp; evaluate models with the whole dataset?</description>
+      <title>do full models</title>
+    </field>
+    <field name="do.classif" type="zope.schema.Bool">
+      <default>True</default>
+      <description>true for a classification, false for a regression forest. Currently ignored in biomod2 source</description>
+      <title>do.classif</title>
+    </field>
+    <field name="ntree" type="zope.schema.Int">
+      <default>200</default>
+      <description>Number of trees to grow.  This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.</description>
+      <title>ntree</title>
+    </field>
+    <field name="mtry" type="zope.schema.TextLine">
+      <description>Number of variables randomly sampled as candidates at each split.  Note that the default values are different for classification (sqrt(p) where p is number of variables in ‘x’) and regression (p/3)</description>
+      <default>default</default>
+      <title>mtry</title>
+    </field>
+    <field name="nodesize" type="zope.schema.Int">
+      <default>1</default>
+      <description>Minimum size of terminal nodes.  Setting this number larger causes smaller trees to be grown (and thus take less time). </description>
+      <title>nodesize</title>
+    </field>
+    <field name="maxnodes" type="zope.schema.Iny">
+      <description>Maximum number of terminal nodes trees in the forest can have. If not given, trees are grown to the maximum possible (subject to limits by nodesize)</description>
+      <title>threshold</title>
+      <required>False</required>
+    </field>
+  </schema>
+</model>
