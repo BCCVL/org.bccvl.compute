@@ -48,12 +48,8 @@ projection.name = "current"  #basename(enviro.data.current)
 
 
 # model-specific arguments to create a biomod model
-model.options.rf <- list(
-	do.classif =  bccvl.params$do.classif,
-	ntree =  bccvl.params$ntree,
-	mtry =  bccvl.params$mtry,
-	nodesize = if (bccvl.params$nodesize == "default") bccvl.params$nodesize else as.integer(bccvl.params$nodesize),
-	maxnodes = bccvl.params$maxnodes
+model.options.sre <- list(
+	Quant = bccvl.params$Quant
 )
 
 
@@ -188,7 +184,7 @@ formatBiomodData = function() {
 
 ###############
 #
-# RF (Random Forest)
+# SRE (Surface Range Envelope)
 #
 ###############
 
@@ -196,11 +192,11 @@ formatBiomodData = function() {
 # 1. Format the data
 model.data = formatBiomodData()
 # 2. Define the model options
-model.options <- BIOMOD_ModelingOptions(RF = model.options.rf)
+model.options <- BIOMOD_ModelingOptions(SRE = model.options.sre)
 # 3. Compute the model
 model.sdm <-
     BIOMOD_Modeling(data = model.data,
-                    models=c('RF'),
+                    models=c('SRE'),
                     models.options=model.options,
                     NbRunEval=biomod.NbRunEval,
                     DataSplit=biomod.DataSplit,
@@ -238,5 +234,5 @@ bccvl.grdtogtiff(file.path(getwd(),
 
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
-loaded.model = BIOMOD_LoadModels(model.sdm, models="RF")
+loaded.model = BIOMOD_LoadModels(model.sdm, models="SRE")
 bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm) 	# save output

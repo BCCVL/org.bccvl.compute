@@ -40,21 +40,25 @@
       <default>200</default>
       <description>Number of trees to grow.  This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.</description>
       <title>ntree</title>
+      <min>1</min>
     </field>
     <field name="mtry" type="zope.schema.TextLine">
       <description>Number of variables randomly sampled as candidates at each split.  Note that the default values are different for classification (sqrt(p) where p is number of variables in ‘x’) and regression (p/3)</description>
       <default>default</default>
       <title>mtry</title>
+      <min>1</min>
     </field>
     <field name="nodesize" type="zope.schema.Int">
       <default>1</default>
       <description>Minimum size of terminal nodes.  Setting this number larger causes smaller trees to be grown (and thus take less time). </description>
       <title>nodesize</title>
+      <min>1</min>
     </field>
-    <field name="maxnodes" type="zope.schema.Iny">
+    <field name="maxnodes" type="zope.schema.Int">
       <description>Maximum number of terminal nodes trees in the forest can have. If not given, trees are grown to the maximum possible (subject to limits by nodesize)</description>
       <title>threshold</title>
       <required>False</required>
+      <min>1</min>
     </field>
   </schema>
 </model>
