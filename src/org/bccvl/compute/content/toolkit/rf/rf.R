@@ -53,7 +53,7 @@ model.options.rf <- list(
 	ntree =  bccvl.params$ntree,
 	mtry =  bccvl.params$mtry,
 	nodesize = bccvl.params$nodesize,
-	maxnodes = bccvl.params$\maxnodes
+	maxnodes = bccvl.params$maxnodes
 )
 
 
