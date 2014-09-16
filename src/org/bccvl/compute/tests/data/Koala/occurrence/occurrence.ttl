@@ -5,7 +5,7 @@
 @prefix dwcterms: <http://rs.tdwg.org/dwc/terms/> .
 
 _:occurence_csv a cvocab:Dataset, owl:Thing ;
-    bccprop:datagenre bccvocab:DataGenreSO ;
+    bccprop:datagenre bccvocab:DataGenreSpeciesOccurrence ;
     bccprop:specieslayer bccvocab:SpeciesLayerP ;
     dwcterms:scientificName "Phascolarctus cinereus" ;
     dwcterms:vernacularName "Koala" ;

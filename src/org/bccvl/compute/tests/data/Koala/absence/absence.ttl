@@ -5,7 +5,7 @@
 @prefix dwcterms: <http://rs.tdwg.org/dwc/terms/> .
 
 _:absence_csv a cvocab:Dataset, owl:Thing ;
-    bccprop:datagenre bccvocab:DataGenreSO ;
+    bccprop:datagenre bccvocab:DataGenreSpeciesAbsence ;
     bccprop:specieslayer bccvocab:SpeciesLayerX ;
     dwcterms:scientificName "Phascolarctus cinereus" ;
     dwcterms:vernacularName "Koala" ;
