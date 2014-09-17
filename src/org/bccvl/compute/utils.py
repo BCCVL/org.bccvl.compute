@@ -64,23 +64,16 @@ def getdatasetparams(uuid):
     # if we have species info add it
     dsmdr = IResource(dsobj)
     species = dsmdr.value(DWC['scientificName'])
-    genre = dsmdr.value(BCCPROP['datagenre'])
     if species:
         dsinfo['species'] = unicode(species)
     # if we can get layermetadata, let's add it
     biomod = getbiolayermetadata(dsobj)
-    if biomod.get('layers'):
-        dsinfo['layers'] = dict(((k, v['filename']) for
-                                 k, v in biomod['layers'].items()))
+    layers = biomod.get('layers', [])
+    if len(layers) > 0:
+        dsinfo['layers'] = dict((
+            (l['layer'], l.get('filename', biomod['filename']))
+            for l in biomod['layers']))
         # FIXME: get type from metadata
         dsinfo['type'] = 'continuous'
-    if genre and genre.identifier in (BCCVOCAB['DataGenreFC'],
-                                      BCCVOCAB['DataGenreE']):
-        if biomod.get('layer'):
-            dsinfo['layers'] = {
-                biomod['layer'],
-                biomod['filename']
-            }
-            dsinfo['type'] = 'continuous'
     # return infoset
     return dsinfo
