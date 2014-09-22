@@ -71,16 +71,23 @@ absen = bccvl.dismo.absence(absen.data,
 # voronoiHull(p, a, ...)
 # p presence points; two column matrix, data.frame or SpatialPoints* object
 # a absence points; must be of the same class as 'p'
-stop("This function is only correct when using a planar coordinate reference system (not longitude/latitude)")
-model.sdm = voronoiHull(p=occur, a=absen)
+
+australian_crs=CRS("+init=epsg:3577") # planar crs required by voronoiHull - this is a project specifically for Australia.
+input_crs=CRS("+init=epsg:4326") # Assume this
+
+occur_cs=spTransform(SpatialPoints(occur, proj4string=input_crs), australian_crs)
+absen_cs=spTransform(SpatialPoints(absen, proj4string=input_crs), australian_crs)
+
+model.sdm = voronoiHull(p=occur_cs, a=absen_cs)
 # save out the model object
 bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
 # predict for given climate scenario
-model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
+model.proj = predict(model.sdm, projectRaster(current.climate.scenario, crs=australian_crs), tails=opt.tails)
 # save output
-bccvl.saveModelProjection(model.proj, projection.name, occur.species)
+bccvl.saveModelProjection(projectRaster(model.proj, current.climate.scenario), projection.name, occur.species)
 # evaluate model
 if (!is.null(absen)) {
+    # not sure what we achieve here
 	bccvl.evaluate.model('voronoiHull', model.sdm, occur, absen)
 }
 
