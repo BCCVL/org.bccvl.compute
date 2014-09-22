@@ -3,12 +3,12 @@
        xmlns:form="http://namespaces.plone.org/supermodel/form"
        xmlns="http://namespaces.plone.org/supermodel/schema">
   <schema based-on="zope.interface.Interface">
-   <field name="nb_run_eval" type="zope.schema.Int">
+   <field name="nb_run_eval" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
       <default>10</default>
       <title>n-fold cross validation</title>
       <min>1</min>
     </field>
-    <field name="data_split" type="zope.schema.Int">
+    <field name="data_split" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
       <default>100</default>
       <title>data split</title>
       <min>0</min>
@@ -26,7 +26,7 @@
       <title>resampling</title>
       <min>0</min>
     </field>
-    <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
+    <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
       <default>True</default>
       <description>calibrate &amp; evaluate models with the whole dataset?</description>
       <title>do full models</title>
