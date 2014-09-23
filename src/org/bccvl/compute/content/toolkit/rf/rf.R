@@ -51,8 +51,8 @@ projection.name = "current"  #basename(enviro.data.current)
 model.options.rf <- list(
 	do.classif =  bccvl.params$do.classif,
 	ntree =  bccvl.params$ntree,
-	mtry =  bccvl.params$mtry,
-	nodesize = if (bccvl.params$nodesize == "default") bccvl.params$nodesize else as.integer(bccvl.params$nodesize),
+	mtry = if (bccvl.params$mtry == "default") bccvl.params$mtry else as.integer(bccvl.params$mtry),
+	nodesize=  bccvl.params$nodesize,
 	maxnodes = bccvl.params$maxnodes
 )
 
