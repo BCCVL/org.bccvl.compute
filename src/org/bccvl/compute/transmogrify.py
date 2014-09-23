@@ -187,12 +187,12 @@ class ResultSource(object):
                                    .format(self.context.job_params['year']),
                                    datatype=DC['Period'])
                     rdf.set((rdf.identifier, DC['temporal'], year))
-                if 'emissionscenario' in self.context.job_params:
+                if 'emission_scenario' in self.context.job_params:
                     rdf.set((rdf.identifier, BCCPROP['emissionscenario'],
                              BCCEMSC[self.context.job_params['emissionscenario']]))
-                if 'gcm' in self.context.job_params:
+                if 'climate_models' in self.context.job_params:
                     rdf.set((rdf.identifier, BCCPROP['gcm'],
-                             BCCGCM[self.context.job_params['gcm']]))
+                             BCCGCM[self.context.job_params['climate_models']]))
                 # exp.future_climate_datasets()
             elif genreuri == BCCVOCAB['DataGenreSDMEval']:
                 if info.get('mimetype') == 'text/csv':
