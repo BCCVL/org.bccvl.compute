@@ -62,7 +62,7 @@
     </field>
     <field name="maxnodes" type="zope.schema.Int">
       <description>Maximum number of terminal nodes trees in the forest can have. If not given, trees are grown to the maximum possible (subject to limits by nodesize)</description>
-      <title>threshold</title>
+      <title>maxnodes</title>
       <required>False</required>
       <min>1</min>
     </field>
