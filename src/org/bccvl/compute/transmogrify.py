@@ -4,7 +4,6 @@ import tempfile
 import shutil
 import os.path
 import glob
-import re
 from urllib2 import urlopen
 from io import BytesIO
 from collective.transmogrifier.interfaces import ISectionBlueprint
@@ -183,19 +182,17 @@ class ResultSource(object):
                 addSpeciesInfo(rdf, self.context)
 
                 # FIXME: find a cleaner way to attach metadata
-                filename = os.path.basename(fname)
-                m = re.match(r'^proj_(.*)_(.*)_(\d*)_.*\.tif$', filename)
-                if m:
-                    rdf.set((rdf.identifier, BCCPROP['emissionscenario'],
-                             BCCEMSC[m.group(1)]))
-                    rdf.set((rdf.identifier, BCCPROP['gcm'],
-                             BCCGCM[m.group(2)]))
+                if 'year' in self.context.job_params:
                     year = Literal("start={0}; end={0}; scheme=W3C-DTF;"
-                                   .format(m.group(3)),
+                                   .format(self.context.job_params['year']),
                                    datatype=DC['Period'])
                     rdf.set((rdf.identifier, DC['temporal'], year))
-                else:
-                    LOG.fatal('filename %s did not match regexp.', filename)
+                if 'emissionscenario' in self.context.job_params:
+                    rdf.set((rdf.identifier, BCCPROP['emissionscenario'],
+                             BCCEMSC[self.context.job_params['emissionscenario']]))
+                if 'gcm' in self.context.job_params:
+                    rdf.set((rdf.identifier, BCCPROP['gcm'],
+                             BCCGCM[self.context.job_params['gcm']]))
                 # exp.future_climate_datasets()
             elif genreuri == BCCVOCAB['DataGenreSDMEval']:
                 if info.get('mimetype') == 'text/csv':
