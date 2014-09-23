@@ -1,0 +1,11 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Multiple Adaptive Regression Splines",
+  "method": "org.bccvl.compute.rscript.execute_sdm",
+  "intperpreter": "R",
+  "script": {"filename": "mars.R"},
+  "schema": {"filename": "mars.xml"},
+  "output": {"filename": "mars.txt"},
+  "_fileattributes": ["script", "schema", "output"],
+  "_transitions": "publish"
+}

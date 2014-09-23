@@ -1,0 +1,11 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Geographic Distance",
+  "method": "org.bccvl.compute.rscript.execute_sdm",
+  "intperpreter": "R",
+  "script": {"filename": "geoDist.R"},
+  "schema": {"filename": "geoDist.xml"},
+  "output": {"filename": "geoDist.txt"},
+  "_fileattributes": ["script", "schema", "output"],
+  "_transitions": "publish"
+}

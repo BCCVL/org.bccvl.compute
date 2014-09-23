@@ -1,0 +1,11 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Voronoi hull model",
+  "method": "org.bccvl.compute.rscript.execute_sdm",
+  "intperpreter": "R",
+  "script": {"filename": "voronoiHull.R"},
+  "schema": {"filename": "voronoiHull.xml"},
+  "output": {"filename": "voronoiHull.txt"},
+  "_fileattributes": ["script", "schema", "output"],
+  "_transitions": "publish"
+}
