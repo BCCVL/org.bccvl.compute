@@ -1,0 +1,11 @@
+{
+  "_type": "org.bccvl.content.function",
+  "title": "Mahalanobis model",
+  "method": "org.bccvl.compute.rscript.execute_sdm",
+  "intperpreter": "R",
+  "script": {"filename": "mahal.R"},
+  "schema": {"filename": "mahal.xml"},
+  "output": {"filename": "mahal.txt"},
+  "_fileattributes": ["script", "schema", "output"],
+  "_transitions": "publish"
+}

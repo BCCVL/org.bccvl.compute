@@ -8,7 +8,7 @@
 import os
 from decimal import Decimal
 from plone.app.uuid.utils import uuidToObject
-from org.bccvl.site.api.dataset import getbiolayermetadata
+from org.bccvl.site.api.dataset import getdsmetadata
 from gu.z3cform.rdf.interfaces import IResource
 from org.bccvl.site.namespace import DWC, BCCPROP, BCCVOCAB
 from org.bccvl.site.interfaces import IDownloadInfo
@@ -67,7 +67,7 @@ def getdatasetparams(uuid):
     if species:
         dsinfo['species'] = unicode(species)
     # if we can get layermetadata, let's add it
-    biomod = getbiolayermetadata(dsobj)
+    biomod = getdsmetadata(dsobj)
     layers = biomod.get('layers', [])
     if len(layers) > 0:
         dsinfo['layers'] = dict((
