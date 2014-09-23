@@ -174,6 +174,7 @@ croak $EVAL_ERROR if $EVAL_ERROR;
 my $calculations = [qw/
     calc_endemism_whole
     calc_redundancy
+    calc_rarity
 /];
 
 my $sp = $bd->add_spatial_output (name => 'spatial_analysis');
