@@ -90,6 +90,21 @@ OUTPUTS = {
             "genre": "DataGenreREDUNDANCY_ALL",
             "mimetype": "image/geotiff",
         },
+        '*RAREW_CWE.tif': {
+            "title": "Rarity whole - Corrected weighted rarity",
+            "genre": "DataGenreRAREW_CWE",
+            "mimetype": "image/geotiff",
+        },
+        '*RAREW_RICHNESS.tif': {
+            "title": "Rarity whole - Richness used in RAREW_CWE",
+            "genre": "DataGenreRAREW_RICHNESS",
+            "mimetype": "image/geotiff",
+        },
+        '*RAREW_WE.tif': {
+            "title": "Rarity whole - weighted rarity",
+            "genre": "DataGenreRAREW_WE",
+            "mimetype": "image/geotiff",
+        },
         '*.bds':  {
             # Perl Storable package
             'title': 'Biodiverse output',
