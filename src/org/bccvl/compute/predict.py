@@ -38,10 +38,9 @@ def get_project_params(result):
             'downloadurl': dsinfo['downloadurl'],
             'internalurl': dsinfo['internalurl'],
             'layer': layer,
-            'zippath': dsinfo['layers'][layer],
+            'zippath': dsinfo['layers'][layer]['filename'],
             # TODO: add year, gcm, emsc here?
-            # TODO: do we have/need continuous or not?
-            'type': dsinfo['type'],
+            'type': dsinfo['layers'][layer]['datatype'],
         })
     # replace climate_models parameter
     params['future_climate_datasets'] = climatelist

@@ -56,8 +56,8 @@ def get_sdm_params(result):
                 'internalurl': dsinfo['internalurl'],
                 # TODO: should we use layer title or URI?
                 'layer': layer,
-                'zippath': dsinfo['layers'][layer],
-                'type': dsinfo['type']
+                'zippath': dsinfo['layers'][layer]['filename'],
+                'type': dsinfo['layers'][layer]['datatype']
             })
         # replace original dict
         params['environmental_datasets'] = envlist

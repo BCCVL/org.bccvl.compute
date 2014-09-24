@@ -71,9 +71,8 @@ def getdatasetparams(uuid):
     layers = biomod.get('layers', [])
     if len(layers) > 0:
         dsinfo['layers'] = dict((
-            (l['layer'], l.get('filename', biomod['filename']))
+            (l['layer'], {'filename': l.get('filename', biomod['filename']),
+                          'datatype': l.get('datatype', None)})
             for l in biomod['layers']))
-        # FIXME: get type from metadata
-        dsinfo['type'] = 'continuous'
     # return infoset
     return dsinfo
