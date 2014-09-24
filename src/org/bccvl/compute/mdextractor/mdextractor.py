@@ -130,6 +130,10 @@ class TiffExtractor(object):
             # default to WGS84
             projref = osr.GetWellKnownGeogCSAsWKT('EPSG:4326')
         spref = osr.SpatialReference(projref)
+        # TODO: extract bbox
+        #       see http://svn.osgeo.org/gdal/trunk/gdal/swig/python/samples/gdalinfo.py
+        #       GDALInfoReportCorner
+        #       which units sholud bbox be? lat/long?, layer units?
         data = {
             'size': (ds.RasterXSize, ds.RasterYSize),
             'bands': ds.RasterCount,
