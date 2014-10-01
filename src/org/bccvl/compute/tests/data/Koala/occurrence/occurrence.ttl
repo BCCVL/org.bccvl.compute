@@ -6,7 +6,6 @@
 
 _:occurence_csv a cvocab:Dataset, owl:Thing ;
     bccprop:datagenre bccvocab:DataGenreSpeciesOccurrence ;
-    bccprop:specieslayer bccvocab:SpeciesLayerP ;
     dwcterms:scientificName "Phascolarctus cinereus" ;
     dwcterms:vernacularName "Koala" ;
     dwcterms:taxonID <urn:lsid:biodiversity.org.au:afd.taxon:e9d6fbbd-1505-4073-990a-dc66c930dad6> ;
