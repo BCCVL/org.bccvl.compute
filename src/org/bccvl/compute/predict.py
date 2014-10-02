@@ -12,6 +12,7 @@ from plone import api
 import tempfile
 from org.bccvl.tasks.compute import r_task
 from org.bccvl.tasks.plone import after_commit_task
+import os.path
 
 
 def get_project_params(result):
@@ -45,6 +46,9 @@ def get_project_params(result):
     # replace climate_models parameter
     params['future_climate_datasets'] = climatelist
     params['selected_models'] = 'all'
+    # projection.name from dsinfo
+    # FIXME: workaround to get future projection name back, but this works only for file naming scheme with current available data
+    params['projection_name'], _ = os.path.splitext(dsinfo['filename'])
     # add hints for worker
     workerhints = {
         'files': ('species_distribution_models', 'future_climate_datasets')

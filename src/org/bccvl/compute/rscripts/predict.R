@@ -15,6 +15,7 @@
 
 sdm.species = bccvl.params$species_distribution_models$species
 sdm.model.file = bccvl.params$species_distribution_models$filename
+projection.name = bccvl.params$projection_name
 
 future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x) x$filename)
 
@@ -107,5 +108,4 @@ if (tolower(file_ext(modelfile)) == "zip") {
 model.obj <- bccvl.getModelObject(modelfile)
 
 # use folder name of first dataset to generate name for projection output
-projection.name = basename(dirname(future.climate.dataset[[1]]))
 projectdataset(model.obj, future.climate.dataset, projection.name, sdm.species)
