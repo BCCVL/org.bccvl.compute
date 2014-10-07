@@ -101,19 +101,15 @@ bccvl.enviro.stack <- function(filenames) {
     
     raster.list=lapply(filenames, raster) # raster is lazy to load images
     extent.list=lapply(raster.list, extent)
+    
     common.extent=extent.list[[1]]
     equal.extents=TRUE
     i=2
     while (i<=length(extent.list))
     {
         rast.extent=extent.list[[i]]
-        
         if (rast.extent != common.extent) equal.extents = FALSE
-        
-        if (rast.extent@xmin > common.extent@xmin) common.extent@xmin = rast.extent@xmin
-        if (rast.extent@xmax < common.extent@xmax) common.extent@xmax = rast.extent@xmax
-        if (rast.extent@ymin > common.extent@ymin) common.extent@ymin = rast.extent@ymin
-        if (rast.extent@ymax < common.extent@ymax) common.extent@ymax = rast.extent@ymax
+        common.extent=intersect(common.extent, rast.extent)
         i=i+1
     }
 
