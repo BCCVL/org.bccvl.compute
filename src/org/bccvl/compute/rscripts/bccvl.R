@@ -97,27 +97,24 @@ bccvl.dismo.absence <- function(absen.data=NULL,
 # common (mutual) extent.
 # Checks if data has projection associated with it, and in case
 # there is none, this method sets it to WGS84 (EPSG:4326)
-bccvl.enviro.stack <- function(list.of.filenames) {
+bccvl.enviro.stack <- function(filenames) {
     
-    raster.list=lapply(list.of.filenames, raster) # raster is lazy to load images
-
-    int.max=.Machine$integer.max
-    common.extent=extent(int.max, int.max, int.max, int.max)
+    raster.list=lapply(filenames, raster) # raster is lazy to load images
+    extent.list=lapply(raster.list, extent)
+    common.extent=extent.list[[1]]
     equal.extents=TRUE
-    for (rast in raster.list)
+    i=2
+    while (i<=length(extent.list))
     {
-        rast.extent=extent(rast)
-        if (common.extent@xmax == int.max)
-        {
-            common.extent = rast.extent
-        } else {
-            if (rast.extent != common.extent) equal.extents = FALSE
-     
-            if (rast.extent@xmin > common.extent@xmin) common.extent@xmin = rast.extent@xmin
-            if (rast.extent@xmax < common.extent@xmax) common.extent@xmax = rast.extent@xmax
-            if (rast.extent@ymin > common.extent@ymin) common.extent@ymin = rast.extent@ymin
-            if (rast.extent@ymax < common.extent@ymax) common.extent@ymax = rast.extent@ymax
-        }
+        rast.extent=extent.list[[i]]
+        
+        if (rast.extent != common.extent) equal.extents = FALSE
+        
+        if (rast.extent@xmin > common.extent@xmin) common.extent@xmin = rast.extent@xmin
+        if (rast.extent@xmax < common.extent@xmax) common.extent@xmax = rast.extent@xmax
+        if (rast.extent@ymin > common.extent@ymin) common.extent@ymin = rast.extent@ymin
+        if (rast.extent@ymax < common.extent@ymax) common.extent@ymax = rast.extent@ymax
+        i=i+1
     }
 
     if (equal.extents)
