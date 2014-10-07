@@ -36,6 +36,11 @@ bccvl.env <- params$env
 rm(params)
 # set working directory (script runner takes care of it)
 setwd(bccvl.env$outputdir)
+# Set raster tmpdir - we do this because raster sometimes makes 
+# temp files (e.g. when cropping).
+# Might want to make this configurable - e.g. we might want to 
+# control maxmemory, and/or other raster options
+rasterOptions(tmpdir=paste(bccvl.env$workdir,"raster_tmp",sep="/"))
 
 ############################################################
 #
@@ -88,18 +93,62 @@ bccvl.dismo.absence <- function(absen.data=NULL,
 }
 
 # return a RasterStack of given vector of input files
-# checks if data has projection associated with it, and in case
+# Potentially crops the data to an automatically determined
+# common (mutual) extent.
+# Checks if data has projection associated with it, and in case
 # there is none, this method sets it to WGS84 (EPSG:4326)
-bccvl.enviro.stack <- function(enviro.data) {
-    enviro.stack = stack(enviro.data)
-    # get projection info
-    proj = proj4string(enviro.stack)
+bccvl.enviro.stack <- function(list.of.filenames) {
+    
+    raster.list=lapply(list.of.filenames, raster) # raster is lazy to load images
+
+    int.max=.Machine$integer.max
+    common.extent=extent(int.max, int.max, int.max, int.max)
+    equal.extents=TRUE
+    for (rast in raster.list)
+    {
+        rast.extent=extent(rast)
+        if (common.extent@xmax == int.max)
+        {
+            common.extent = rast.extent
+        } else {
+            if (rast.extent != common.extent) equal.extents = FALSE
+     
+            if (rast.extent@xmin > common.extent@xmin) common.extent@xmin = rast.extent@xmin
+            if (rast.extent@xmax < common.extent@xmax) common.extent@xmax = rast.extent@xmax
+            if (rast.extent@ymin > common.extent@ymin) common.extent@ymin = rast.extent@ymin
+            if (rast.extent@ymax < common.extent@ymax) common.extent@ymax = rast.extent@ymax
+        }
+    }
+
+    if (equal.extents)
+    {
+        # Fast path
+        raster.stack=stack(raster.list)
+    } else {
+        warning_msg=sprintf("Raster stack: enforcing common extent xmin,xmax=[%f, %f] ymin,ymax=[%f, %f]", 
+                            common.extent@xmin,
+                            common.extent@xmax,
+                            common.extent@ymin,
+                            common.extent@ymax)
+        warning(warning_msg, immediate=TRUE)
+                         
+        raster.stack=stack()
+        for (rast in raster.list)
+        {
+            raster.stack = stack(raster.stack, crop(rast, common.extent))
+            #raster.stack = addLayer(raster.stack, crop(rast, common.extent))  # equivalent?
+        }
+    }
+
+    proj = proj4string(raster.stack)
+
     if (is.na(proj)) {
         # None set, let's set a default
-        proj4string(enviro.stack) <- CRS("+init=epsg:4326")
-        warning("Environmental data set has no projection metadat. Set to default EPSG:4326")
+        proj4string(raster.stack) <- CRS("+init=epsg:4326")
+        warning("Environmental data set has no projection metadata. Set to default EPSG:4326")
     }
-    return (enviro.stack)
+    
+    return (raster.stack)
 }
 
 # function to save projection output raster
