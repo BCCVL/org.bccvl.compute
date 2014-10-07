@@ -116,10 +116,10 @@ if (bccvl.params$species_pseudo_absence_points) {
 }
 
 # extract enviro data for species observation points and append to species data
-occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-if (!is.null(absen)) {
-    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
-}
+#occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
+#if (!is.null(absen)) {
+#    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
+#}
 
 # TODO: Spatial data frames usage:
 # op = SpatialPoints(occur[c("lon","lat")])
