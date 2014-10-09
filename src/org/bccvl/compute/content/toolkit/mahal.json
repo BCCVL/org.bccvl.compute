@@ -1,6 +1,6 @@
 {
   "_type": "org.bccvl.content.function",
-  "title": "Mahalanobis model",
+  "title": "Mahalanobis Model",
   "method": "org.bccvl.compute.rscript.execute_sdm",
   "intperpreter": "R",
   "script": {"filename": "mahal.R"},
