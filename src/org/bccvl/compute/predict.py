@@ -1,12 +1,10 @@
 from pkg_resources import resource_string
 import re
 from org.bccvl.compute.utils import getdatasetparams
-from gu.z3cform.rdf.interfaces import IResource
-from org.bccvl.site.namespace import BIOCLIM, DWC
 from plone.app.uuid.utils import uuidToCatalogBrain
 # do this dynamically in site module?
 from zope.interface import provider
-from org.bccvl.site.interfaces import IComputeMethod
+from org.bccvl.site.interfaces import IComputeMethod, IBCCVLMetadata
 from copy import deepcopy
 from plone import api
 import tempfile
@@ -25,14 +23,13 @@ def get_project_params(result):
     # we need the layers from sdm to fetch correct files for climate_models
     # TODO: getdatasetparams should fetch 'layers'
     sdmobj = uuidToCatalogBrain(uuid)
-    sdmmd = IResource(sdmobj)
-    layers = [l.identifier for l in sdmmd.objects(BIOCLIM['bioclimVariable'])]
-    params['species_distribution_models']['layers'] = layers
+    sdmmd = IBCCVLMetadata(sdmobj)
+    params['species_distribution_models']['layers'] = sdmmd.get('layers', None)
     # do future climate layers
     uuid = params['future_climate_datasets']
     dsinfo = getdatasetparams(uuid)
     climatelist = []
-    for layer in layers:
+    for layer in sdmmd.get('layers', []):
         climatelist.append({
             'uuid': dsinfo['uuid'],
             'filename': dsinfo['filename'],

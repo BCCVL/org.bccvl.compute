@@ -1,28 +1,19 @@
 from itertools import chain
 import mimetypes
 import tempfile
-import shutil
 import os.path
 import glob
-from urllib2 import urlopen
-from io import BytesIO
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from zope.interface import implementer, provider
-from org.bccvl.site.namespace import (BCCPROP, BCCVOCAB, BIOCLIM,
-                                      DWC, BCCEMSC, BCCGCM)
+from org.bccvl.site.interfaces import IBCCVLMetadata
 from org.bccvl.site.content.interfaces import (IProjectionExperiment,
                                                ISDMExperiment)
-from gu.plone.rdf.namespace import CVOCAB
-from ordf.graph import Graph
-from ordf.namespace import DC
-from rdflib import RDF, Literal
 from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
 from Products.CMFCore.utils import getToolByName
 from zipfile import ZipFile, ZIP_DEFLATED
 from plone.app.uuid.utils import uuidToObject
-from gu.z3cform.rdf.interfaces import IGraph
 from csv import DictReader
 from decimal import Decimal, InvalidOperation
 import logging
@@ -48,23 +39,20 @@ def guess_mimetype(name, mtr=None):
     return 'application/octet-stream'
 
 
-def addLayerInfo(graph, experiment):
+def addLayerInfo(bccvlmd, experiment):
+    layermd = bccvlmd.setdefault('layers', {})
     for layer in set(chain(*experiment.environmental_datasets.values())):
-        graph.add((graph.identifier, BIOCLIM['bioclimVariable'], layer))
+        layermd[layer] = None
 
 
-def addSpeciesInfo(graph, result):
+def addSpeciesInfo(bccvlmd, result):
     if ISDMExperiment.providedBy(result.__parent__):
         spds = uuidToObject(result.job_params['species_occurrence_dataset'])
     if IProjectionExperiment.providedBy(result.__parent__):
         spds = uuidToObject(result.job_params['species_distribution_models'])
-    spmd = IGraph(spds)
-    for prop in (DWC['scientificName'],
-                 DWC['taxonID'],
-                 DWC['vernacularName']):
-        val = spmd.value(spmd.identifier, prop)
-        if val:
-            graph.set((graph.identifier, prop, val))
+    speciesmd = IBCCVLMetadata(spds).get('species', None)
+    if speciesmd:
+        bccvlmd['species'] = speciesmd.copy()
 
 
 def extractThresholdValues(fname):
@@ -156,55 +144,45 @@ class ResultSource(object):
 
         datasetid = normalizer.normalize(name)
 
-        rdf = Graph()
-        rdf.set((rdf.identifier, DC['title'], Literal(name)))
-        rdf.add((rdf.identifier, RDF['type'], CVOCAB['Dataset']))
+        bccvlmd = {}
         genre = info.get('genre', None)
 
         if genre:
-            genreuri = BCCVOCAB[genre]
-            rdf.set((rdf.identifier, BCCPROP['datagenre'], genreuri))
+            bccvlmd['genre'] = genre
             # FIXME: attach species data to everything?
 
             #  resolution, toolkit, species, layers
             #  future: year, emsc, gcm
-            if genreuri == BCCVOCAB['DataGenreSDMModel']:
-                addLayerInfo(rdf, self.context.__parent__)
-                rdf.set((rdf.identifier, BCCPROP['resolution'],
-                         self.context.resolution))
+            if genre == 'DataGenreSDMModel':
+                addLayerInfo(bccvlmd, self.context.__parent__)
+                bccvlmd['resolution'] = IBCCVLMetadata(self.context).get('resolution')
                 # add species info
-                addSpeciesInfo(rdf, self.context)
-            elif genreuri == BCCVOCAB['DataGenreFP']:
-                rdf.set((rdf.identifier, BCCPROP['resolution'],
-                         self.context.job_params['resolution']))
-                addSpeciesInfo(rdf, self.context)
+                addSpeciesInfo(bccvlmd, self.context)
+            elif genre == 'DataGenreFP':
+                # TODO: shall we take resolution from context?
+                #       IBCCVLMetadata(self.context).get('resolution')
+                bccvlmd['resolution'] = self.context.job_params['resolution']
+                addSpeciesInfo(bccvlmd, self.context)
 
                 # FIXME: find a cleaner way to attach metadata
                 if 'year' in self.context.job_params:
-                    year = Literal("start={0}; end={0}; scheme=W3C-DTF;"
-                                   .format(self.context.job_params['year']),
-                                   datatype=DC['Period'])
-                    rdf.set((rdf.identifier, DC['temporal'], year))
-                if 'emission_scenario' in self.context.job_params:
-                    rdf.set((rdf.identifier, BCCPROP['emissionscenario'],
-                             BCCEMSC[self.context.job_params['emission_scenario']]))
+                    year = "start={0}; end={0}; scheme=W3C-DTF;".format(
+                        self.context.job_params['year'])
+                    bccvlmd['temporal'] = year
+                if 'emsc' in self.context.job_params:
+                    bccvlmd['emsc'] = self.context.job_params['emsc']
                 if 'climate_models' in self.context.job_params:
-                    rdf.set((rdf.identifier, BCCPROP['gcm'],
-                             BCCGCM[self.context.job_params['climate_models']]))
+                    bccvlmd['gcm'] = self.context.job_params['gcm']
                 # exp.future_climate_datasets()
-            elif genreuri == BCCVOCAB['DataGenreSDMEval']:
+            elif genre == 'DataGenreSDMEval':
                 if info.get('mimetype') == 'text/csv':
                     thresholds = extractThresholdValues(fname)
                     if thresholds:
-                        if 'thresholds' not in info:
-                            info['thresholds'] = {}
-                        info['thresholds'].update(thresholds)
+                        bccvlmd['thresholds'] = thresholds
 
         mimetype = info.get('mimetype', None)
         if mimetype is None:
             mimetype = guess_mimetype(fname, mtr)
-        if mimetype is not None:
-            rdf.set((rdf.identifier, DC['format'], Literal(mimetype)))
 
         LOG.info("Ingest item: %s, %s", datasetid, name)
         return {
@@ -212,16 +190,12 @@ class ResultSource(object):
             '_type': 'org.bccvl.content.dataset',
             'title': unicode(name),
             'description': info.get('title', u''),
-            'thresholds': info.get('thresholds', None),
             'file': {
                 'file': name,
                 'contenttype': mimetype,
                 'filename': name
             },
-            '_rdf': {
-                'file': 'rdf.ttl',
-                'contenttype': 'text/turtle',
-            },
+            '_bccvlmetadata': bccvlmd,
             # FIXME: I think adding open file descriptors works just fine,
             #        otherwise could use new 'path' feature with additional blueprint
             '_files': {
@@ -230,11 +204,6 @@ class ResultSource(object):
                     'name': name,
                     'path': fname,
                     'data': open(fname, 'r')
-                },
-                'rdf.ttl': {
-                    'name': 'rdf.ttl',
-                    # FIXME: seems like 'data' as fileobject is supported ... rdf reader should support it as well
-                    'data': rdf.serialize(format='turtle')
                 }
             }
         }

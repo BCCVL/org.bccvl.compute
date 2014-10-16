@@ -7,8 +7,8 @@
       "file": "mini_current_50to00_.3.zip"
   },
   "_transitions": "publish",
-  "_rdf": {
-      "file": "mini_current_50to00_.3.ttl",
-      "contenttype": "text/turtle"
+  "_bccvlmetadata": {
+    "genre": "DataGenreCC",
+    "resolution": "Resolution30s"
   }
 }

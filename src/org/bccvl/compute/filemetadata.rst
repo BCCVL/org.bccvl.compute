@@ -43,4 +43,4 @@ First we'll need a simple data source and a transomgrifiec pipeline
     >>> filemd['absence.csv']['rows']
     400
     >>> filemd['occurrence.csv']['bounds']
-    [-27.983333, 152.75786, -27.08149, 153.45]
+    {'right': 153.45, 'bottom': -27.983333, 'top': -27.08149, 'left': 152.75786}

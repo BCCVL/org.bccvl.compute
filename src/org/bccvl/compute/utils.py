@@ -5,13 +5,10 @@
 
 .. moduleauthor:: Gerhard Weis <g.weis@griffith.edu.au>
 """
-import os
 from decimal import Decimal
 from plone.app.uuid.utils import uuidToObject
 from org.bccvl.site.api.dataset import getdsmetadata
-from gu.z3cform.rdf.interfaces import IResource
-from org.bccvl.site.namespace import DWC, BCCPROP, BCCVOCAB
-from org.bccvl.site.interfaces import IDownloadInfo
+from org.bccvl.site.interfaces import IDownloadInfo, IBCCVLMetadata
 
 import logging
 LOG = logging.getLogger(__name__)
@@ -62,10 +59,11 @@ def getdatasetparams(uuid):
         return None
     dsinfo = getDatasetInfo(dsobj, uuid)
     # if we have species info add it
-    dsmdr = IResource(dsobj)
-    species = dsmdr.value(DWC['scientificName'])
+
+    dsmdr = IBCCVLMetadata(dsobj)
+    species = dsmdr.get('species', {}).get('scientificName')
     if species:
-        dsinfo['species'] = unicode(species)
+        dsinfo['species'] = species
     # if we can get layermetadata, let's add it
     biomod = getdsmetadata(dsobj)
     layers = biomod.get('layers', [])

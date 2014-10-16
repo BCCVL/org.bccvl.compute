@@ -7,7 +7,12 @@
           "filename": "absence.csv"
           },
   "_transitions": "publish",
-  "_rdf": {
-          "file": "absence.ttl",
-          "contenttype": "text/turtle"}
+  "_bccvlmetadata": {
+    "genre": "DataGenreSpeciesAbsence",
+    "species": {
+      "scientificName": "Phascolarctus cinereus",
+      "vernacularName": "Koala",
+      "taxonID": "urn:lsid:biodiversity.org.au:afd.taxon:e9d6fbbd-1505-4073-990a-dc66c930dad6"
+    }
+  }
 }

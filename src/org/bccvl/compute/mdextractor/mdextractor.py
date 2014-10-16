@@ -59,7 +59,6 @@ class ZipExtractor(object):
                     'filename': zipinfo.filename,
                     'file_size': zipinfo.file_size,
                     'date_time': zipinfo.date_time,  # last mod?
-
                 }
                 ret[md['filename']] = md
 
@@ -298,8 +297,12 @@ class CSVExtractor(object):
     def from_fileob(self, bytesio):
         csvreader = csv.reader(bytesio)
         headers = csvreader.next()
-        bounds = [float("Inf"), float("Inf"),
-                  float("-Inf"), float("-Inf")]
+        bounds = {
+            'bottom': float('Inf'),
+            'left': float('Inf'),
+            'top': float("-Inf"),
+            'right': float("-Inf"),
+        }
         species = set()
         data = {}
         count = 0
@@ -313,12 +316,15 @@ class CSVExtractor(object):
             for row in csvreader:
                 count += 1
                 lat, lon = float(row[latidx]), float(row[lonidx])
-                bounds[0] = min(lat, bounds[0])
-                bounds[1] = min(lon, bounds[1])
-                bounds[2] = max(lat, bounds[2])
-                bounds[3] = max(lon, bounds[3])
+                bounds.update(
+                    bottom=min(lat, bounds['bottom']),
+                    left=min(lon, bounds['left']),
+                    top=max(lat, bounds['top']),
+                    right=max(lon, bounds['right'])
+                )
                 if speciesidx is not None:
                     species.add(row[speciesidx])
+
             data['rows'] = count
             data['species'] = species
             data['bounds'] = bounds
@@ -364,4 +370,5 @@ MetadataExtractor.extractors = {
     'image/tiff': TiffExtractor(),
     'image/geotiff': TiffExtractor(),
     'text/csv': CSVExtractor(),
+    'text/comma-separated-values': CSVExtractor(),
 }
