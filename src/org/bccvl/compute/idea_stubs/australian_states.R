@@ -1,10 +1,11 @@
 
 
-get.australian.state.shape <- function(file="SLA11aAust.shp", state.code="1")
+get.australian.state.shape <- function(file="SLA11aAust.shp", state.code="1", crs=CRS("+init=epsg:4283"))
 {
     library(maptools)
     library(mapdata) # this one makes plot(get.nsw.shape()) work
-    shape=readShapePoly("SLA11aAust.shp");
+    shape=readShapePoly(file);
+    proj4string(shape) = crs;
     return (shape[shape$STATE_CODE==state.code,]);
 }
 
