@@ -1,3 +1,238 @@
+# FIXME: R env setup should be done on compute host
+#        - lib dir: get rid of it
+#        - don't do install.packages?
+#        -
+# setup R environment
+#if (!file.exists(Sys.getenv("R_LIBS_USER"))) {
+#    dir.create(Sys.getenv("R_LIBS_USER"), recursive=TRUE);
+#}
+#.libPaths(Sys.getenv("R_LIBS_USER"))
+# set CRAN mirror in case we need to download something
+
+## TODO: setup CRAN mirror in .Renviron
+## see http://stat.ethz.ch/R-manual/R-devel/library/base/html/Startup.html
+## don't install here... just require
+
+r <- getOption("repos")
+r["CRAN"] <- "http://cran.ms.unimelb.edu.au/"
+options(repos=r)
+
+
+#script to run to develop distribution models
+###check if libraries are installed, install if necessary and then load them
+necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "pROC", "R2HTML", "png", "biomod2") #list the libraries needed
+installed = necessary %in% installed.packages() #check if library is installed
+if (length(necessary[!installed]) >=1) {
+    install.packages(necessary[!installed], dep = T) #if library is not installed, install it
+}
+for (lib in necessary) {
+    library(lib,character.only=T) #load the libraries
+}
+
+# load parameters
+params = rjson::fromJSON(file="params.json")
+bccvl.params <- params$params
+bccvl.env <- params$env
+rm(params)
+# set working directory (script runner takes care of it)
+setwd(bccvl.env$outputdir)
+
+############################################################
+#
+# define helper functions to use in bccvl
+#
+############################################################
+
+## Needed for tryCatch'ing:
+bccvl.err.null <- function (e) return(NULL)
+
+# read species presence/absence data
+#    return NULL if filename is not  given
+# TODO: shall we set projection here as well? use SpatialPoints?
+bccvl.species.read <- function(filename) {
+    if (!is.null(filename)) {
+        # We might loose precision of lon/lat when ronverting to double,
+        # However, given the nature of the numbers, and the resolution of raster files
+        # we deal with, this shouldn't be a problem.
+        return (read.csv(filename, colClasses=c("lon"="numeric", "lat"="numeric")))
+        #return (read.csv(filename))
+    }
+}
+
+# use either absen.data (1) or generate random pseudo absence points (2)
+# (1) extract "lat" and "lon" from absen.data
+# (2) generate number of absence points in area of climate.data
+bccvl.dismo.absence <- function(absen.data=NULL,
+                                pseudo.absen.enabled=FALSE,
+                                pseudo.absen.points=0,
+                                climate.data=NULL,
+                                occur.data=NULL) {
+    # TODO: combine random and given absence points:
+    # rbind(absen.datafromfile, bkgd.datarandom)
+    if (pseudo.absen.enabled) {
+        # generate randomPoints
+        bkgd = randomPoints(
+            climate.data,
+            pseudo.absen.points,
+            occur.data)
+        # as data frame
+        absen = as.data.frame(bkgd)
+        # rename columns
+        names(absen) <- c("lon","lat")
+    } else {
+        # otherwise read absence ponits from file
+        absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
+        # keep only lon and lat columns
+        absen = absen[c("lon","lat")]
+    }
+    return(absen);
+}
+
+# return a RasterStack of given vector of input files
+# Potentially crops the data to an automatically determined
+# common (mutual) extent.
+# Checks if data has projection associated with it, and in case
+# there is none, this method sets it to WGS84 (EPSG:4326)
+bccvl.enviro.stack <- function(filenames) {
+    
+    raster.list=lapply(filenames, raster) # raster is lazy to load images
+    extent.list=lapply(raster.list, extent)
+    
+    common.extent=extent.list[[1]]
+    equal.extents=TRUE
+    i=2
+    while (i<=length(extent.list))
+    {
+        rast.extent=extent.list[[i]]
+        if (rast.extent != common.extent) equal.extents = FALSE
+        common.extent=intersect(common.extent, rast.extent)
+        i=i+1
+    }
+
+    if (equal.extents)
+    {
+        # Fast path
+        raster.stack=stack(raster.list)
+    } else {
+        warning_msg=sprintf("Raster stack: enforcing common extent xmin,xmax=[%f, %f] ymin,ymax=[%f, %f]", 
+                            common.extent@xmin,
+                            common.extent@xmax,
+                            common.extent@ymin,
+                            common.extent@ymax)
+        warning(warning_msg, immediate=TRUE)
+                         
+        raster.stack=stack()
+        for (rast in raster.list)
+        {
+            raster.stack = stack(raster.stack, crop(rast, common.extent))
+            #raster.stack = addLayer(raster.stack, crop(rast, common.extent))  # equivalent?
+        }
+    }
+
+    proj = proj4string(raster.stack)
+
+    if (is.na(proj)) {
+        # None set, let's set a default
+        proj4string(raster.stack) <- CRS("+init=epsg:4326")
+        warning("Environmental data set has no projection metadata. Set to default EPSG:4326")
+    }
+    
+    return (raster.stack)
+}
+
+# function to save projection output raster
+bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir) {
+    ## save projections under biomod2 compatible name:
+    ##  proj_name_species.tif
+    ##  only useful for dismo outputs
+    basename = paste("proj", projection.name, species, sep="_")
+    filename = file.path(outputdir, paste(basename, 'tif', sep="."))
+    writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
+}
+
+# function to save RData in outputdir
+bccvl.save <- function(robj, name, outputdir=bccvl.env$outputdir) {
+    filename = file.path(outputdir, name)
+    save(robj, file=filename)
+}
+
+# function to save CSV Data in outputdir
+bccvl.write.csv <- function(robj, name, outputdir=bccvl.env$outputdir) {
+    filename = file.path(outputdir, name)
+    write.csv(robj, file=filename)
+}
+
+# function to get model object
+bccvl.getModelObject <- function(model.file=bccvl.env$inputmodel) {
+    return (get(load(file=model.file)))
+}
+
+# convert all .gri/.grd found in folder to gtiff
+# TODO: extend to handle other grid file formats, e.g. .asc
+bccvl.grdtodisk <- function(folder) {
+    grdfiles <- list.files(path=folder,
+                           pattern="^.*\\.gri")
+    for (grdfile in grdfiles) {
+        # get grid file name
+        print("here")
+        print(grdfile)
+        grdname <- file_path_sans_ext(grdfile)
+        # read grid raster
+        grd <- raster(file.path(folder, grdfile))
+        # write raster as geotiff
+        filename = file.path(folder, paste(grdname, 'tif', sep="."))
+        writeRaster(grd, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
+
+        png_filename = file.path(folder, paste(grdname, 'png', sep="."))
+        plot(grd)
+        title(grdname)
+        dev.off()
+        # remove grd files
+        file.remove(file.path(folder, paste(grdname, c("grd","gri"), sep=".")))
+    }
+}
+############################################################
+#
+# define helper functions for projections
+#
+############################################################
+
+# function to check that the environmental layers used to project the
+# model are the same as the ones used to create the model object
+#    model.obj     ... model to project
+#    climatelayers ... climate data to project onto
+bccvl.checkModelLayers <- function(model.obj, climatelayers) {
+    message("Checking environmental layers used for projection")
+    # get the names of the environmental layers from the original model
+    if (inherits(model.obj, "DistModel")) {
+        # dismo package
+        model.layers = colnames(model.obj@presence)
+    } else if (inherits(model.obj, "gbm")) {
+        # brt package
+        model.layers = summary(model.obj)$var
+    } else if (inherits(model.obj, "BIOMOD.models.out")) {
+        # biomod package
+        model.layers = model.obj@expl.var.names
+    }
+
+    # get the names of the climate scenario's env layers
+    pred.layers = names(climatelayers)
+
+    # check if the env layers were in the original model
+    if(sum(!(pred.layers %in% model.layers)) > 0 ){
+        message("Dropping environmental layers not used in the original model creation...")
+        # create a new list of env predictors by dropping layers not in the original model
+        new.predictors = climatelayers
+        for (pl in pred.layers) {
+            if (!(pl %in% model.layers)) {
+                new.predictors = dropLayer(new.predictors, pl)
+            }
+        }
+        return(new.predictors)
+    } else {
+        return(climatelayers)
+    }
+}
 ######################################################################################
 # model accuracy helpers
 ######################################################################################
@@ -56,6 +291,7 @@ bccvl.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thres
         msg=sprintf("%s Be careful with this model's predictions.", msg)
         # warning("\nObserved or fited data contains only a value.. Evaluation Methods switched off\n",immediate.=T)
         # best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA
+        #warning("\nObserved or fitted data contains a unique value.. Be carefull with this model's predictions\n",immediate.=T)
         warning(sprintf("\n%s\n", msg),immediate.=T)
         #best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA
     } #else {
@@ -80,7 +316,6 @@ bccvl.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thres
         } else{
             valToTest <- Fixed.thresh
         }
-
         calcStat <- sapply(lapply(valToTest, function(x){return(table(Fit>x,Obs))} ), bccvl.calculate.stat, stat=Stat)
 
         # scal on 0-1 ladder.. 1 is the best
@@ -104,7 +339,7 @@ bccvl.Find.Optim.Stat <- function(Stat='TSS', Fit, Obs, Precision=5, Fixed.thres
         sensibility <- as.numeric(roc1.out["sensitivity"])
         specificity <- as.numeric(roc1.out["specificity"])
     }
-  #}
+   #}
     return(cbind(best.stat,cutoff,sensibility,specificity))
 }
 
@@ -587,8 +822,8 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model, use.eval
 
     # TODO: get_predictions is buggy; evaluation=FALSE works the wrong way round
     # predictions = get_predictions(biomod.model, evaluation=FALSE)
-
     obs = get_formal_data(biomod.model, if (use.eval.data) "eval.resp.var" else "resp.var")
+    #obs = get_formal_data(biomod.model, "resp.var")
     # in case of pseudo absences we might have NA values in obs so replace them with 0
     obs = replace(obs, is.na(obs), 0)
 
@@ -673,9 +908,6 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model, use.eval
     # save response curves (Elith et al 2005)
     # TODO: check models parameter ... do I need it? shouldn't it be algo name?
     #       -> would make BIOMOD_LoadMadels call and parameter loaded.name pointless
-    #
-    # not sure what the comment above means - but ever since we moved to generating
-	# output from all models, we could just use biomod.model@models.computed
     for(name in loaded.names)
     {
 
@@ -688,4 +920,335 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model, use.eval
          # EMG need to investigate why you would want to use this option - uses presence data only
         dev.off()
     }
+    return(roc1)
 }
+####
+##
+##  INPUT:
+##
+##  occur.data ... filename for occurence data
+##  absen.data  ... filename for absence data
+##  enviro.data.current ... list of filenames for climate data
+##  enviro.data.type    ... continuous
+##  opt.tails ... predict parameter
+##
+##  outputdir ... root folder for output data
+
+#define the working directory
+#scriptdir = normalizePath(bccvl.env$scriptdir)
+#inputdir =  normalizePath(bccvl.env$inputdir)
+#outputdir =  normalizePath(bccvl.env$outputdir)
+
+
+# extract params
+# define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
+occur.data = bccvl.params$species_occurrence_dataset$filename
+occur.species = bccvl.params$species_occurrence_dataset$species
+#define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
+absen.data = bccvl.params$species_absence_dataset$filename
+#define the current enviro data to use
+enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
+#type in terms of continuous or categorical
+enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
+
+############### BIOMOD2 Models ###############
+#
+# general parameters to perform any biomod modelling
+#
+biomod.NbRunEval = bccvl.params$nb_run_eval  # default 10; n-fold cross-validation; ignored if DataSplitTable is filled
+#biomod.DataSplit = bccvl.params$data_split # default 100; % for calibrating/training, remainder for testing; ignored if DataSplitTable is filled
+biomod.DataSplit = 100 # default 100; % for calibrating/training, remainder for testing; ignored if DataSplitTable is filled
+biomod.Yweights = NULL #response points weights
+biomod.Prevalence = bccvl.params$prevalence #either NULL (default) or a 0-1 numeric used to build "weighted response weights"
+biomod.VarImport = bccvl.params$var_import # default 0; number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model
+#EMG this parameter needs to be specified in order to get VariableImportance metrics during model evaluation
+biomod.models.eval.meth = c("KAPPA", "TSS", "ROC" ,"FAR", "SR", "ACCURACY", "BIAS", "POD", "CSI", "ETS") #vector of evaluation metrics
+biomod.rescal.all.models = bccvl.params$rescale_all_models #if true, all model prediction will be scaled with a binomial GLM
+biomod.do.full.models = bccvl.params$do_full_models #if true, models calibrated and evaluated with the whole dataset are done; ignored if DataSplitTable is filled
+biomod.modeling.id = bccvl.params$modeling_id  #character, the ID (=name) of modeling procedure. A random number by default
+# biomod.DataSplitTable = NULL #a matrix, data.frame or a 3D array filled with TRUE/FALSE to specify which part of data must be used for models calibration (TRUE) and for models validation (FALSE). Each column correspund to a "RUN". If filled, args NbRunEval, DataSplit and do.full.models will be ignored
+# EMG Need to test whether a NULL values counts as an argument
+biomod.species.name = occur.species # used for various path and file name generation
+projection.name = "current"  #basename(enviro.data.current)
+
+
+# model-specific arguments to create a biomod model
+model.options.rf <- list(
+	do.classif =  bccvl.params$do.classif,
+	ntree =  bccvl.params$ntree,
+	mtry = if (bccvl.params$mtry == "default") bccvl.params$mtry else as.integer(bccvl.params$mtry),
+	nodesize=  bccvl.params$nodesize,
+	maxnodes = bccvl.params$maxnodes
+)
+
+
+############### BIOMOD2 Models ###############
+#
+# general parameters to project any biomod modelling
+#
+#modeling.output #"BIOMOD.models.out" object produced by a BIOMOD_Modeling run
+#new.env #a set of explanatory variables onto which models will be projected; must match variable names used to build the models
+#proj.name #a character defining the projection name (a new folder will be created with this name)
+# pseudo absences
+biomod.PA.nb.rep = 0
+biomod.PA.nb.absences = 0
+
+biomod.xy.new.env = NULL #optional coordinates of new.env data. Ignored if new.env is a rasterStack
+biomod.selected.models = bccvl.params$selected_models #'all' when all models have to be used to render projections or a subset vector of modeling.output models computed (eg, = grep('RF', getModelsBuiltModels(myBiomodModelOut)))
+# EMG If running one model at a time, this parameter becomes irrevelant
+biomod.binary.meth = NULL #a vector of a subset of models evaluation method computed in model creation
+biomod.filtered.meth = NULL #a vector of a subset of models evaluation method computed in model creation
+biomod.compress = bccvl.params$compress # default 'gzip'; compression format of objects stored on your hard drive. May be one of `xz', `gzip' or NULL
+biomod.build.clamping.mask = TRUE #if TRUE, a clamping mask will be saved on hard drive
+opt.biomod.silent = FALSE #logical, if TRUE, console outputs are turned off
+opt.biomod.do.stack = TRUE #logical, if TRUE, attempt to save all projections in a unique object i.e RasterStack
+opt.biomod.keep.in.memory = TRUE #logical, if FALSE only the link pointing to a hard drive copy of projections are stored in output object
+opt.biomod.output.format = NULL #'.Rdata', '.grd' or '.img'; if NULL, and new.env is not a Raster class, output is .RData defining projections saving format (on hard drive)
+
+
+# model accuracy statistics
+# these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R
+dismo.eval.method = c("ODP", "TNR", "FPR", "FNR", "NPP", "MCR", "OR")
+
+# model accuracy statistics - combine stats from dismo and biomod2 for consistent output
+model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
+# TODO: these functions are used to evaluate the model ... configurable?
+
+# read current climate data
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current)
+
+###read in the necessary observation, background and environmental data
+occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
+# keep only lon and lat columns
+occur = occur[c("lon","lat")]
+
+occlude <- function(rast, occur)
+{
+    vals=extract(rast, occur)
+    return(occur[!is.na(vals),])
+}
+pixel_to_lon_lat <- function(mask, r, c)
+{
+    ext=extent(rasterFromCells(mask, cellFromRowCol(mask, rownr=r,colnr=c), values=T))
+    return(c((ext@xmin+ext@xmax)/2.0, (ext@ymin+ext@ymax)/2.0))
+}
+random_valid_from_mask <- function(mask, n=1, target_val = 1)
+{
+    fun <- function(x) { x == target_val }
+    points = rasterToPoints(mask, fun)
+    indices = sample(dim(points)[1], n)
+    return(data.frame(lon=points[indices,1], lat=points[indices,2]))
+}
+
+random_coords_from_raster <- function(raster, n=1)
+{
+    fun <- function(x) { TRUE } #todo unhack
+    points = rasterToPoints(raster, fun)
+    indices = sample(dim(points)[1], n)
+    return(data.frame(lon=points[indices,1], lat=points[indices,2]))
+}
+
+#train_mask=raster(bccvl.params$train_mask);
+#test_mask=raster(bccvl.params$test_mask);
+
+n_occur=length(occur[[1]])
+sampling=sample(n_occur, n_occur)
+
+data_split_prop=bccvl.params$data_split/100.0
+n_occur=length(occur[[1]])
+sampling=sample(n_occur,n_occur)
+cutoff = max(min(round(n_occur*data_split_prop),n_occur),1)
+train_occur = data.frame(lon=occur$lon[sampling[1:cutoff]], lat=occur$lat[sampling[1:cutoff]])
+if (cutoff < n_occur)
+{
+    test_occur = data.frame(lon=occur$lon[sampling[cutoff+1:n_occur]], lat=occur$lat[sampling[cutoff+1:n_occur]])
+} else {
+    test_occur = data.frame(lon=c(), lat=c())
+}
+
+#train.stack = crop(current.climate.scenario, extent(train_mask))
+train.stack = current.climate.scenario
+#test.stack = crop(current.climate.scenario, extent(test_mask))
+test.stack = current.climate.scenario
+# shall we use pseudo absences?
+# TODO: this will ignore given absence file in case we want pseudo absences
+if (bccvl.params$species_pseudo_absence_points) {
+     
+    train_absen = random_coords_from_raster(current.climate.scenario[[1]], 
+                                            data_split_prop*bccvl.params$species_number_pseudo_absence_points)
+    test_absen = random_coords_from_raster(current.climate.scenario[[1]], 
+                                           (1-data_split_prop)* bccvl.params$species_number_pseudo_absence_points)
+    #biomod.PA.nb.rep = 1
+    #biomod.PA.nb.absences = bccvl.params$species_number_pseudo_absence_points
+    biomod.PA.nb.rep = 0
+    biomod.PA.nb.absences = 0
+    # create an empty data frame for bkgd points
+} else {
+    # read absence points from file
+    absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
+    # keep only lon and lat columns
+    absen = absen[c("lon","lat")]
+    n_absent=length(absen[[1]])
+    sampling=sample(n_absent,n_absent)
+    cutoff = max(min(round(n_absent*data_split_prop),n_absent),1)
+    train_absen = data.frame(lon=absen$lon[sampling[1:cutoff]], lat=absen$lat[sampling[1:cutoff]])
+    if (cutoff < n_absent)
+    {
+        test_absen = data.frame(lon=absen$lon[sampling[cutoff+1:n_absent]], lat=absen$lat[sampling[cutoff+1:n_absent]])
+    } else {
+        test_absen = data.frame(lon=c(), lat=c())
+    }
+
+}
+
+
+# extract enviro data for species observation points and append to species data
+#occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
+#if (!is.null(absen)) {
+#    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
+#}
+
+# TODO: Spatial data frames usage:
+# op = SpatialPoints(occur[c("lon","lat")])
+## append env data to op
+# op = extract(current.climate.scenario, op, sp=TRUE)
+
+###run the models and store models
+############### BIOMOD2 Models ###############
+# 1. Format the data
+# 2. Define the model options
+# 3. Compute the model
+# NOTE: Model evaluation is included as part of model creation
+
+# BIOMOD_FormatingData(resp.var, expl.var, resp.xy = NULL, resp.name = NULL, eval.resp.var = NULL,
+#	eval.expl.var = NULL, eval.resp.xy = NULL, PA.nb.rep = 0, PA.nb.absences = 1000, PA.strategy = 'random',
+#	PA.dist.min = 0, PA.dist.max = NULL, PA.sre.quant = 0.025, PA.table = NULL, na.rm = TRUE)
+#
+# resp.var a vector, SpatialPointsDataFrame (or SpatialPoints if you work with `only presences' data) containing species data (a single species) in binary format (ones for presences, zeros for true absences and NA for indeterminated ) that will be used to build the species distribution models.
+# expl.var a matrix, data.frame, SpatialPointsDataFrame or RasterStack containing your explanatory variables that will be used to build your models.
+# resp.xy optional 2 columns matrix containing the X and Y coordinates of resp.var (only consider if resp.var is a vector) that will be used to build your models.
+# eval.resp.var	a vector, SpatialPointsDataFrame your species data (a single species) in binary format (ones for presences, zeros for true absences and NA for indeterminated ) that will be used to evaluate the models with independant data (or past data for instance).
+# eval.expl.var	a matrix, data.frame, SpatialPointsDataFrame or RasterStack containing your explanatory variables that will be used to evaluate the models with independant data (or past data for instance).
+# eval.resp.xy opional 2 columns matrix containing the X and Y coordinates of resp.var (only consider if resp.var is a vector) that will be used to evaluate the modelswith independant data (or past data for instance).
+# resp.name	response variable name (character). The species name.
+# PA.nb.rep	number of required Pseudo Absences selection (if needed). 0 by Default.
+# PA.nb.absences number of pseudo-absence selected for each repetition (when PA.nb.rep > 0) of the selection (true absences included)
+# PA.strategy strategy for selecting the Pseudo Absences (must be `random', `sre', `disk' or `user.defined')
+# PA.dist.min minimal distance to presences for `disk' Pseudo Absences selection (in meters if the explanatory is a not projected raster (+proj=longlat) and in map units (typically also meters) when it is projected or when explanatory variables are stored within table )
+# PA.dist.max maximal distance to presences for `disk' Pseudo Absences selection(in meters if the explanatory is a not projected raster (+proj=longlat) and in map units (typically also meters) when it is projected or when explanatory variables are stored within table )
+# PA.sre.quant quantile used for `sre' Pseudo Absences selection
+# PA.table a matrix (or a data.frame) having as many rows than resp.var values. Each column correspund to a Pseudo-absences selection. It contains TRUE or FALSE indicating which values of resp.var will be considered to build models. It must be used with `user.defined' PA.strategy.
+# na.rm	logical, if TRUE, all points having one or several missing value for environmental data will be removed from analysis
+
+# format the data as required by the biomod package
+formatBiomodData = function() {
+    biomod.data = rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
+    biomod.data.pa = c(rep(1, nrow(occur)), rep(0, nrow(absen)))
+    myBiomodData <-
+        BIOMOD_FormatingData(resp.var =  biomod.data.pa,
+                             expl.var  = stack(current.climate.scenario),
+                             resp.xy   = biomod.data,
+                             resp.name = biomod.species.name,
+                             PA.nb.rep = biomod.PA.nb.rep,
+                             PA.nb.absences = biomod.PA.nb.absences,
+                             PA.strategy = 'random')
+    return(myBiomodData)
+}
+
+formatBiomodData2 = function() {
+    biomod.data = rbind(train_occur[,c("lon", "lat")], train_absen[,c("lon", "lat")])
+    biomod.data.pa = c(rep(1, nrow(train_occur)), rep(0, nrow(train_absen)))
+    biomod.test.data = rbind(test_occur[,c("lon", "lat")], test_absen[,c("lon", "lat")])
+    biomod.test.data.pa = c(rep(1, nrow(test_occur)), rep(0, nrow(test_absen)))
+    data_stack = stack(current.climate.scenario)
+    myBiomodData <-
+        BIOMOD_FormatingData(resp.var =  biomod.data.pa,
+                             expl.var  = stack(train.stack),
+                             resp.xy   = biomod.data,
+                             resp.name = biomod.species.name,
+                             PA.nb.rep = 0,
+                             PA.nb.absences = 0,
+                             PA.strategy = 'random',
+                             eval.resp.var = biomod.test.data.pa,
+                             eval.expl.var = stack(test.stack),
+                             eval.resp.xy  = biomod.test.data )
+    return(myBiomodData)
+}
+
+# BIOMOD_Modeling(data, models = c('GLM','GBM','GAM','CTA','ANN','SRE','FDA','MARS','RF','MAXENT'), models.options = NULL,
+#	NbRunEval=1, DataSplit=100, Yweights=NULL, Prevalence=NULL, VarImport=0, models.eval.meth = c('KAPPA','TSS','ROC'),
+#	SaveObj = TRUE, rescal.all.models = TRUE, do.full.models = TRUE, modeling.id = as.character(format(Sys.time(), '%s')),
+#	...)
+#
+# data	BIOMOD.formated.data object returned by BIOMOD_FormatingData
+# models vector of models names choosen among 'GLM', 'GBM', 'GAM', 'CTA', 'ANN', 'SRE', 'FDA', 'MARS', 'RF' and 'MAXENT'
+# models.options BIOMOD.models.options object returned by BIOMOD_ModelingOptions
+# NbRunEval	Number of Evaluation run
+# DataSplit	% of data used to calibrate the models, the remaining part will be used for testing
+# Yweights response points weights
+# Prevalence either NULL (default) or a 0-1 numeric used to build 'weighted response weights'
+# VarImport	Number of permutation to estimate variable importance
+# models.eval.meth vector of names of evaluation metric among 'KAPPA', 'TSS', 'ROC', 'FAR', 'SR', 'ACCURACY', 'BIAS', 'POD', 'CSI' and 'ETS'
+# SaveObj keep all results and outputs on hard drive or not (NOTE: strongly recommended)
+# rescal.all.models	if true, all model prediction will be scaled with a binomial GLM
+# do.full.models if true, models calibrated and evaluated with the whole dataset are done
+# modeling.id character, the ID (=name) of modeling procedure. A random number by default.
+# ... further arguments :
+# DataSplitTable : a matrix, data.frame or a 3D array filled with TRUE/FALSE to specify which part of data must be used for models calibration (TRUE) and for models validation (FALSE). Each column correspund to a 'RUN'. If filled, args NbRunEval, DataSplit and do.full.models will be ignored.
+
+###############
+#
+# RF (Random Forest)
+#
+###############
+
+
+# 1. Format the data
+model.data = formatBiomodData2()
+# 2. Define the model options
+model.options <- BIOMOD_ModelingOptions(RF = model.options.rf)
+# 3. Compute the model
+model.sdm <-
+    BIOMOD_Modeling(data = model.data,
+                    models=c('RF'),
+                    models.options=model.options,
+                    NbRunEval=biomod.NbRunEval,
+                    DataSplit=biomod.DataSplit,
+                    Yweights=biomod.Yweights,
+                    Prevalence=biomod.Prevalence,
+                    VarImport=biomod.VarImport,
+                    models.eval.meth=biomod.models.eval.meth,
+                    SaveObj=TRUE,
+                    rescal.all.models = biomod.rescal.all.models,
+                    do.full.models = biomod.do.full.models,
+                    modeling.id = biomod.modeling.id
+                    )
+
+#save out the model object
+bccvl.save(model.sdm, name="model.object.RData")
+# predict for current climate scenario
+model.proj <-
+    BIOMOD_Projection(modeling.output=model.sdm,
+                      new.env=stack(test.stack),
+                      proj.name  = projection.name,  #basename(enviro.data.current), {{ species }}
+                      xy.new.env = NULL,
+                      selected.models = biomod.selected.models,
+                      binary.meth = biomod.binary.meth,
+                      filtered.meth = biomod.filtered.meth,
+                      #compress = biomod.compress,
+                      build.clamping.mask = biomod.build.clamping.mask,
+                      silent = opt.biomod.silent,
+                      do.stack = opt.biomod.do.stack,	
+                      keep.in.memory = opt.biomod.keep.in.memory,
+                      output.format = opt.biomod.output.format)
+# convert projection output from grd to gtiff
+bccvl.grdtodisk(file.path(getwd(),
+                           biomod.species.name,
+                           paste("proj", projection.name, sep="_")))
+
+
+
+# output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
+loaded.model = BIOMOD_LoadModels(model.sdm, models="RF")
+roc1=bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm, use.eval.data=T) 	# save output
+roc1=bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm, use.eval.data=F) 	# save output
