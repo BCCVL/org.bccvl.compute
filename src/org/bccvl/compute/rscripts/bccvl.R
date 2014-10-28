@@ -92,20 +92,22 @@ bccvl.dismo.absence <- function(absen.data=NULL,
     return(absen);
 }
 
-# return a RasterStack of given vector of input files
-# Potentially crops the data to an automatically determined
-# common (mutual) extent.
-# Checks if data has projection associated with it, and in case
-# there is none, this method sets it to WGS84 (EPSG:4326)
-bccvl.enviro.stack <- function(filenames) {
-    
-    raster.list=lapply(filenames, raster) # raster is lazy to load images
-    extent.list=lapply(raster.list, extent)
+# warning was doing odd things. I just want to print the deng thing. 
+bccvl.log.warning <-function(str, prefix="BCCVL Warning: ")
+{
+    print(paste(prefix, str, sep=""))
+}
+
+
+# rasters: a vector of rasters
+bccvl.raster.common.extent <- function(rasters)
+{    
+    extent.list=lapply(rasters, extent)
     
     common.extent=extent.list[[1]]
     equal.extents=TRUE
     i=2
-    while (i<=length(extent.list))
+    while(i<=length(extent.list))
     {
         rast.extent=extent.list[[i]]
         if (rast.extent != common.extent) equal.extents = FALSE
@@ -113,35 +115,86 @@ bccvl.enviro.stack <- function(filenames) {
         i=i+1
     }
 
-    if (equal.extents)
+    return (list(equal.extents=equal.extents, common.extent=common.extent))
+}
+
+# rasters: a vector of rasters
+bccvl.raster.lowest.resolution <- function(rasters) 
+{
+    get_res <- function(x) { res(x) }
+    res.list = lapply(rasters, get_res)
+
+    lowest.res = res.list[[1]]
+    index = 1
+	i = 2
+    while(i<=length(res.list))
     {
-        # Fast path
-        raster.stack=stack(raster.list)
-    } else {
-        warning_msg=sprintf("Raster stack: enforcing common extent xmin,xmax=[%f, %f] ymin,ymax=[%f, %f]", 
-                            common.extent@xmin,
-                            common.extent@xmax,
-                            common.extent@ymin,
-                            common.extent@ymax)
-        warning(warning_msg, immediate=TRUE)
-                         
-        raster.stack=stack()
-        for (rast in raster.list)
+        # non equal resolutions in the x and y directions is illegal
+        # otherwise the code is flawed
+        # we should put a test here
+        if ( res.list[[i]][1] > lowest.res[[1]] )
         {
-            raster.stack = stack(raster.stack, crop(rast, common.extent))
-            #raster.stack = addLayer(raster.stack, crop(rast, common.extent))  # equivalent?
+            lowest.res = res.list[[i]]
+            index = i
         }
+		i = i+1
     }
-
-    proj = proj4string(raster.stack)
-
-    if (is.na(proj)) {
-        # None set, let's set a default
-        proj4string(raster.stack) <- CRS("+init=epsg:4326")
-        warning("Environmental data set has no projection metadata. Set to default EPSG:4326")
+    is.same.res=c()
+    i = 1 
+    while (i<=length(res.list))
+    {
+        is.same.res=rbind(is.same.res, res.list[[i]][1] == lowest.res[[1]])
+        i = i+ 1
     }
     
-    return (raster.stack)
+    return (list(lowest.res=lowest.res, index=index, is.same.res=is.same.res))
+}
+
+bccvl.raster.extent.to.str <- function(ext)
+{
+    return(sprintf("xmin=%f xmax=%f ymin=%f ymax=%f", ext@xmin, ext@xmax, ext@ymin, ext@ymax));
+}
+
+
+# raster.filenames : a vector of filenames that will be loaded as rasters 
+bccvl.rasters.to.common.extent.and.lowest.resolution <- function(raster.filenames)
+{
+    rasters = lapply(raster.filenames, raster)
+
+    ce = bccvl.raster.common.extent(rasters)  
+    if (ce$equal.extents == FALSE)
+    {
+        bccvl.log.warning(sprintf("Auto cropped to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
+        crop_common <- function(x) { crop(raster(x), ce$common.extent) }
+        rasters = lapply(raster.filenames, crop_common)
+    }
+
+    lr=bccvl.raster.lowest.resolution(rasters)
+    if (sum(lr$is.same.res == FALSE) != 0)
+    {
+        bccvl.log.warning(sprintf("Auto resampled to lowest resolution [%f %f]", lr$lowest.res[[1]], lr$lowest.res[[2]]))
+    }
+
+    master=rasters[[lr$index]] 
+    index=1
+    resamp_func <- function(x) 
+    { 
+        rsp = if (lr$is.same.res[index]) x else resample(x, master)
+        index <<- index + 1
+        return(rsp)
+    }
+
+    return(lapply(rasters, resamp_func))
+
+}
+
+# return a RasterStack of given vector of input files
+# intersecting extent
+# lowest resolution
+bccvl.enviro.stack <- function(filenames) {
+    
+    rasters = bccvl.rasters.to.common.extent.and.lowest.resolution(filenames)
+    return(stack(rasters))
 }
 
 # function to save projection output raster
