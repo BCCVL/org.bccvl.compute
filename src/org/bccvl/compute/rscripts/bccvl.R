@@ -139,12 +139,11 @@ bccvl.raster.lowest.resolution <- function(rasters)
         }
 		i = i+1
     }
+
     is.same.res=c()
-    i = 1 
-    while (i<=length(res.list))
+    for(i in 1:length(res.list))
     {
         is.same.res=rbind(is.same.res, res.list[[i]][1] == lowest.res[[1]])
-        i = i+ 1
     }
     
     return (list(lowest.res=lowest.res, index=index, is.same.res=is.same.res))
