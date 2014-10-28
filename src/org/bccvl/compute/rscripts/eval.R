@@ -623,6 +623,30 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
         png(file=file.path(bccvl.env$outputdir, paste("pROC", model_name, "png", sep=".")))
         plot(roc1, main=paste("AUC=",round(auc(roc1)/100,3),sep=""), legacy.axes=TRUE)
         dev.off()
+        # save occurence/absence pdfs
+        occur_vals=data.frame(vals=roc1$predictor[roc1$response==1])
+        absen_vals=data.frame(vals=roc1$predictor[roc1$response==0])
+        absen_vals$label="absent"
+        occur_vals$label="occur"
+        vals=rbind(occur_vals,absen_vals)
+        myplot=ggplot(vals, aes(vals, fill=label))  + geom_density(alpha = 0.3)
+        myplot = myplot + ggtitle("Occurrence/absence probability density functions\nbased on model predicted value")
+        ggsave(myplot, filename=paste("occurence_absence_pdf", model_name, "png", sep="."), scale=1.0)
+        dev.off()
+
+        myplot=ggplot(vals, aes(vals, fill=label))  + geom_histogram(alpha = 0.5)
+        myplot = myplot + ggtitle("Occurrence/absence histograms\nbased on model predicted value")
+        ggsave(myplot, filename=paste("occurence_absence_hist", model_name, "png", sep="."), scale=1.0)
+        dev.off()
+
+        png(file=file.path(bccvl.env$outputdir, paste("true_and_false_posivite_rates", model_name, "png", sep=".")))
+        plot(roc1$thresholds, 100-roc1$specificities, type="p", col="blue", xlab="Classification threshold", ylab="Rate")
+        par(new=TRUE)
+        plot(roc1$thresholds, roc1$sensitivities, type="p", col="red", xlab="", ylab="")
+        legend("topright",  title='', legend=c("True positive rate", "False positive rate"), fill=c("red", "blue"), horiz=TRUE)
+        title("True and false positive rates according to\nclassification threshold")
+        dev.off()
+
 
         # get and save the variable importance estimates
         variableImpt = get_variables_importance(biomod.model)
@@ -636,12 +660,11 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
     }
 
     # save response curves (Elith et al 2005)
-    png(file=file.path(bccvl.env$outputdir, "mean_response_curves.png"))
     # TODO: check models parameter ... do I need it? shouldn't it be algo name?
     #       -> would make BIOMOD_LoadMadels call and parameter loaded.name pointless
     #
     # not sure what the comment above means - but ever since we moved to generating
-	# output from all models, we could just use biomod.model@models.computed
+    # output from all models, we could just use biomod.model@models.computed
     for(name in loaded.names)
     {
 
