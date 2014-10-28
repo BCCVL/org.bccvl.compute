@@ -45,22 +45,26 @@ def get_sdm_params(result):
         if params[paramname]:
             params[paramname]['species'] = re.sub(u"[ _]", u".", params[paramname].get('species', u'Unknown'))
     # TODO: This assumes we only zip file based layers
+    envlist = []
     for uuid, layers in params['environmental_datasets'].items():
-        envlist = []
         dsinfo = getdatasetparams(uuid)
         for layer in layers:
-            envlist.append({
+            dsdata = {
                 'uuid': dsinfo['uuid'],
                 'filename': dsinfo['filename'],
                 'downloadurl': dsinfo['downloadurl'],
                 'internalurl': dsinfo['internalurl'],
                 # TODO: should we use layer title or URI?
                 'layer': layer,
-                'zippath': dsinfo['layers'][layer]['filename'],
                 'type': dsinfo['layers'][layer]['datatype']
-            })
-        # replace original dict
-        params['environmental_datasets'] = envlist
+            }
+            # if this is a zip file we'll have to set zippath as well
+            # FIXME: poor check whether this is a zip file
+            if dsinfo['filename'].endswith('.zip'):
+                dsdata['zippath'] = dsinfo['layers'][layer]['filename']
+            envlist.append(dsdata)
+    # replace original dict
+    params['environmental_datasets'] = envlist
     # add hints for worker to download files
     workerhints = {
         'files':  ('species_occurrence_dataset', 'species_absence_dataset',
