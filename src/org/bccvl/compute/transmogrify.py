@@ -175,10 +175,8 @@ class ResultSource(object):
                 # add species info
                 addSpeciesInfo(rdf, self.context)
             elif genreuri == BCCVOCAB['DataGenreFP']:
-                # TODO: resolution is also in job_params
-                #       self.conetxt.job_params['resolution'] ... shall we remove the attribute?
                 rdf.set((rdf.identifier, BCCPROP['resolution'],
-                         self.context.resolution))
+                         self.context.job_params['resolution']))
                 addSpeciesInfo(rdf, self.context)
 
                 # FIXME: find a cleaner way to attach metadata
