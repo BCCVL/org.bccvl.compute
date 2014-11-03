@@ -121,8 +121,7 @@ bccvl.raster.common.extent <- function(rasters)
 # rasters: a vector of rasters
 bccvl.raster.lowest.resolution <- function(rasters) 
 {
-    get_res <- function(x) { res(x) }
-    res.list = lapply(rasters, get_res)
+    res.list = lapply(rasters, res)
 
     lowest.res = res.list[[1]]
     index = 1
