@@ -337,9 +337,9 @@ class FileMetadata(object):
                 yield item
                 continue
 
-            fileattr = (item.get('remoteUrl') or
-                        item.get('file', {}).get('file'))
-            if not fileattr:
+            fileid = (item.get('remoteUrl') or
+                      item.get('file', {}).get('file'))
+            if not fileid:
                 # nothing to inspect
                 yield item
                 continue
@@ -350,7 +350,7 @@ class FileMetadata(object):
                 # we have a file but no data for it
                 yield item
                 continue
-            fileitem = files.get(fileattr)
+            fileitem = files.get(fileid)
             if not fileitem:
                 # our file is not in the _files list
                 yield item
@@ -375,7 +375,7 @@ class FileMetadata(object):
             try:
                 md = mdextractor.from_file(filepath, filect)
                 item['_filemetadata'] = {
-                    filename: md
+                    fileid: md
                 }
             except Exception as ex:
                 LOG.warn("Couldn't extract metadata from file: %s : %s",
