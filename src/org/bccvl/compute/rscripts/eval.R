@@ -573,100 +573,117 @@ bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
 } # end of evaluate.modol
 
 
+# We had to email the forum to get this solution
+# see https://r-forge.r-project.org/forum/forum.php?thread_id=29936&forum_id=995&group_id=302
+bccvl.get.biomod.calib.lines <-function(model.name,
+                                        calib.dir)
+{
+    calib.data =  get(load(paste(calib.dir,"calib.lines",sep="/")))
+    return(calib.data[,paste("_",model.name,sep="")])
+}
+
 # function to save evaluate output for BIOMOD2 models
-bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model, use.eval.data=FALSE) {
+bccvl.saveBIOMODModelEvaluation <- function(loaded.names, 
+                                            biomod.model, 
+                                            calib.dir)
+ {
     # get and save the model evaluation statistics
     # EMG these must specified during model creation with the arg "models.eval.meth"
     evaluation = get_evaluations(biomod.model)
     bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.csv")
 
     # get the model predictions and observed values
-    #predictions = getModelsPrediction(biomod.model)
-    predictions = get_predictions(biomod.model, evaluation=use.eval.data)
+    predictions = get_predictions(biomod.model)
     total_models = length(dimnames(predictions)[[3]])
 
     # TODO: get_predictions is buggy; evaluation=FALSE works the wrong way round
     # predictions = get_predictions(biomod.model, evaluation=FALSE)
-
-    obs = get_formal_data(biomod.model, if (use.eval.data) "eval.resp.var" else "resp.var")
+    obs = get_formal_data(biomod.model, "resp.var")
     # in case of pseudo absences we might have NA values in obs so replace them with 0
     obs = replace(obs, is.na(obs), 0)
 
     for ( i in 1:total_models )
     {
-        # will be FULL or RUN1 for eg
-        model_name = paste(dimnames(predictions)[[3]][i], 
-                                    if (use.eval.data) "test" else "training",
-                                    sep=".")
-        model_predictions = predictions[,,i,,drop=FALSE]
+        model.name = dimnames(predictions)[[3]][i]  # will be FULL or RUN1 for eg
+        calib.lines = bccvl.get.biomod.calib.lines(model.name, calib.dir)
+        model.predictions = predictions[,,i,,drop=FALSE]
+        train.predictions = model.predictions[calib.lines==TRUE]
+        train.obs = obs[calib.lines==TRUE]
+        test.predictions = model.predictions[calib.lines==FALSE]
+        test.obs = obs[calib.lines==FALSE]
 
-        if (sum(is.na(model_predictions)) == length(model_predictions)) 
+        if (sum(is.na(model.predictions)) == length(model.predictions)) 
         {
             # somewhat adhoc method of determining that the model failed to predict anything
             # Note that we can determine the computed and failed models by inspecting 
             # biomod.model@models.computed and biomod.model@models.failed respectively, however
-            # dimnames (model_name) can't be used to match these in a straight forward
+            # dimnames (model.name) can't be used to match these in a straight forward
             # manner (it may be possible, could go either way here. this way feels simpler)
 
             # Warn that model n is being ignored. It most probably failed to build.
             warning(sprintf("Warning: Model %i failed to generate. Not generating stats", i), immediate.=T)
             next
         }
-        # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
-        # TODO: model.accuracy is another global variable
-        combined.eval = sapply(model.accuracy, function(x){
-            return(bccvl.Find.Optim.Stat(Stat = x, Fit = model_predictions, Obs = obs))
-        })
-        # save all the model accuracy statistics provided in both dismo and biomod2
-        rownames(combined.eval) <- c("Testing.data","Cutoff","Sensitivity", "Specificity")
-        #bccvl.write.csv(t(round(combined.eval, digits=3)), name="combined.modelEvaluation.csv")
-        bccvl.write.csv(t(round(combined.eval, digits=3)), name=paste("combined", model_name, "modelEvaluation.csv", sep="."))
 
-        # save AUC curve
-        require(pROC, quietly=T)
-        roc1 <- roc(as.numeric(obs), as.numeric(model_predictions), percent=T)
-        png(file=file.path(bccvl.env$outputdir, paste("pROC", model_name, "png", sep=".")))
-        plot(roc1, main=paste("AUC=",round(auc(roc1)/100,3),sep=""), legacy.axes=TRUE)
-        dev.off()
-        # save occurence/absence pdfs
-        occur_vals=data.frame(vals=roc1$predictor[roc1$response==1])
-        absen_vals=data.frame(vals=roc1$predictor[roc1$response==0])
-        absen_vals$label="absent"
-        occur_vals$label="occur"
-        vals=rbind(occur_vals,absen_vals)
-        myplot=ggplot(vals, aes(vals, fill=label))  + geom_density(alpha = 0.3)
-        myplot = myplot + ggtitle(paste(if (use.eval.data) "Test data:\n" else "Training data:\n",
-                                       "Occurrence/absence probability density functions\nbased on model predicted value", 
-                                        sep=""))
-        ggsave(myplot, filename=paste("occurence_absence_pdf", model_name, "png", sep="."), scale=1.0)
-		dev.off()
+        for( i in 1:2)
+        {
+            these.predictions = if ( i == 1 ) train.predictions else test.predictions
+            if (!length(these.predictions)) next # FULL model has no test predictions
+            these.obs = if ( i == 1 ) train.obs else test.obs
+            this.name = paste(model.name,
+                              if ( i == 1 ) "train" else "test",
+                              sep=".")
 
-        myplot=ggplot(vals, aes(vals, fill=label))  + geom_histogram(alpha = 0.5)
-        myplot = myplot + ggtitle(paste(if (use.eval.data) "Test data:\n" else "Training data:\n",
-                                       "Occurrence/absence histograms\nbased on model predicted value", 
-                                        sep=""))
-        ggsave(myplot, filename=paste("occurence_absence_hist", model_name, "png", sep="."), scale=1.0)
-		dev.off()
+            # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+            # TODO: model.accuracy is another global variable
+            combined.eval = sapply(model.accuracy, function(x){
+                return(bccvl.Find.Optim.Stat(Stat = x, Fit = these.predictions, Obs = these.obs))
+            })
+            # save all the model accuracy statistics provided in both dismo and biomod2
+            rownames(combined.eval) <- c("Testing.data","Cutoff","Sensitivity", "Specificity")
+            #bccvl.write.csv(t(round(combined.eval, digits=3)), name="combined.modelEvaluation.csv")
+            bccvl.write.csv(t(round(combined.eval, digits=3)), name=paste("combined", this.name, "modelEvaluation.csv", sep="."))
 
-        png(file=file.path(bccvl.env$outputdir, paste("true_and_false_posivite_rates", model_name, "png", sep=".")))
-        plot(roc1$thresholds, 100-roc1$specificities, type="p", col="blue", xlab="Classification threshold", ylab="Rate")
-        par(new=TRUE)
-        plot(roc1$thresholds, roc1$sensitivities, type="p", col="red", xlab="", ylab="")
-        legend("topright",  title='', legend=c("True positive rate", "False positive rate"), fill=c("red", "blue"), horiz=TRUE)
-        title(paste(if (use.eval.data) "Test data:\n" else "Training data:\n",
-                    "True and false positive rates according to\nclassification threshold",
-                    sep=""))
-        dev.off()
+            # save AUC curve
+            require(pROC, quietly=T)
+            roc1 <- roc(as.numeric(these.obs), as.numeric(these.predictions), percent=T)
+            png(paste("pROC", this.name, "png", sep="."))
+            plot(roc1, main=paste(this.name,"\nAUC=",round(auc(roc1)/100,3),sep=""), legacy.axes=TRUE)
+            dev.off()
+            # save occurence/absence pdfs
+            occur_vals=data.frame(vals=roc1$predictor[roc1$response==1])
+            absen_vals=data.frame(vals=roc1$predictor[roc1$response==0])
+            absen_vals$label="absent"
+            occur_vals$label="occur"
+            vals=rbind(occur_vals,absen_vals)
+            myplot=ggplot(vals, aes(vals, fill=label))  + geom_density(alpha = 0.3)
+            myplot = myplot + ggtitle(paste(this.name, "\nOccurrence/absence probability density functions\nbased on model predicted value", sep=""))
+            ggsave(myplot, filename=paste("occurence_absence_pdf", this.name, "png", sep="."), scale=1.0)
+            dev.off()
+
+            myplot=ggplot(vals, aes(vals, fill=label))  + geom_histogram(alpha = 0.5)
+            myplot = myplot + ggtitle(paste(this.name, "\nOccurrence/absence histograms\nbased on model predicted value", sep=""))
+            ggsave(myplot, filename=paste("occurence_absence_hist", this.name, "png", sep="."), scale=1.0)
+            dev.off()
+
+            png(paste("true_and_false_posivite_rates", this.name, "png", sep="."))
+            plot(roc1$thresholds, 100-roc1$specificities, type="p", col="blue", xlab="Classification threshold", ylab="Rate")
+            par(new=TRUE)
+            plot(roc1$thresholds, roc1$sensitivities, type="p", col="red", xlab="", ylab="")
+            legend("topright",  title='', legend=c("True positive rate", "False positive rate"), fill=c("red", "blue"), horiz=TRUE)
+            title(paste(this.name, "\nTrue and false positive rates according to\nclassification threshold", sep=""))
+            dev.off()
 
 
-        # get and save the variable importance estimates
-        variableImpt = get_variables_importance(biomod.model)
-        if (!is.na(variableImpt)) {
-        #EMG Note this will throw a warning message if variables (array) are returned
-            bccvl.write.csv(variableImpt, name=paste("variableImportance", model_name, "txt", sep="."))
-        } else {
-            message("VarImport argument not specified during model creation!")
-            #EMG must create the model with the arg "VarImport" != 0
+            # get and save the variable importance estimates
+            variableImpt = get_variables_importance(biomod.model)
+            if (!is.na(variableImpt)) {
+            #EMG Note this will throw a warning message if variables (array) are returned
+                bccvl.write.csv(variableImpt, name=paste("variableImportance", this.name, "txt", sep="."))
+            } else {
+                message("VarImport argument not specified during model creation!")
+                #EMG must create the model with the arg "VarImport" != 0
+            }
         }
     }
 
@@ -679,7 +696,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model, use.eval
     for(name in loaded.names)
     {
 
-        png(file=file.path(bccvl.env$outputdir, sprintf("mean_response_curves_%s.png", name)))
+        png(sprintf("mean_response_curves_%s.png", name))
         test <- response.plot2(models = name,
                                Data = get_formal_data(biomod.model,"expl.var"),
                                show.variables = get_formal_data(biomod.model,"expl.var.names"),

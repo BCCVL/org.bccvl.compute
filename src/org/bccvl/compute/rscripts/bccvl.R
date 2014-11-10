@@ -28,7 +28,7 @@ if (length(necessary[!installed]) >=1) {
 for (lib in necessary) {
     library(lib,character.only=T) #load the libraries
 }
-
+source("biomod.options.R")
 # load parameters
 params = rjson::fromJSON(file="params.json")
 bccvl.params <- params$params
