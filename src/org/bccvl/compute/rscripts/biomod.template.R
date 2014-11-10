@@ -47,15 +47,6 @@ biomod.species.name = occur.species # used for various path and file name genera
 projection.name = "current"  #basename(enviro.data.current)
 biomod.algorithm = bccvl.params$biomod_algorithm
 
-# model-specific arguments to create a biomod model
-model.options.rf <- list(
-	do.classif =  bccvl.params$do.classif,
-	ntree =  bccvl.params$ntree,
-	mtry = if (bccvl.params$mtry == "default") bccvl.params$mtry else as.integer(bccvl.params$mtry),
-	nodesize=  bccvl.params$nodesize,
-	maxnodes = bccvl.params$maxnodes
-)
-
 
 ############### BIOMOD2 Models ###############
 #
@@ -110,12 +101,6 @@ if (bccvl.params$species_pseudo_absence_points) {
     # keep only lon and lat columns
     absen = absen[c("lon","lat")]
 }
-
-# extract enviro data for species observation points and append to species data
-#occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-#if (!is.null(absen)) {
-#    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
-#}
 
 # TODO: Spatial data frames usage:
 # op = SpatialPoints(occur[c("lon","lat")])
