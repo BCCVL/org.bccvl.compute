@@ -16,6 +16,8 @@
 r <- getOption("repos")
 r["CRAN"] <- "http://cran.ms.unimelb.edu.au/"
 options(repos=r)
+# print warnings immediately
+options(warn=1)
 
 
 #script to run to develop distribution models
