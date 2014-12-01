@@ -33,7 +33,7 @@ def main():
 
     (options, args) = parser.parse_args()
 
-    json_dict=json.loads(open(options.filename).read())
+    json_dict=json.loads(open(options.filename, "r").read())
     variable_entries = [ variable.variable_factory_get(json_dict, eval(line)) 
                          for line in open(options.search_variables) ]
    

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 class subset(object):
     def __init__(self, json_dict, params={}):
         self.params={"min": 1, "max": -1, "json_dict_path": None} # defaults
@@ -25,7 +24,13 @@ class subset(object):
 
     def parameter(self, k):
         return self.params[k]
-
+   
+    # binary encoding
+    def extract(self, json_dict):
+        if (len(self.set) > 63): 
+            raise Exception("Set is too large to encode as binary int")
+        value=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
+        return int("".join([ "1"if v in value else "0" for v in self.set ]), 2) #binary to int
  
 class integer_range(object):
     def __init__(self, json_dict, params={}):
@@ -43,13 +48,15 @@ class integer_range(object):
     def parameter(self, k):
         return self.params[k]
 
+    def extract(self, json_dict, encode=True):
+        return reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
+
 class double_range(object):
     def __init__(self, json_dict, params={}):
         self.params = { "min": None, "max": None, "json_dict_path": None, "n":None } # default
         self.params.update(params) # user supplied
         if not self.params["n"] or self.params["n"] <= 1:
             raise Exception("n parameter must supplied and greater than 1") 
-            
 
     def random_choice(self):
         import random
@@ -66,6 +73,9 @@ class double_range(object):
 
     def parameter(self, k):
         return self.params[k]
+
+    def extract(self, json_dict, encode=True):
+        return reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
 
 def variable_factory_get(json_dict, params):
     if params["var_type"] == "integer_range": return integer_range(json_dict, params)
