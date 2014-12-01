@@ -1,0 +1,2 @@
+# this command should run.
+python generate_params_set.py  --file=params.json --search-variables=search_vars.txt
