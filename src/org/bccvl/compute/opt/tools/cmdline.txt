@@ -1,2 +1,5 @@
 # this command should run.
 python generate_params_set.py  --file=params.json --search-variables=search_vars.txt
+
+# sets some fiels in the json file
+python json-field-set.py --input=params.json --output=test.json --attr-value="env/outputdir=/home/dave/foo" --attr-value="env/scriptdir=/home/dave/foo2"
