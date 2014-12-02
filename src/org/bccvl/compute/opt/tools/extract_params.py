@@ -16,6 +16,8 @@ def main():
                       help="A text file describing searchable variables and their corresponding ranges")
     parser.add_option("--output", dest="output", default=None,
                       help="output csv")
+    parser.add_option("--header", dest="header", action="store_true",
+                      help="write the csv column header instead")
 
     (options, args) = parser.parse_args()
 
@@ -24,8 +26,11 @@ def main():
                          for line in open(options.search_variables) ]
     
     of = sys.stdout if options.output == None else open(options.output, "w")
-
-    outputs=[str(v.extract(json_dict)) for v in variable_entries]
+	
+    if not options.header:
+        outputs=[str(v.extract(json_dict)) for v in variable_entries]
+    else:
+        outputs=[str(v.header()) for v in variable_entries]
 
     of.write(",".join(outputs))
     of.close()

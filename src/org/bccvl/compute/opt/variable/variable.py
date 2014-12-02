@@ -31,6 +31,9 @@ class subset(object):
             raise Exception("Set is too large to encode as binary int")
         value=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
         return int("".join([ "1"if v in value else "0" for v in self.set ]), 2) #binary to int
+    
+    def header(self):
+        return "_".join([str(v) for v in self.params["json_dict_path"]])
  
 class integer_range(object):
     def __init__(self, json_dict, params={}):
@@ -50,6 +53,9 @@ class integer_range(object):
 
     def extract(self, json_dict, encode=True):
         return reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
+
+    def header(self):
+        return "_".join([str(v) for v in self.params["json_dict_path"]])
 
 class double_range(object):
     def __init__(self, json_dict, params={}):
@@ -76,6 +82,9 @@ class double_range(object):
 
     def extract(self, json_dict, encode=True):
         return reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
+
+    def header(self):
+        return "_".join([str(v) for v in self.params["json_dict_path"]])
 
 def variable_factory_get(json_dict, params):
     if params["var_type"] == "integer_range": return integer_range(json_dict, params)
