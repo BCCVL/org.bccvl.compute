@@ -12,6 +12,13 @@ class VariableTests(unittest.TestCase):
         These tests dont do much, they just create the different objects and call
         the important functions. Add print statements here and tinker
     """ 
+    def test_boolean_basic(self):
+        import json
+        d=json.loads(open("params.json").read())
+        params = { "json_dict_path": ["params", "rang"], "n":10}
+        s = variable.boolean(d, params)
+        s.every_choice()
+        s.random_choice()
     
     def test_double_range_basic(self):
         import json

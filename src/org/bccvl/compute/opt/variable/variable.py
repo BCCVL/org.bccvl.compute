@@ -34,6 +34,31 @@ class subset(object):
     
     def header(self):
         return "_".join([str(v) for v in self.params["json_dict_path"]])
+        
+class boolean(object):
+    def __init__(self, json_dict, params={}):
+        self.params={"json_dict_path": None} # defaults
+        self.params.update(params) # user supplied
+
+    def random_choice(self):
+        import random
+        n = random.randint(0,1)
+        return "true" if n == 0 else "false"
+
+    def every_choice(self):
+        return ["true", "false"]
+
+    def parameter(self, k):
+        return self.params[k]
+   
+    # binary encoding
+    def extract(self, json_dict):
+        value=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
+        return 1 if value == "true" else 0 
+
+    
+    def header(self):
+        return "_".join([str(v) for v in self.params["json_dict_path"]])
  
 class integer_range(object):
     def __init__(self, json_dict, params={}):
@@ -87,6 +112,7 @@ class double_range(object):
         return "_".join([str(v) for v in self.params["json_dict_path"]])
 
 def variable_factory_get(json_dict, params):
+    if params["var_type"] == "boolean":       return boolean(json_dict, params)
     if params["var_type"] == "integer_range": return integer_range(json_dict, params)
     if params["var_type"] == "double_range":  return double_range(json_dict, params)
     if params["var_type"] == "subset":        return subset(json_dict, params)
