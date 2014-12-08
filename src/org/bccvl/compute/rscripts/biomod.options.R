@@ -27,7 +27,7 @@ bccvl.params.to.biomod.options <- function(method,bccvl.params)
 
     } else if (method == "SRE") {
 
-        biomod.options.list = list(Quant = bccvl.params$Quant)
+        biomod.options.list = list(quant = bccvl.params$Quant)
         biomod.options = BIOMOD_ModelingOptions(SRE = biomod.options.list)
 
     } else if (method == "MAXENT") {
