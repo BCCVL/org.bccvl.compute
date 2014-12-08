@@ -31,8 +31,8 @@
       <description>calibrate &amp; evaluate models with the whole dataset?</description>
       <title>do full models</title>
     </field>
-    <field name='Quant' type='zope.schema.Decimal'>
-      <title>Quant</title>
+    <field name='quant' type='zope.schema.Decimal'>
+      <title>quant</title>
       <description>the value defines the most extreme values for each variable not to be taken into account for determining the tolerance boundaries for the considered species</description>
       <min>0</min>
       <max>1</max>

@@ -49,7 +49,7 @@ projection.name = "current"  #basename(enviro.data.current)
 
 # model-specific arguments to create a biomod model
 model.options.sre <- list(
-	Quant = bccvl.params$Quant
+	quant = bccvl.params$quant
 )
 
 
