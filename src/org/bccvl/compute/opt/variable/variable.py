@@ -43,7 +43,7 @@ class boolean(object):
     def random_choice(self):
         import random
         n = random.randint(0,1)
-        return "true" if n == 0 else "false"
+        return True if n == 0 else False
 
     def every_choice(self):
         return ["true", "false"]
@@ -54,7 +54,7 @@ class boolean(object):
     # binary encoding
     def extract(self, json_dict):
         value=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
-        return 1 if value == "true" else 0 
+        return 1 if value == True else 0 
 
     
     def header(self):
@@ -110,6 +110,37 @@ class double_range(object):
 
     def header(self):
         return "_".join([str(v) for v in self.params["json_dict_path"]])
+ 
+class choice(object):
+    def __init__(self, json_dict, params={}):
+        self.params={"json_dict_path": None, "choice": [] } # defaults
+        self.params.update(params) # user supplied
+        self.params["choice"].sort() # so the extract function is deterministic
+        
+
+    def random_choice(self):
+        import random
+        return random.choice(self.params["choice"])
+
+    def every_choice(self):
+        return self.params["choice"]
+
+    def parameter(self, k):
+        return self.params[k]
+   
+    # binary encoding
+    def extract(self, json_dict):
+        value=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
+        for i, j in enumerate(self.params["choice"]):
+            if j == value: return i
+        
+        # configuration files have changed
+        raise Exception("Unhandled value type: " + value)
+
+    
+    def header(self):
+        return "_".join([str(v) for v in self.params["json_dict_path"]])
+ 
 
 def variable_factory_get(json_dict, params):
     if params["var_type"] == "boolean":       return boolean(json_dict, params)
