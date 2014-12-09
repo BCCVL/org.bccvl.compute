@@ -144,6 +144,7 @@ class choice(object):
 
 def variable_factory_get(json_dict, params):
     if params["var_type"] == "boolean":       return boolean(json_dict, params)
+    if params["var_type"] == "choice":        return choice(json_dict, params)
     if params["var_type"] == "integer_range": return integer_range(json_dict, params)
     if params["var_type"] == "double_range":  return double_range(json_dict, params)
     if params["var_type"] == "subset":        return subset(json_dict, params)
