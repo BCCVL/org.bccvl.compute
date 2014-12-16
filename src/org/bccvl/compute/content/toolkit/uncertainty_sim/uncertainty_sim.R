@@ -579,8 +579,6 @@ run.maxents = function()
 
   L = list.files(env.file)
   L = L[extension(L) == '.asc'] # should restrict to only those chosen by maxent settings?
-  print(L)
-  print("foo")
 
   pb <<- tkProgressBar("Calculating mask... 0%", "0% done", 0, 100, 0) # draw progress bar
 
@@ -1163,7 +1161,6 @@ run.maxents = function()
           }
           else # otherwise, just add the current replicate's data
             tmp = tmp + getValues(DATA[[k]][[i]][[j]])
-          print(tmp)
 
           # progress bar stuff
           pc.done = round( (N.species*prev + (i-1) * reps + j/2) / (N.species*N.reps) * 100)
