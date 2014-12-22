@@ -1,39 +1,18 @@
 #!/usr/bin/env python
 
-class subset(object):
-    def __init__(self, json_dict, params={}):
-        self.params={"min": 1, "max": -1, "json_dict_path": None} # defaults
-        self.params.update(params) # user supplied
 
-        self.set=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
-        if (self.params["max"] == -1): self.params["max"] = len(self.set) #-1 max means "auto set"
+'''
+Variables for optimization
+i.e. 
+    - boolean
+    - integer_range
+    - double_range
+    - choice
+    - subset
 
-    def random_choice(self):
-        import random
-        n = random.randint(self.params["min"], self.params["max"])
-        selected = random.sample(self.set, n)
-        return selected
-
-    def every_choice(self):
-        # could be potentially huge
-        import itertools
-        possible_combinations = []
-        for i in range(self.params["min"], self.params["max"]+1):
-            possible_combinations.extend([value for value in itertools.combinations(self.set, i)])
-        return possible_combinations 
-
-    def parameter(self, k):
-        return self.params[k]
-   
-    # binary encoding
-    def extract(self, json_dict):
-        if (len(self.set) > 63): 
-            raise Exception("Set is too large to encode as binary int")
-        value=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
-        return int("".join([ "1"if v in value else "0" for v in self.set ]), 2) #binary to int
-    
-    def header(self):
-        return "_".join([str(v) for v in self.params["json_dict_path"]])
+TODO:
+    - For genetic algorithms, each of the types needs a breeding algorithm
+'''
         
 class boolean(object):
     def __init__(self, json_dict, params={}):
@@ -52,7 +31,7 @@ class boolean(object):
         return self.params[k]
    
     # binary encoding
-    def extract(self, json_dict):
+    def encode(self, json_dict):
         value=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
         return 1 if value == True else 0 
 
@@ -76,7 +55,7 @@ class integer_range(object):
     def parameter(self, k):
         return self.params[k]
 
-    def extract(self, json_dict, encode=True):
+    def encode(self, json_dict, encode=True):
         return reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
 
     def header(self):
@@ -105,17 +84,20 @@ class double_range(object):
     def parameter(self, k):
         return self.params[k]
 
-    def extract(self, json_dict, encode=True):
+    def encode(self, json_dict, encode=True):
         return reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
 
     def header(self):
         return "_".join([str(v) for v in self.params["json_dict_path"]])
  
 class choice(object):
+    '''
+    Choice from a list 
+    '''
     def __init__(self, json_dict, params={}):
         self.params={"json_dict_path": None, "choice": [] } # defaults
         self.params.update(params) # user supplied
-        self.params["choice"].sort() # so the extract function is deterministic
+        self.params["choice"].sort() # so the encode function is deterministic
         
 
     def random_choice(self):
@@ -129,7 +111,7 @@ class choice(object):
         return self.params[k]
    
     # binary encoding
-    def extract(self, json_dict):
+    def encode(self, json_dict):
         value=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
         for i, j in enumerate(self.params["choice"]):
             if j == value: return i
@@ -141,6 +123,46 @@ class choice(object):
     def header(self):
         return "_".join([str(v) for v in self.params["json_dict_path"]])
  
+
+class subset(object):
+    '''
+    Choose a subset from a list - the list is defined in the params.json file itself
+    This is meant for the rasters section. The user may select a large set of input
+    rasters. This object is a way to randomly select a subset of them.
+    '''
+    def __init__(self, json_dict, params={}):
+        self.params={"min": 1, "max": -1, "json_dict_path": None} # defaults
+        self.params.update(params) # user supplied
+
+        self.set=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
+        if (self.params["max"] == -1): self.params["max"] = len(self.set) #-1 max means "auto set"
+
+    def random_choice(self):
+        import random
+        n = random.randint(self.params["min"], self.params["max"])
+        selected = random.sample(self.set, n)
+        return selected
+
+    def every_choice(self):
+        # could be potentially huge
+        import itertools
+        possible_combinations = []
+        for i in range(self.params["min"], self.params["max"]+1):
+            possible_combinations.extend([value for value in itertools.combinations(self.set, i)])
+        return possible_combinations 
+
+    def parameter(self, k):
+        return self.params[k]
+   
+    # binary encoding
+    def encode(self, json_dict):
+        if (len(self.set) > 63): 
+            raise Exception("Set is too large to encode as binary int")
+        value=reduce(lambda d, k: d[k], self.params["json_dict_path"], json_dict)
+        return int("".join([ "1"if v in value else "0" for v in self.set ]), 2) #binary to int
+    
+    def header(self):
+        return "_".join([str(v) for v in self.params["json_dict_path"]])
 
 def variable_factory_get(json_dict, params):
     if params["var_type"] == "boolean":       return boolean(json_dict, params)

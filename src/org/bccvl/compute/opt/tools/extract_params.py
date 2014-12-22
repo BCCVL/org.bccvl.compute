@@ -28,7 +28,7 @@ def main():
     of = sys.stdout if options.output == None else open(options.output, "w")
 	
     if not options.header:
-        outputs=[str(v.extract(json_dict)) for v in variable_entries]
+        outputs=[str(v.encode(json_dict)) for v in variable_entries]
     else:
         outputs=[str(v.header()) for v in variable_entries]
 
