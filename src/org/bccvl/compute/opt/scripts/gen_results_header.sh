@@ -1,17 +1,15 @@
 #!/bin/sh
 
+scripts_dir=$(dirname $(readlink -f $0))
+source $scripts_dir/common.sh
+
+opt_source_dir=$scripts_dir/..
+tools_dir=$opt_source_dir/tools
 
 work_dir=$1
 search_vars=$2
 output=$3
 
-opt_source_dir=/home/ec2-user/hwork/code/org.bccvl.compute/src/org/bccvl/compute/opt
-tools_dir=$opt_source_dir/tools
-
-if [[ -e $work_dir/.model_results_header_done ]];
-    then echo Done $work_dir; 
-    exit 0; 
-fi; 
 
 pushd $work_dir 2>&1 > /dev/null
 
@@ -23,8 +21,8 @@ function work()
          --input=params.json \
          --search-variables=$search_vars \
          --header"
-    echo $(date) $cmd >> .cmd_log    
-    eval $cmd || ( >&2 echo "Failed: $cmd" && exit 1)
+
+    log_eval "$cmd" .cmd_log
     
     echo -n ","
     
@@ -32,13 +30,10 @@ function work()
          --input=output/biomod2.modelEvaluation.csv
           --column=0;"
     
-    echo $(date) $cmd >> .cmd_log    
-    eval $cmd || ( >&2 echo "Failed: $cmd" && exit 1)
+    log_eval "$cmd" .cmd_log
     echo;
 }
 
-if work $search_vars > $output; then
-    touch .model_results_header_done; 
-fi
+work $search_vars > $output
 
 popd 2>&1 > /dev/null

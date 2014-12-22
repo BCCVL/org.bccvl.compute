@@ -1,24 +1,26 @@
 #!/bin/sh
 
 set -e
+scripts_dir=$(dirname $(readlink -f $0))
+source $scripts_dir/common.sh
 
-work_dir=$PWD
-opt_source_dir=/home/ec2-user/hwork/code/org.bccvl.compute/src/org/bccvl/compute/opt
-scripts_dir=$opt_source_dir/scripts
+opt_source_dir=$scripts_dir/..
 tools_dir=$opt_source_dir/tools
 
-input_params=$work_dir/params.json
-search_vars=$work_dir/search_vars.txt
+work_dir=$PWD
+input_params=${1-$work_dir/params.json}
+search_vars=${2-$work_dir/search_vars.txt}
 
 grid_dir=start_grid
 function run_task()
 {
+    # create .files to prevent a task from being run again
     cmd=$1
-    lock_file=$2
-    if [[ ! -e $lock_file ]]; then
+    dot_file=$2
+    if [[ ! -e $dot_file ]]; then
         echo $cmd
         if eval $cmd; then
-            echo $(date) $cmd >> $lock_file
+            echo $(date) $cmd >> $dot_file
         fi
     fi
     

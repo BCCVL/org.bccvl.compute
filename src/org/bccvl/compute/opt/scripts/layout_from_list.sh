@@ -1,12 +1,15 @@
 #!/bin/bash
 
+scripts_dir=$(dirname $(readlink -f $0))
+source $scripts_dir/common.sh
+
+opt_source_dir=$scripts_dir/..
+tools_dir=$opt_source_dir/tools
+
 set -e
 input_list=$1
 name_stub=${2:-inst}
 work_dir=${3:-$(pwd)}
-
-opt_source_dir=/home/ec2-user/hwork/code/org.bccvl.compute/src/org/bccvl/compute/opt
-tools_dir=$opt_source_dir/tools
 
 index=1
 while read file
