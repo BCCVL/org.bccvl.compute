@@ -10,6 +10,9 @@ tools_dir=$opt_source_dir/tools
 work_dir=$PWD
 input_params=${1-$work_dir/params.json}
 search_vars=${2-$work_dir/search_vars.txt}
+r_script=${3-$work_dir/biomod.controlled.template.R}
+ncpu=${4-$(grep vendor_id /proc/cpuinfo | wc -l)}
+
 
 grid_dir=start_grid
 function run_task()
@@ -45,33 +48,27 @@ layout_cmd="sh $layout_tool $seed_list $inst_dir"
 
 run_task "$layout_cmd" .tsk_layout_cmd
 
-cmds_file=cmds.txt
-if [[ ! -s $cmds_file ]]; then
-    build_model_tool=$scripts_dir/build_model.sh
-    r_script=$work_dir/test_rf.new.bccvl.R
+cmds_file=build_model_cmds.txt
+build_model_tool=$scripts_dir/build_model.sh
 
-    for f in $inst_dir*; 
-        do echo $build_model_tool \
-    	$PWD/$f \
-    	$r_script; 
-    done > $cmds_file
-fi
+for f in $inst_dir*; 
+    do echo $build_model_tool \
+	$PWD/$f \
+	$r_script; 
+done > $cmds_file
 
-ncpu=16
 
 par_build_model_cmd="parallel -j $ncpu < $cmds_file"
 run_task "$par_build_model_cmd" .tsk_par_build_model_cmd
 
-eval_cmds_file=eval_cmds.txt
-if [[ ! -s $eval_cmds_file ]]; then
-    gen_results_tool=$scripts_dir/gen_results.sh
-    for f in $inst_dir*; 
-        do echo $gen_results_tool \
-    	$PWD/$f \
-    	$search_vars \
-        $PWD/$f/results.csv ; 
-    done > $eval_cmds_file
-fi
+eval_cmds_file=eval_model_cmds.txt
+gen_results_tool=$scripts_dir/gen_results.sh
+for f in $inst_dir*; 
+    do echo $gen_results_tool \
+	$PWD/$f \
+	$search_vars \
+    $PWD/$f/results.csv ; 
+done > $eval_cmds_file
  
 par_gen_results_cmd="parallel -j $ncpu < $eval_cmds_file"
 run_task "$par_gen_results_cmd" .tsk_par_gen_results_cmd
