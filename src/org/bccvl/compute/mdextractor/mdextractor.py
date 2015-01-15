@@ -47,7 +47,7 @@ class ZipExtractor(object):
                     continue
                 # Is this our speciel bccvl metadata file?
                 if zipinfo.filename.endswith('/bccvl/metadata.json'):
-                    ret['_bccvlmetadata'] = \
+                    ret['_bccvlmetadata.json'] = \
                         json.load(zipf.open(zipinfo.filename, 'r'))
                     # skip the rest
                     continue
