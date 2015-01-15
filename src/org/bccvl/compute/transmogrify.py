@@ -3,6 +3,8 @@ import mimetypes
 import tempfile
 import os.path
 import glob
+from io import StringIO
+from shutil import copyfileobj
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
 from zope.interface import implementer, provider
@@ -290,7 +292,12 @@ class FileMetadata(object):
         # Add suffix to temp file to keep gdal's VSI happy
         tmpfd, tmpname = tempfile.mkstemp(suffix=ext)
         tmpfile = os.fdopen(tmpfd, 'w')
-        tmpfile.write(fileitem['data'])
+        try:
+            copyfileobj(fileitem['data'], tmpfile)
+        except AttributeError:
+            # we get an AttributeError in case data is not a file like object
+            # let's try to write data directly
+            tmpfile.write(fileitem['data'])
         tmpfile.close()
         # TODO: catch exception during copy and cleanup if necessary
         return tmpname
