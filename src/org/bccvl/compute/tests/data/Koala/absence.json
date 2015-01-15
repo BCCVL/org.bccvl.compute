@@ -7,7 +7,7 @@
           "filename": "absence.csv"
           },
   "_transitions": "publish",
-  "_bccvlmetadata": {
+  "bccvlmetadata": {
     "genre": "DataGenreSpeciesAbsence",
     "species": {
       "scientificName": "Phascolarctus cinereus",

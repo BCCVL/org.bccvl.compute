@@ -197,7 +197,7 @@ class ResultSource(object):
                 'contenttype': mimetype,
                 'filename': name
             },
-            '_bccvlmetadata': bccvlmd,
+            'bccvlmetadata': bccvlmd,
             # FIXME: I think adding open file descriptors works just fine,
             #        otherwise could use new 'path' feature with additional blueprint
             '_files': {
