@@ -67,10 +67,12 @@ def getdatasetparams(uuid):
     # if we can get layermetadata, let's add it
     biomod = getdsmetadata(dsobj)
     layers = biomod.get('layers', [])
+
     if len(layers) > 0:
-        dsinfo['layers'] = dict((
-            (l['layer'], {'filename': l.get('filename', biomod['filename']),
-                          'datatype': l.get('datatype', None)})
-            for l in biomod['layers']))
+        for lk, lv in biomod['layers'].items():
+            if lv is not None:
+                dsinfo.setdefault('layers', {})[lk] = {
+                    'filename': lv.get('filename', biomod['filename']),
+                    'datatype': lv.get('datatype', None)}
     # return infoset
     return dsinfo

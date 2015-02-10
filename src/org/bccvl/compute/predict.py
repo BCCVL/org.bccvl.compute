@@ -1,7 +1,7 @@
 from pkg_resources import resource_string
 import re
 from org.bccvl.compute.utils import getdatasetparams
-from plone.app.uuid.utils import uuidToCatalogBrain
+from plone.app.uuid.utils import uuidToObject
 # do this dynamically in site module?
 from zope.interface import provider
 from org.bccvl.site.interfaces import IComputeMethod, IBCCVLMetadata
@@ -22,24 +22,29 @@ def get_project_params(result):
     params['species_distribution_models']['species'] = re.sub(u"[ _]", u".", params['species_distribution_models'].get('species', u"Unknown"))
     # we need the layers from sdm to fetch correct files for climate_models
     # TODO: getdatasetparams should fetch 'layers'
-    sdmobj = uuidToCatalogBrain(uuid)
+    sdmobj = uuidToObject(uuid)
     sdmmd = IBCCVLMetadata(sdmobj)
     params['species_distribution_models']['layers'] = sdmmd.get('layers', None)
     # do future climate layers
-    uuid = params['future_climate_datasets']
-    dsinfo = getdatasetparams(uuid)
     climatelist = []
-    for layer in sdmmd.get('layers', []):
-        climatelist.append({
-            'uuid': dsinfo['uuid'],
-            'filename': dsinfo['filename'],
-            'downloadurl': dsinfo['downloadurl'],
-            'internalurl': dsinfo['internalurl'],
-            'layer': layer,
-            'zippath': dsinfo['layers'][layer]['filename'],
-            # TODO: add year, gcm, emsc here?
-            'type': dsinfo['layers'][layer]['datatype'],
-        })
+    for uuid, layers in params['future_climate_datasets'].items():
+        dsinfo = getdatasetparams(uuid)
+        for layer in layers:
+            dsdata = {
+                'uuid': dsinfo['uuid'],
+                'filename': dsinfo['filename'],
+                'downloadurl': dsinfo['downloadurl'],
+                'internalurl': dsinfo['internalurl'],
+                'layer': layer,
+                'zippath': dsinfo['layers'][layer]['filename'],
+                # TODO: add year, gcm, emsc here?
+                'type': dsinfo['layers'][layer]['datatype'],
+            }
+            # if this is a zip file we'll have to set zippath as well
+            # FIXME: poor check whether this is a zip file
+            if dsinfo['filename'].endswith('.zip'):
+                dsdata['zippath'] = dsinfo['layers'][layer]['filename']
+            climatelist.append(dsdata)
     # replace climate_models parameter
     params['future_climate_datasets'] = climatelist
     params['selected_models'] = 'all'
