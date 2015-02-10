@@ -38,9 +38,9 @@ bccvl.env <- params$env
 rm(params)
 # set working directory (script runner takes care of it)
 setwd(bccvl.env$outputdir)
-# Set raster tmpdir - we do this because raster sometimes makes 
+# Set raster tmpdir - we do this because raster sometimes makes
 # temp files (e.g. when cropping).
-# Might want to make this configurable - e.g. we might want to 
+# Might want to make this configurable - e.g. we might want to
 # control maxmemory, and/or other raster options
 rasterOptions(tmpdir=paste(bccvl.env$workdir,"raster_tmp",sep="/"))
 
@@ -94,7 +94,7 @@ bccvl.dismo.absence <- function(absen.data=NULL,
     return(absen);
 }
 
-# warning was doing odd things. I just want to print the deng thing. 
+# warning was doing odd things. I just want to print the deng thing.
 bccvl.log.warning <-function(str, prefix="BCCVL Warning: ")
 {
     print(paste(prefix, str, sep=""))
@@ -103,51 +103,27 @@ bccvl.log.warning <-function(str, prefix="BCCVL Warning: ")
 
 # rasters: a vector of rasters
 bccvl.raster.common.extent <- function(rasters)
-{    
+{
     extent.list=lapply(rasters, extent)
-    
-    common.extent=extent.list[[1]]
-    equal.extents=TRUE
-    i=2
-    while(i<=length(extent.list))
-    {
-        rast.extent=extent.list[[i]]
-        if (rast.extent != common.extent) equal.extents = FALSE
-        common.extent=intersect(common.extent, rast.extent)
-        i=i+1
-    }
+    # intersect all extents to find common extent
+    common.extent = Reduce(intersect, extent.list)
+                                        # compare all against commen extents to find out if all extents are the same (used to print warning)
+    equal.extents = all(sapply(extent.list, function (x) common.extent == x))
 
     return (list(equal.extents=equal.extents, common.extent=common.extent))
 }
 
 # rasters: a vector of rasters
-bccvl.raster.lowest.resolution <- function(rasters) 
+bccvl.raster.lowest.resolution <- function(rasters)
 {
     res.list = lapply(rasters, res)
 
-    lowest.res = res.list[[1]]
-    index = 1
-	i = 2
-    while(i<=length(res.list))
-    {
-        # non equal resolutions in the x and y directions is illegal
-        # otherwise the code is flawed
-        # we should put a test here
-        if ( res.list[[i]][1] > lowest.res[[1]] )
-        {
-            lowest.res = res.list[[i]]
-            index = i
-        }
-		i = i+1
-    }
+    lowest.res = c(max(sapply(res.list, function(x) x[[1]])),
+                  max(sapply(res.list, function(x) x[[2]])))
 
-    is.same.res=c()
-    for(i in 1:length(res.list))
-    {
-        is.same.res=rbind(is.same.res, res.list[[i]][1] == lowest.res[[1]])
-    }
-    
-    return (list(lowest.res=lowest.res, index=index, is.same.res=is.same.res))
+    is.same.res = all(sapply(res.list, function (x) all(lowest.res == x)))
+
+    return (list(lowest.res=lowest.res, is.same.res=is.same.res))
 }
 
 bccvl.raster.extent.to.str <- function(ext)
@@ -156,31 +132,30 @@ bccvl.raster.extent.to.str <- function(ext)
 }
 
 
-# raster.filenames : a vector of filenames that will be loaded as rasters 
+# raster.filenames : a vector of filenames that will be loaded as rasters
 bccvl.rasters.to.common.extent.and.lowest.resolution <- function(raster.filenames)
 {
     rasters = lapply(raster.filenames, raster)
 
-    ce = bccvl.raster.common.extent(rasters)  
+    ce = bccvl.raster.common.extent(rasters)
     if (ce$equal.extents == FALSE)
     {
-        bccvl.log.warning(sprintf("Auto cropped to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
-        crop_common <- function(x) { crop(raster(x), ce$common.extent) }
-        rasters = lapply(raster.filenames, crop_common)
+        bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
+        rasters = lapply(rasters, function(x) crop(x, ce$common.extent))
     }
 
     lr=bccvl.raster.lowest.resolution(rasters)
-    if (sum(lr$is.same.res == FALSE) != 0)
+    if (! lr$is.same.res)
     {
-        bccvl.log.warning(sprintf("Auto resampled to lowest resolution [%f %f]", lr$lowest.res[[1]], lr$lowest.res[[2]]))
+        bccvl.log.warning(sprintf("Auto resampling to lowest resolution [%f %f]", lr$lowest.res[[1]], lr$lowest.res[[2]]))
     }
 
-    master=rasters[[lr$index]] 
-    index=1
-    resamp_func <- function(x) 
-    { 
-        rsp = if (lr$is.same.res[index]) x else resample(x, master)
-        index <<- index + 1
+    # get raster with lowest resolution
+    master = Filter(function(x) all(res(x) == lr$lowest.res), rasters)[[1]]
+
+    resamp_func <- function(x)
+    {
+        rsp = if (all(res(x) == lr$lowest.res)) x else resample(x, master)
         return(rsp)
     }
 
@@ -192,7 +167,7 @@ bccvl.rasters.to.common.extent.and.lowest.resolution <- function(raster.filename
 # intersecting extent
 # lowest resolution
 bccvl.enviro.stack <- function(filenames) {
-    
+
     rasters = bccvl.rasters.to.common.extent.and.lowest.resolution(filenames)
     return(stack(rasters))
 }
@@ -289,7 +264,7 @@ bccvl.checkModelLayers <- function(model.obj, climatelayers) {
 ############################################################
 #
 # patched dismo:gbm.step function
-# 
+#
 # patched to work with 1D input feature data. Calls dismo:::.roc and dismo:::.calibration
 #
 # patched from dismo version 0.9.4
@@ -921,12 +896,12 @@ family_from_string <- function(s)
     # family_from_string("binomial")
     # family_from_string("binomial(link=logit)")
     # family_from_string("binomial(link=\"logit\")")
-    # ... 
+    # ...
     # family_from_string("quasi(link = \"identity\", variance = \"constant\")")
 
-    s=gsub(pattern="\"|| ", replacement="", s) # strip quotes and spaces 
+    s=gsub(pattern="\"|| ", replacement="", s) # strip quotes and spaces
     f=gsub(pattern="\\(.*\\)", replacement="", s) # the name of the function
-    
+
     allowable= c("binomial",
                 "gaussian",
                 "Gamma",
@@ -940,10 +915,10 @@ family_from_string <- function(s)
     {
         stop(sprintf("unsupported function %s", f))
     }
-         
-    fargs=gsub(pattern=".*\\(||\\)", 
-               replacement="", 
-               sub(pattern=f, 
+
+    fargs=gsub(pattern=".*\\(||\\)",
+               replacement="",
+               sub(pattern=f,
                     replacement="",
                     s)) #get the args inside the parentheses
     args=list()
@@ -960,11 +935,9 @@ family_from_string <- function(s)
             }
             else
             {
-                stop(sprintf("unhandled result when splitting %s", l[i])) 
+                stop(sprintf("unhandled result when splitting %s", l[i]))
             }
         }
     }
     return (do.call(what=f, args=args))
 }
-
-
