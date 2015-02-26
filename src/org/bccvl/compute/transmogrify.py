@@ -173,7 +173,7 @@ class ResultSource(object):
                     bccvlmd['temporal'] = year
                 if 'emsc' in self.context.job_params:
                     bccvlmd['emsc'] = self.context.job_params['emsc']
-                if 'climate_models' in self.context.job_params:
+                if 'gcm' in self.context.job_params:
                     bccvlmd['gcm'] = self.context.job_params['gcm']
                 # exp.future_climate_datasets()
             elif genre == 'DataGenreSDMEval':
