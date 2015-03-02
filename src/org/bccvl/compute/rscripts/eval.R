@@ -652,7 +652,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
         variableImpt = get_variables_importance(biomod.model)
         if (!is.na(variableImpt)) {
         #EMG Note this will throw a warning message if variables (array) are returned
-            bccvl.write.csv(variableImpt, name=paste("variableImportance", model_name, "txt", sep="."))
+            bccvl.write.csv(variableImpt, name=paste("variableImportance", model_name, "csv", sep="."))
         } else {
             message("VarImport argument not specified during model creation!")
             #EMG must create the model with the arg "VarImport" != 0
