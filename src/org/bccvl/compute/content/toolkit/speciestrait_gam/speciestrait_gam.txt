@@ -7,7 +7,7 @@
         },
         "*.txt": {
             "title": "Summary",
-            "genre": "UNKNOWN",
+            "genre": "DataGenreSTResult",
             "mimetype": "text/plain"
         },
         "*.RData": {
