@@ -41,10 +41,14 @@ def guess_mimetype(name, mtr=None):
     return 'application/octet-stream'
 
 
-def addLayerInfo(bccvlmd, experiment):
+def addLayerInfo(bccvlmd, result):
     layermd = bccvlmd.setdefault('layers', {})
-    for layer in set(chain(*experiment.environmental_datasets.values())):
-        layermd[layer] = None
+    if 'environmental_datasets' in result.job_params:
+        for layer in chain(*result.job_params['environmental_datasets'].values()):
+            layermd[layer] = None
+    elif 'future_climate_datasets' in result.job_params:
+        for layer in chain(*result.job_params['future_climate_datasets'].values()):
+            layermd[layer] = None
 
 
 def addSpeciesInfo(bccvlmd, result):
@@ -155,14 +159,14 @@ class ResultSource(object):
 
             #  resolution, toolkit, species, layers
             #  future: year, emsc, gcm
-            if genre == 'DataGenreSDMModel':
-                addLayerInfo(bccvlmd, self.context.__parent__)
-                bccvlmd['resolution'] = IBCCVLMetadata(self.context).get('resolution')
-                # add species info
+            if genre in ('DataGenreSDMModel', 'DataGenreCP', 'DataGenreClampingMask'):
+                addLayerInfo(bccvlmd, self.context)
+                bccvlmd['resolution'] = self.context.job_params['resolution']
                 addSpeciesInfo(bccvlmd, self.context)
+            if genre == 'DataGenreEnsembleResult':
+                bccvlmd['resolution'] = self.context.job_params['resolution']
             elif genre == 'DataGenreFP':
-                # TODO: shall we take resolution from context?
-                #       IBCCVLMetadata(self.context).get('resolution')
+                addLayerInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
                 addSpeciesInfo(bccvlmd, self.context)
 
