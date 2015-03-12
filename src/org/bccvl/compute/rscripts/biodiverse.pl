@@ -131,7 +131,7 @@ sub apply_threshold {
 my @files = () ;
 foreach (@{$bccvl_params{'projections'}}) {
     my $destfile = gdalwarp($_->{'filename'}, $outdir, "epsg:3577");
-    apply_threshold($destfile, $_->{'threshold'});
+    apply_threshold($destfile, $_->{'threshold'}->{'value'});
     push(@files, $destfile);
 }
 
