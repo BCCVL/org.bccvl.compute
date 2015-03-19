@@ -67,9 +67,6 @@ def generate_project_script():
 
 # TODO: maybe allow tal expressions or regexp match parameters to create more meaningful titles?
 # FIXME: which projection get's which metadata? (GCM, emsc, scale, year)
-# FIXME: remove clapmingMasks from DataGenreFP
-#        e.g. add exclude pattern and interpret as glob(includes) - glob(excludes)
-#        or apply regexp pattern on glob(includes) result
 OUTPUTS = {
     'files': {
         '*.Rout': {
