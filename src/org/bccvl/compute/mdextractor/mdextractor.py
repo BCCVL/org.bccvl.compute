@@ -117,6 +117,14 @@ class TiffExtractor(object):
         ret = self._get_gdal_metadata(vsiname)
         return ret
 
+    def _geotransform(self, x, y, geotransform):
+        if geotransform:
+            geox = geotransform[0] + geotransform[1] * x + geotransform[2] * y
+            geoy = geotransform[3] + geotransform[4] * x + geotransform[5] * y
+        else:
+            geox, geoy = x, y
+        return geox, geoy
+
     def _get_gdal_metadata(self, filename):
         # let's do GDAL here ? if it fails do Hachoir
         from osgeo import gdal, osr, gdalconst
@@ -128,11 +136,15 @@ class TiffExtractor(object):
         if not projref:
             # default to WGS84
             projref = osr.GetWellKnownGeogCSAsWKT('EPSG:4326')
-        spref = osr.SpatialReference(projref)
-        # TODO: extract bbox
+        spref = osr.SpatialReference(projref) # SRS
+        # extract bbox
         #       see http://svn.osgeo.org/gdal/trunk/gdal/swig/python/samples/gdalinfo.py
         #       GDALInfoReportCorner
-        #       which units sholud bbox be? lat/long?, layer units?
+        # bbox = left,bottom,right,top
+        # bbox = min Longitude , min Latitude , max Longitude , max Latitude
+        # bbox in srs units
+        left, top = self._geotransform(0.0, 0.0, geotransform)
+        right, bottom = self._geotransform(ds.RasterXSize, ds.RasterYSize, geotransform)
         data = {
             'size': (ds.RasterXSize, ds.RasterYSize),
             'bands': ds.RasterCount,
@@ -141,6 +153,8 @@ class TiffExtractor(object):
                                     spref.GetAuthorityCode('GEOGCS')),
             'origin': (geotransform[0], geotransform[3]),
             'Pxiel Size': (geotransform[1], geotransform[5]),
+            'bounds': {'left': left, 'bottom': bottom,
+                       'right': right, 'top': top}
         }
         data.update(ds.GetMetadata_Dict())
         data.update(ds.GetMetadata_Dict('EXIF'))
