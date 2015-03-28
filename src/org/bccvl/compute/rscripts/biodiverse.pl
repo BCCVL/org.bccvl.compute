@@ -17,6 +17,8 @@ use File::Spec ;
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
 
+use Geo::GDAL;
+
 use List::Util qw[min max];
 
 # TODO: do proper error handling on reading json file and checking for available parameters
@@ -46,8 +48,19 @@ sub gdalwarp {
     my ($infile, $outdir, $srs) = @_;
     my ($name, $path, $suffix) = fileparse($infile, qr/\.[^.]*/);
     my $destfile = File::Spec->catfile($outdir, $name . ".tif");
+
+    # build argumentlist for gdalwarp
+    my @warp_args = ("gdalwarp");
+    # check if source file has SRS assigned ... if not use default EPSG:4326 (WGS84)
+    my $dataset = Geo::GDAL::Open($infile, 'ReadOnly');
+    my $spref = $dataset->GetProjectionRef();
+    if (! $spref) {
+        say "Force source srs to EPSG:4326";
+        push(@warp_args, ('-s_srs', 'EPSG:4326'));
+    }
+    push(@warp_args, ('-t_srs', $srs, $infile, $destfile));
     say "try to transform $_->{'filename'} to $destfile";
-    system("gdalwarp", "-t_srs", $srs, $infile, $destfile);
+    system(@warp_args);
     # TODO: $! .... knows whether it all went well
     say "gdalwarp:", $! ;
     say $destfile;
@@ -194,7 +207,7 @@ $bd->save (filename => $out_pfx);
 #  export the files
 $sp->export (
     format => 'ArcInfo asciigrid files',
-#   format => 'GeoTIFF',
+   # format => 'GTIFF',
     file   => $out_pfx,
     list   => 'SPATIAL_RESULTS',
 );
