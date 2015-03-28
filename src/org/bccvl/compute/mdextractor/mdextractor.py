@@ -143,14 +143,21 @@ class TiffExtractor(object):
         # bbox = left,bottom,right,top
         # bbox = min Longitude , min Latitude , max Longitude , max Latitude
         # bbox in srs units
+        # transform points into georeferenced coordinates
         left, top = self._geotransform(0.0, 0.0, geotransform)
         right, bottom = self._geotransform(ds.RasterXSize, ds.RasterYSize, geotransform)
+        # transform points to dataset projection coordinates
+        spref_latlon = spref.CloneGeogCS()
+        trans = osr.CoordinateTransformation(spref_latlon, spref)
+        left, top, _ = trans.TransformPoint(left, top, 0)
+        right, bottom, _ = trans.TransformPoint(right, bottom, 0)
+        # build metadata struct
         data = {
             'size': (ds.RasterXSize, ds.RasterYSize),
             'bands': ds.RasterCount,
             'projection': projref,  # WKT
-            'srs': '{0}:{1}'.format(spref.GetAuthorityName('GEOGCS'),
-                                    spref.GetAuthorityCode('GEOGCS')),
+            'srs': '{0}:{1}'.format(spref.GetAuthorityName(None), # 'PROJCS', 'GEOGCS', 'GEOGCS|UNIT', None
+                                    spref.GetAuthorityCode(None)),
             'origin': (geotransform[0], geotransform[3]),
             'Pxiel Size': (geotransform[1], geotransform[5]),
             'bounds': {'left': left, 'bottom': bottom,
