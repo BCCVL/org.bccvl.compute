@@ -41,8 +41,9 @@ def guess_mimetype(name, mtr=None):
     return 'application/octet-stream'
 
 
-def addLayerInfo(bccvlmd, result):
-    layermd = bccvlmd.setdefault('layers', {})
+def addLayersUsedInfo(bccvlmd, result):
+    # import ipdb; ipdb.set_trace()
+    layermd = bccvlmd.setdefault('layers_used', {})
     if 'environmental_datasets' in result.job_params:
         for layer in chain(*result.job_params['environmental_datasets'].values()):
             layermd[layer] = None
@@ -160,13 +161,13 @@ class ResultSource(object):
             #  resolution, toolkit, species, layers
             #  future: year, emsc, gcm
             if genre in ('DataGenreSDMModel', 'DataGenreCP', 'DataGenreClampingMask'):
-                addLayerInfo(bccvlmd, self.context)
+                addLayersUsedInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
                 addSpeciesInfo(bccvlmd, self.context)
             if genre == 'DataGenreEnsembleResult':
                 bccvlmd['resolution'] = self.context.job_params['resolution']
             elif genre == 'DataGenreFP':
-                addLayerInfo(bccvlmd, self.context)
+                addLayersUsedInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
                 addSpeciesInfo(bccvlmd, self.context)
 

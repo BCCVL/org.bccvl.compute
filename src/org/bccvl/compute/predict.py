@@ -24,7 +24,7 @@ def get_project_params(result):
     # TODO: getdatasetparams should fetch 'layers'
     sdmobj = uuidToObject(uuid)
     sdmmd = IBCCVLMetadata(sdmobj)
-    params['species_distribution_models']['layers'] = sdmmd.get('layers', None)
+    params['species_distribution_models']['layers'] = sdmmd.get('layers_used', None)
     # do future climate layers
     climatelist = []
     for uuid, layers in params['future_climate_datasets'].items():
