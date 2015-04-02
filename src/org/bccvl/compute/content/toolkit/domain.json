@@ -1,11 +1,12 @@
 {
-  "_type": "org.bccvl.content.function",
-  "title": "Domain",
-  "method": "org.bccvl.compute.rscript.execute_sdm",
-  "intperpreter": "R",
-  "script": {"filename": "domain.R"},
-  "schema": {"filename": "domain.xml"},
-  "output": {"filename": "domain.txt"},
-  "_fileattributes": ["script", "schema", "output"],
-  "_transitions": "publish"
+    "_type": "org.bccvl.content.function",
+    "title": "Domain",
+    "subjects": ["domain"],
+    "method": "org.bccvl.compute.rscript.execute_sdm",
+    "intperpreter": "R",
+    "script": {"filename": "domain.R"},
+    "schema": {"filename": "domain.xml"},
+    "output": {"filename": "domain.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish"
 }

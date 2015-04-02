@@ -1,11 +1,12 @@
 {
-  "_type": "org.bccvl.content.function",
-  "title": "Generalized Additive Model",
-  "method": "org.bccvl.compute.sptraits.exetuce",
-  "intperpreter": "R",
-  "script": {"filename": "speciestrait_gam.R"},
-  "schema": {"filename": "speciestrait_gam.xml"},
-  "output": {"filename": "speciestrait_gam.txt"},
-  "_fileattributes": ["script", "schema", "output"],
-  "_transitions": "publish"
+    "_type": "org.bccvl.content.function",
+    "title": "Generalized Additive Model",
+    "subjects": ["gam"],
+    "method": "org.bccvl.compute.sptraits.exetuce",
+    "intperpreter": "R",
+    "script": {"filename": "speciestrait_gam.R"},
+    "schema": {"filename": "speciestrait_gam.xml"},
+    "output": {"filename": "speciestrait_gam.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish"
 }

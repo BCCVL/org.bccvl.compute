@@ -1,11 +1,12 @@
 {
-  "_type": "org.bccvl.content.function",
-  "title": "Circles",
-  "method": "org.bccvl.compute.rscript.execute_sdm",
-  "intperpreter": "R",
-  "script": {"filename": "circles.R"},
-  "schema": {"filename": "circles.xml"},
-  "output": {"filename": "circles.txt"},
-  "_fileattributes": ["script", "schema", "output"],
-  "_transitions": "publish"
+    "_type": "org.bccvl.content.function",
+    "title": "Circles",
+    "subjects": ["circles"],
+    "method": "org.bccvl.compute.rscript.execute_sdm",
+    "intperpreter": "R",
+    "script": {"filename": "circles.R"},
+    "schema": {"filename": "circles.xml"},
+    "output": {"filename": "circles.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish"
 }

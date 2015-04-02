@@ -1,11 +1,12 @@
 {
-  "_type": "org.bccvl.content.function",
-  "title": "Generalized Additive Model for location scale and shape",
-  "method": "org.bccvl.compute.sptraits.exetuce",
-  "intperpreter": "R",
-  "script": {"filename": "gamlss.R"},
-  "schema": {"filename": "gamlss.xml"},
-  "output": {"filename": "gamlss.txt"},
-  "_fileattributes": ["script", "schema", "output"],
-  "_transitions": "publish"
+    "_type": "org.bccvl.content.function",
+    "title": "Generalized Additive Model for location scale and shape",
+    "subjects": ["gamlss"],
+    "method": "org.bccvl.compute.sptraits.exetuce",
+    "intperpreter": "R",
+    "script": {"filename": "gamlss.R"},
+    "schema": {"filename": "gamlss.xml"},
+    "output": {"filename": "gamlss.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish"
 }

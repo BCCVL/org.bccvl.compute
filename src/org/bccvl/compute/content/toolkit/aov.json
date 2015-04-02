@@ -1,11 +1,12 @@
 {
-  "_type": "org.bccvl.content.function",
-  "title": "Analysis of Variance",
-  "method": "org.bccvl.compute.sptraits.exetuce",
-  "intperpreter": "R",
-  "script": {"filename": "aov.R"},
-  "schema": {"filename": "aov.xml"},
-  "output": {"filename": "aov.txt"},
-  "_fileattributes": ["script", "schema", "output"],
-  "_transitions": "publish"
+    "_type": "org.bccvl.content.function",
+    "title": "Analysis of Variance",
+    "subjects": ["aov"],
+    "method": "org.bccvl.compute.sptraits.exetuce",
+    "intperpreter": "R",
+    "script": {"filename": "aov.R"},
+    "schema": {"filename": "aov.xml"},
+    "output": {"filename": "aov.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish"
 }

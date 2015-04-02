@@ -1,11 +1,12 @@
 {
-  "_type": "org.bccvl.content.function",
-  "title": "Surface Range Envelope",
-  "method": "org.bccvl.compute.rscript.execute_sdm",
-  "intperpreter": "R",
-  "script": {"filename": "sre.R"},
-  "schema": {"filename": "sre.xml"},
-  "output": {"filename": "sre.txt"},
-  "_fileattributes": ["script", "schema", "output"],
-  "_transitions": "publish"
+    "_type": "org.bccvl.content.function",
+    "title": "Surface Range Envelope",
+    "subjects": ["sre"],
+    "method": "org.bccvl.compute.rscript.execute_sdm",
+    "intperpreter": "R",
+    "script": {"filename": "sre.R"},
+    "schema": {"filename": "sre.xml"},
+    "output": {"filename": "sre.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish"
 }

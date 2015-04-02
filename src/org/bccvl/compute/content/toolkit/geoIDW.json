@@ -1,11 +1,12 @@
 {
-  "_type": "org.bccvl.content.function",
-  "title": "Inverse-Distance Weighted Model",
-  "method": "org.bccvl.compute.rscript.execute_sdm",
-  "intperpreter": "R",
-  "script": {"filename": "geoIDW.R"},
-  "schema": {"filename": "geoIDW.xml"},
-  "output": {"filename": "geoIDW.txt"},
-  "_fileattributes": ["script", "schema", "output"],
-  "_transitions": "publish"
+    "_type": "org.bccvl.content.function",
+    "title": "Inverse-Distance Weighted Model",
+    "subjects": ["geoidw"],
+    "method": "org.bccvl.compute.rscript.execute_sdm",
+    "intperpreter": "R",
+    "script": {"filename": "geoIDW.R"},
+    "schema": {"filename": "geoIDW.xml"},
+    "output": {"filename": "geoIDW.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish"
 }

@@ -1,11 +1,12 @@
 {
-  "_type": "org.bccvl.content.function",
-  "title": "Bioclim",
-  "method": "org.bccvl.compute.rscript.execute_sdm",
-  "intperpreter": "R",
-  "script": {"filename": "bioclim.R"},
-  "schema": {"filename": "bioclim.xml"},
-  "output": {"filename": "bioclim.txt"},
-  "_fileattributes": ["script", "schema", "output"],
-  "_transitions": "publish"
+    "_type": "org.bccvl.content.function",
+    "title": "Bioclim",
+    "subjects": ["bioclim"],
+    "method": "org.bccvl.compute.rscript.execute_sdm",
+    "intperpreter": "R",
+    "script": {"filename": "bioclim.R"},
+    "schema": {"filename": "bioclim.xml"},
+    "output": {"filename": "bioclim.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish"
 }
