@@ -327,7 +327,7 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
             temp.data[,j] = range.values
             if (model.name == "brt") {
                 colnames(temp.data) = env.vars
-                new.predictions = predict(out.model, as.data.frame(temp.data), n.trees = out.model$gbm.call$best.trees, type = "response")
+                new.predictions = predict(out.model, as.data.frame(temp.data), n.trees = out.model$gbm.call$best.trees, type="response")
             } else {
                 new.predictions = predict(out.model, temp.data)
             }
@@ -367,7 +367,7 @@ bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples) {
     if (!(length(model.values)==0)) {
         # predict using actual values
         if (model.name == "brt") {
-            actual.predictions = predict(out.model, as.data.frame(model.values), n.trees = out.model$gbm.call$best.trees, type = "response")
+            actual.predictions = predict(out.model, as.data.frame(model.values), n.trees = out.model$gbm.call$best.trees, type="response")
         } else {
             actual.predictions = predict(out.model, model.values)
         }
@@ -448,7 +448,7 @@ bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
 			no.na.sample.a[,v] = sample(x=no.na.sample.a[,v], replace=FALSE)
             # re-evaluate model with sampled env values
             if (model.name == "brt") {
-                sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees)
+                sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees, type="response")
             } else {
                 sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model)
             }
@@ -543,7 +543,7 @@ bccvl.generateHTML <- function() {
 bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     # evaluate model using dismo's evaluate
     if (model.name == "brt") {
-        model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj, n.trees=model.obj$gbm.call$best.trees)
+        model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj, n.trees=model.obj$gbm.call$best.trees, type="response")
     } else {
         model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj)
     }
