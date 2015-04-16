@@ -42,15 +42,14 @@ def guess_mimetype(name, mtr=None):
 
 
 def addLayersUsedInfo(bccvlmd, result):
-    # import ipdb; ipdb.set_trace()
-    layermd = bccvlmd.setdefault('layers_used', {})
+    layers_used = set()
     if 'environmental_datasets' in result.job_params:
         for layer in chain(*result.job_params['environmental_datasets'].values()):
-            layermd[layer] = None
+            layers_used.add(layer)
     elif 'future_climate_datasets' in result.job_params:
         for layer in chain(*result.job_params['future_climate_datasets'].values()):
-            layermd[layer] = None
-
+            layers_used.add(layer)
+    bccvlmd['layers_used'] = tuple(layers_used.union(bccvlmd.get('layers_used',())))
 
 def addSpeciesInfo(bccvlmd, result):
     if ISDMExperiment.providedBy(result.__parent__):
