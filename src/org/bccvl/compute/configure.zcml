@@ -13,7 +13,7 @@
     <utility
         component=".transmogrify.FileMetadata"
         name="org.bccvl.compute.transmogrify.filemetadata"
-    />
+        />
 
     <transmogrifier:registerConfig
       name="org.bccvl.compute.resultimport"
