@@ -3,7 +3,6 @@ import mimetypes
 import tempfile
 import os.path
 import glob
-from io import StringIO
 from shutil import copyfileobj
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
@@ -51,6 +50,7 @@ def addLayersUsedInfo(bccvlmd, result):
             layers_used.add(layer)
     bccvlmd['layers_used'] = tuple(layers_used.union(bccvlmd.get('layers_used',())))
 
+    
 def addSpeciesInfo(bccvlmd, result):
     if ISDMExperiment.providedBy(result.__parent__):
         spds = uuidToObject(result.job_params['species_occurrence_dataset'])
