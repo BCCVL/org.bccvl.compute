@@ -19,6 +19,9 @@ options(repos=r)
 # print warnings immediately
 options(warn=1)
 
+# print out list of installed packages
+write.table(installed.packages()[,c("Package", "Version", "Priority")],
+            row.names=FALSE)
 
 #script to run to develop distribution models
 ###check if libraries are installed, install if necessary and then load them
