@@ -108,7 +108,7 @@ OUTPUTS = {
         '*.bds':  {
             # Perl Storable package
             'title': 'Biodiverse output',
-            'genre': 'BiodiverseModel',
+            'genre': 'DataGenreBiodiverseModel',
             'mimetype': 'application/octet-stream',
         },
         '*.pl': {
