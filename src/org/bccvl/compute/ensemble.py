@@ -89,6 +89,11 @@ OUTPUTS = {
             'genre': 'DataGenreEnsembleResult',
             'mimetype': 'image/geotiff',
         },
+        '*.R': {
+            'title': 'Job Script',
+            'genre': 'JobScript',
+            'mimetype': 'text/x-r',
+        }        
     },
     'archives': {
         # 'results.html.zip': {

@@ -110,6 +110,11 @@ OUTPUTS = {
             'title': 'Biodiverse output',
             'genre': 'BiodiverseModel',
             'mimetype': 'application/octet-stream',
+        },
+        '*.pl': {
+            'title': 'Job Script',
+            'genre': 'JobScript',
+            'mimetype': 'application/x-perl',
         }
     },
     'archives': {
