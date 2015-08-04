@@ -3,7 +3,7 @@
     "title": "Bioclim",
     "subjects": ["bioclim"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "bioclim.R"},
     "schema": {"filename": "bioclim.xml"},
     "output": {"filename": "bioclim.txt"},

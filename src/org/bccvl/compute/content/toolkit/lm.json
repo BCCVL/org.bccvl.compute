@@ -3,7 +3,7 @@
     "title": "Linear Models",
     "subjects": ["lm"],
     "method": "org.bccvl.compute.sptraits.exetuce",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "lm.R"},
     "schema": {"filename": "lm.xml"},
     "output": {"filename": "lm.txt"},

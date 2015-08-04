@@ -3,7 +3,7 @@
     "title": "Convex Hull",
     "subjects": ["convex hull"],    
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "convHull.R"},
     "schema": {"filename": "convHull.xml"},
     "output": {"filename": "convHull.txt"},

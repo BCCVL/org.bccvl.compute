@@ -3,7 +3,7 @@
     "title": "Voronoi Hull Model",
     "subjects": ["voronoihull"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "voronoiHull.R"},
     "schema": {"filename": "voronoiHull.xml"},
     "output": {"filename": "voronoiHull.txt"},

@@ -3,7 +3,7 @@
     "title": "Flexible Discriminant Analysis",
     "subjects": ["fda"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "fda.R"},
     "schema": {"filename": "fda.xml"},
     "output": {"filename": "fda.txt"},

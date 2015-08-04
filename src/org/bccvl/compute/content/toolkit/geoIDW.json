@@ -3,7 +3,7 @@
     "title": "Inverse-Distance Weighted Model",
     "subjects": ["geoidw"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "geoIDW.R"},
     "schema": {"filename": "geoIDW.xml"},
     "output": {"filename": "geoIDW.txt"},

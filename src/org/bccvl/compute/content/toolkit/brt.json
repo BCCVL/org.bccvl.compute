@@ -3,7 +3,7 @@
     "title": "Boosted Regression Tree",
     "subjects": ["brt"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "brt.R"},
     "schema": {"filename": "brt.xml"},
     "output": {"filename": "brt.txt"},

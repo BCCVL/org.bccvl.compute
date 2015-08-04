@@ -3,7 +3,7 @@
     "title": "Multivariate Analysis of Variance",
     "subjects": ["manova"],
     "method": "org.bccvl.compute.sptraits.exetuce",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "manova.R"},
     "schema": {"filename": "manova.xml"},
     "output": {"filename": "manova.txt"},

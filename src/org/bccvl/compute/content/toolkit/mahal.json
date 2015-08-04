@@ -3,7 +3,7 @@
     "title": "Mahalanobis Model",
     "subjects": ["mahal"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "mahal.R"},
     "schema": {"filename": "mahal.xml"},
     "output": {"filename": "mahal.txt"},

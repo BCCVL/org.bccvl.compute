@@ -3,7 +3,7 @@
     "title": "Circles",
     "subjects": ["circles"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "circles.R"},
     "schema": {"filename": "circles.xml"},
     "output": {"filename": "circles.txt"},

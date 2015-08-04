@@ -3,7 +3,7 @@
     "title": "Generalized Additive Model",
     "subjects": ["gam"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "gam.R"},
     "schema": {"filename": "gam.xml"},
     "output": {"filename": "gam.txt"},

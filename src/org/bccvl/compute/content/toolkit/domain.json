@@ -3,7 +3,7 @@
     "title": "Domain",
     "subjects": ["domain"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "domain.R"},
     "schema": {"filename": "domain.xml"},
     "output": {"filename": "domain.txt"},

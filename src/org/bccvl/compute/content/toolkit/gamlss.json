@@ -3,7 +3,7 @@
     "title": "Generalized Additive Model for location scale and shape",
     "subjects": ["gamlss"],
     "method": "org.bccvl.compute.sptraits.exetuce",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "gamlss.R"},
     "schema": {"filename": "gamlss.xml"},
     "output": {"filename": "gamlss.txt"},

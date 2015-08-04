@@ -3,7 +3,7 @@
     "title": "Geographic Distance",
     "subjects": ["geodist"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "geoDist.R"},
     "schema": {"filename": "geoDist.xml"},
     "output": {"filename": "geoDist.txt"},

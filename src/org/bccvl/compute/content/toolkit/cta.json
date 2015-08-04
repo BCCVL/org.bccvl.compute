@@ -3,7 +3,7 @@
     "title": "Classification Tree",
     "subjects": ["cta"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "cta.R"},
     "schema": {"filename": "cta.xml"},
     "output": {"filename": "cta.txt"},

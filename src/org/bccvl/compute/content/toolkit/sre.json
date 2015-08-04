@@ -3,7 +3,7 @@
     "title": "Surface Range Envelope",
     "subjects": ["sre"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "sre.R"},
     "schema": {"filename": "sre.xml"},
     "output": {"filename": "sre.txt"},

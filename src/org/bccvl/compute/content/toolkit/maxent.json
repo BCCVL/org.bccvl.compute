@@ -3,7 +3,7 @@
     "title": "Maximum Entropy Modeling",
     "subjects": ["maxent"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "maxent.R"},
     "schema": {"filename": "maxent.xml"},
     "output": {"filename": "maxent.txt"},

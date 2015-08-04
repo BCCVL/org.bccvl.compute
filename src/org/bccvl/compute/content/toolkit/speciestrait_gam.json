@@ -3,7 +3,7 @@
     "title": "Generalized Additive Model",
     "subjects": ["gam"],
     "method": "org.bccvl.compute.sptraits.exetuce",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "speciestrait_gam.R"},
     "schema": {"filename": "speciestrait_gam.xml"},
     "output": {"filename": "speciestrait_gam.txt"},

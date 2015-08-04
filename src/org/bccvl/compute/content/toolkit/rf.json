@@ -3,7 +3,7 @@
     "title": "Random Forest",
     "subjects": ["rf"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "rf.R"},
     "schema": {"filename": "rf.xml"},
     "output": {"filename": "rf.txt"},

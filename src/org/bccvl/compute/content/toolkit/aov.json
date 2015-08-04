@@ -3,7 +3,7 @@
     "title": "Analysis of Variance",
     "subjects": ["aov"],
     "method": "org.bccvl.compute.sptraits.exetuce",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "aov.R"},
     "schema": {"filename": "aov.xml"},
     "output": {"filename": "aov.txt"},

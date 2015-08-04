@@ -3,7 +3,7 @@
     "title": "Multiple Adaptive Regression Splines",
     "subjects": ["mars"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
-    "intperpreter": "R",
+    "interpreter": "R",
     "script": {"filename": "mars.R"},
     "schema": {"filename": "mars.xml"},
     "output": {"filename": "mars.txt"},
