@@ -23,12 +23,6 @@
       <required>False</required>
       <title>bag fraction</title>
     </field>
-    <field name="var_monotone" type="zope.schema.Choice">
-      <default>-1</default>
-      <required>False</required>
-      <title>var monotone</title>
-      <vocabulary>brt_var_monotone_vocab</vocabulary>
-    </field>
     <field name="n_folds" type="zope.schema.Int">
       <default>10</default>
       <description>Number of folds.</description>
