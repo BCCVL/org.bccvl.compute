@@ -1,5 +1,8 @@
 {
     "files": {
+        "Rplots.pdf": {
+            "skip": true
+        },
         "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",

@@ -1,5 +1,8 @@
 {
     "files": {
+        "Rplots.pdf": {
+            "skip": true
+        },
         "AUC.png": {
             "title": "Area Under the Receiver Operating Characteristic Curve (AUC)",
             "genre": "DataGenreSDMEval",
