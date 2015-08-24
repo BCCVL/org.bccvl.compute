@@ -18,13 +18,14 @@
     </field>
     <field name='prevalence' type='zope.schema.Decimal'>
       <required>False</required>
+      <description>allows to give more or less weight to observations of a particular class</description>
       <title>weighted response weights</title>
       <min>0</min>
       <max>1</max>
     </field>
     <field name="var_import" type="zope.schema.Int">
       <default>0</default>
-      <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
+      <description>number of permutations to estimate the relative importance of each variable</description>
       <title>resampling</title>
       <min>0</min>
     </field>
@@ -42,27 +43,27 @@
     </field>
     <field name="ntree" type="zope.schema.Int">
       <default>200</default>
-      <description>Number of trees to grow.  This should not be set to too small a number, to ensure that every input row gets predicted at least a few times.</description>
-      <title>ntree</title>
+      <description>Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets sampled at least a few times.</description>
+      <title>number of trees</title>
       <required>True</required>
       <min>1</min>
     </field>
     <field name="mtry" type="zope.schema.TextLine">
-      <description>Number of variables randomly sampled as candidates at each split.  Note that the default values are different for classification (sqrt(p) where p is number of variables in ‘x’) and regression (p/3)</description>
+      <description>Number of variables randomly sampled as candidates at each split. Default is 'sqrt(p)' for classification trees, where p is the number of variables.</description>
       <default>default</default>
       <required>True</required>
-      <title>mtry</title>
+      <title>number of variables at each split (mtry)</title>
     </field>
     <field name="nodesize" type="zope.schema.Int">
-      <default>5</default>
-      <description>Minimum size of terminal nodes.  Setting this number larger causes smaller trees to be grown (and thus take less time). </description>
-      <title>nodesize</title>
+      <default>1</default>
+      <description>Minimum size of terminal nodes.  Setting this number larger causes smaller trees to be grown (and thus take less time), however for best accuracy use nodesize = 1.</description>
+      <title>node size</title>
       <required>True</required>
       <min>1</min>
     </field>
     <field name="maxnodes" type="zope.schema.Int">
-      <description>Maximum number of terminal nodes trees in the forest can have. If not given, trees are grown to the maximum possible (subject to limits by nodesize)</description>
-      <title>maxnodes</title>
+      <description>Maximum number of terminal nodes trees that the forest can have. If not given, trees are grown to the maximum possible (subject to limits by node size).</description>
+      <title>maximum nodes</title>
       <required>False</required>
       <min>1</min>
     </field>
