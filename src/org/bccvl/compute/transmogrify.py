@@ -234,8 +234,10 @@ class ResultSource(object):
                 if fname in filelist:
                     # we import only if we haven't done so already
                     # otherwise a 2nd glob may match again
-                    item = self.createItem(fname, filedef)
-                    yield item
+                    if not filedef.get('skip', False):
+                        # Import file only if it is not marked 'skip' = True
+                        item = self.createItem(fname, filedef)
+                        yield item
                 filelist.discard(fname)
 
         # import archives
