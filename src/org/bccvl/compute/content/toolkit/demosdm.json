@@ -1,10 +1,10 @@
 {
     "_type": "org.bccvl.content.function",
-    "title": "Maximum Entropy Modeling",
+    "title": "DemoSDM",
     "subjects": ["maxent"],
     "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
-    "script": {"filename": “demosdm.R”},
+    "script": {"filename": "demosdm.R"},
     "schema": {"filename": "demosdm.xml"},
     "output": {"filename": "demosdm.txt"},
     "_fileattributes": ["script", "schema", "output"],
