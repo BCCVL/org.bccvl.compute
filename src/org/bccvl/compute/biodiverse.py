@@ -165,7 +165,7 @@ def execute(result, toolkit):
                        }
     }
     params['result'] = {
-        'results_dir': tempfile.mkdtemp(),
+        'results_dir': 'scp://plone@127.0.0.1' + tempfile.mkdtemp(),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {
