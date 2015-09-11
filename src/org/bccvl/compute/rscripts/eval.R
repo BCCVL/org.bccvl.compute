@@ -47,12 +47,18 @@ bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
 # for the original reference
 #
 bccvl.Find.Optim.Stat <- function(Stat='TSS',Fit,Obs,Precision = 5, Fixed.thresh = NULL){
-  if(length(unique(Obs)) == 1 | length(unique(Fit)) == 1){
-#     warning("\nObserved or fited data contains only a value.. Evaluation Methods switched off\n",immediate.=T)
-#     best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA  
-      warning("\nObserved or fited data contains a unique value.. Be carefull with this models predictions\n",immediate.=T)
-      #best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA    
-  } #else {
+    uniform_obs=length(unique(Obs)) == 1
+    uniform_fit=length(unique(Fit)) == 1
+    if ( uniform_obs | uniform_fit ) {
+        msg=sprintf("Stat: %s.", Stat)
+        if (uniform_obs) msg=sprintf("%s Uniform observed data.", msg)
+        if (uniform_fit) msg=sprintf("%s Uniform fitted data.", msg)
+        msg=sprintf("%s Be careful with this model's predictions.", msg)
+        # warning("\nObserved or fited data contains only a value.. Evaluation Methods switched off\n",immediate.=T)
+        # best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA  
+        warning("\nObserved or fited data contains a unique value.. Be carefull with this models predictions\n",immediate.=T)
+        #best.stat <- cutoff <- true.pos <- sensibility <- true.neg <- specificity <- NA    
+    } #else {
     if(Stat != 'ROC'){
       StatOptimum <- bccvl.getStatOptimValue(Stat)
       if(is.null(Fixed.thresh)){ # test a range of threshold to get the one giving the best score
@@ -64,7 +70,9 @@ bccvl.Find.Optim.Stat <- function(Stat='TSS',Fit,Obs,Precision = 5, Fixed.thresh
 #           maxi <- min(max(quantile(Fit,0.95, na.rm=T), na.rm=T),1000)
           mini <- max(min(Fit, na.rm=T),0)
           maxi <- min(max(Fit, na.rm=T),1000)        
-          valToTest <- unique( round(c(seq(mini,maxi,length.out=100), mini, maxi)) )
+          #valToTest <- unique( round(c(seq(mini,maxi,length.out=100), mini, maxi)) )
+          # EMG no idea why the round() is here, it makes vals between 0 and 1 (ie bioclim) all 0
+          valToTest <- unique( c(seq(mini,maxi,length.out=100)))
           # deal with unique value to test case
           if(length(valToTest)<3){
             valToTest <- round(c(mean(0,mini), valToTest, mean(1000,maxi)))
@@ -120,6 +128,19 @@ bccvl.getStatOptimValue <- function(stat){
   if(stat == 'HSS') return(1)
   if(stat == 'OR') return(1000000)
   if(stat == 'ORSS') return(1)
+  
+  #dismo
+  if(stat == 'ODP') return(1)
+  # if(stat == 'CCR') return(1) # same as ACCURACY
+  # if(stat == 'TPR') return(1) # same as POD
+  if(stat == 'TNR') return(1)
+  if(stat == 'FPR') return(0)
+  if(stat == 'FNR') return(0)
+  # if(stat == 'PPP') return(1) # same as SR
+  if(stat == 'NPP') return(1)
+  if(stat == 'MCR') return(0)
+  if(stat == 'OR') return(1000000)
+  # if(stat == 'kappa') return(1) # same as KAPPA
 }
 
 bccvl.calculate.stat <-
@@ -184,27 +205,73 @@ function(Misc, stat='TSS')
     return( (hits-hits_rand) / (hits+misses+false_alarms-hits_rand))
   }
   
-  if(stat=='HK'){
-    return((hits/(hits+misses)) - (false_alarms/(false_alarms + correct_negatives)))
-  }
+  #if(stat=='HK'){
+  #  return((hits/(hits+misses)) - (false_alarms/(false_alarms + correct_negatives)))
+  #}
   
-  if(stat=='HSS'){
-    expected_correct_rand <- (1/total) * ( ((hits+misses)*(hits+false_alarms)) +
-      ((correct_negatives + misses)*(correct_negatives+false_alarms)) )
-    return((hits+correct_negatives-expected_correct_rand) / (total - expected_correct_rand))
-  }
+  #if(stat=='HSS'){
+  #  expected_correct_rand <- (1/total) * ( ((hits+misses)*(hits+false_alarms)) +
+  #    ((correct_negatives + misses)*(correct_negatives+false_alarms)) )
+  #  return((hits+correct_negatives-expected_correct_rand) / (total - expected_correct_rand))
+  #}
   
-  if(stat=='OR'){
-    return((hits*correct_negatives)/(misses*false_alarms))
-  }
+  #if(stat=='OR'){
+  #  return((hits*correct_negatives)/(misses*false_alarms))
+  #}
   
-  if(stat=='ORSS'){
-    return((hits*correct_negatives - misses*false_alarms) / (hits*correct_negatives + misses*false_alarms))
-  }
+  #if(stat=='ORSS'){
+  #  return((hits*correct_negatives - misses*false_alarms) / (hits*correct_negatives + misses*false_alarms))
+  #}
   
-  if(stat=="BOYCE"){
-    
+  #if(stat=="BOYCE"){
+  #  
+  #}
+  
+  #dismo
+  if(stat=='ODP') {
+      return((false_alarms + correct_negatives) / total)
   }
+
+  # if(stat=='CCR') {
+  # return((hits + correct_negatives) / total)
+  # }
+
+  # if(stat=='TPR') {
+  # return(hits / (hits + misses))
+  # }
+
+  if(stat=='TNR') {
+      return(correct_negatives / (false_alarms + correct_negatives))
+  }
+
+  if(stat=='FPR') {
+      return(false_alarms / (false_alarms + correct_negatives))
+  }
+
+  if(stat=='FNR') {
+      return(misses / (hits + misses))
+  }
+
+  # if(stat=='PPP') {
+  # return(hits / (hits + false_alarms))
+  # }
+
+  if(stat=='NPP') {
+      return(correct_negatives / (misses + correct_negatives))
+  }
+
+  if(stat=='MCR') {
+      return((false_alarms + misses) / total)
+  }
+
+  if(stat=='OR') {
+      return((hits * correct_negatives) / (misses * false_alarms))
+  }
+
+  # if(stat=='kappa') {
+  # return(((hits + correct_negatives) - (((hits + misses)*(hits + false_alarms) + (false_alarms + correct_negatives)*(misses + correct_negatives)) / total)) /
+  # (total -(((hits + misses)*(hits + false_alarms) + (false_alarms + correct_negatives)*(misses + correct_negatives)) / total)))
+  # }  
   
 }
 
@@ -216,8 +283,8 @@ bccvl.contagency.table.check <- function(Misc){
       rownames(Misc) <- c('FALSE','TRUE')
     } else{
       a <- Misc
-    	Misc <- c(0,0)
-  		Misc <- rbind(Misc, a)
+      Misc <- c(0,0)
+      Misc <- rbind(Misc, a)
       rownames(Misc) <- c('FALSE','TRUE')
   	}
   }
