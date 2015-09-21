@@ -50,7 +50,7 @@ rasterOptions(tmpdir=paste(bccvl.env$workdir,"raster_tmp",sep="/"))
 # Use seed supplied if any. Otherwise generate a random seed.
 seed = bccvl.params$random_seed
 if (is.null(seed)) {
-    seed = runif(1, 1, 2^31-1)
+    seed = runif(1, -2^31, 2^31-1)
 }
 seed = as.integer(seed)
 set.seed(seed)
