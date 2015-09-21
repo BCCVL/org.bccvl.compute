@@ -47,6 +47,16 @@ setwd(bccvl.env$outputdir)
 # control maxmemory, and/or other raster options
 rasterOptions(tmpdir=paste(bccvl.env$workdir,"raster_tmp",sep="/"))
 
+# Use seed supplied if any. Otherwise generate a random seed.
+seed = bccvl.params$random_seed
+if (is.null(seed)) {
+    seed = runif(1, 1, 2^31-1)
+}
+seed = as.integer(seed)
+set.seed(seed)
+print ("Seed used for this experiment is given below. It can be used to rerun experiment to reproduce the same result.")
+print(seed)
+
 ############################################################
 #
 # define helper functions to use in bccvl
