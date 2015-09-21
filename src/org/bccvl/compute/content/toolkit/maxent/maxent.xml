@@ -106,5 +106,12 @@
       <description>default prevalence of the species: probability of presence at ordinary occurrence points</description>
       <title>defaultprevalence</title>
     </field>
+    <field name="random_seed" type="zope.schema.Int">
+      <description>random seed used</description>
+      <required>False</required>
+      <title>random seed</title>
+      <min>-2147483647</min>
+      <max>2147483647</max>      
+    </field>    
   </schema>
 </model>
