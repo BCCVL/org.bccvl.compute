@@ -90,5 +90,12 @@
       <description>if a step of the GCV/UBRE optimization method leads to a worse GCV/UBRE score, then the step length is halved; this is the number of halvings to try before giving up</description>
       <min>0</min>
     </field>
+    <field name="random_seed" type="zope.schema.Int">
+      <description>random seed used</description>
+      <required>False</required>
+      <title>random seed</title>
+      <min>-2147483647</min>
+      <max>2147483647</max>      
+    </field>    
   </schema>
 </model>
