@@ -49,7 +49,7 @@
       <default>100</default>
       <description>Maximum number of iterations</description>
       <required>False</required>
-      <title>maxit</title>
+      <title>maximum iterations</title>
       <min>0</min>
     </field>
     <field name="random_seed" type="zope.schema.Int">

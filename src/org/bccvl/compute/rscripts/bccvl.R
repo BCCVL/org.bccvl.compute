@@ -39,6 +39,7 @@ params = rjson::fromJSON(file="params.json")
 bccvl.params <- params$params
 bccvl.env <- params$env
 rm(params)
+
 # set working directory (script runner takes care of it)
 setwd(bccvl.env$outputdir)
 # Set raster tmpdir - we do this because raster sometimes makes
@@ -54,8 +55,164 @@ if (is.null(seed)) {
 }
 seed = as.integer(seed)
 set.seed(seed)
-print ("Seed used for this experiment is given below. It can be used to rerun experiment to reproduce the same result.")
-print(seed)
+bccvl.params["random_seed"] = seed
+
+
+############################################################
+#
+# define helper functions to print parameters
+#
+############################################################
+
+parameter.as.string <- function (param, value) {
+    pname <- gsub("_", " ", param)
+    if (param == "prevalence") {
+        pname = "weighted response weights"
+    }
+    else if (param == "var_import") {
+        pname = "resampling"
+    }
+    else if (param == "nbcv") {
+        pname = "NbCV"
+    }
+    else if (param == "n_trees") {
+        pname = "trees added each cycle"
+    }
+    else if (param == "control_xval") {
+        pname = "cross-validations"
+    }
+    else if (param == "control_minbucket") {
+        pname = "minimum bucket"
+    }
+    else if (param == "control_minsplit") {
+        pname = "minimum split"
+    }
+    else if (param == "control_cp") {
+        pname = "complexity parameter"
+    }
+    else if (param == "control_maxdepth") {
+        pname = "maximum depth"
+    }
+    else if (param == "irls_reg") {
+        pname = "irls.reg"
+    }
+    else if (param == "maxit") {
+        pname = "maximum iterations"
+    }
+    else if (param == "mgcv_tol") {
+        pname = "convergence tolerance"
+    }
+    else if (param == "mgcv_half") {
+        pname = "number of halvings"
+    }
+    else if (param == "n_minobsinnode") {
+        pname = "Min observations in terminal node"
+    }
+    else if (param == "control_epsilon") {
+        pname = "control: epsilon"
+    }
+    else if (param == "control_maxit") {
+        pname = "control: maxit"
+    }
+    else if (param == "control_trace") {
+        pname = "control: trace"
+    }
+    else if (param == "model") {
+        pname = "Model returned"
+    }
+    else if (param == "x") {
+        pname = "x returned"
+    }
+    else if (param == "y") {
+        pname = "y returned"
+    }
+    else if (param == "qr") {
+        pname = "QR returned"
+    }
+    else if (param == "singular_ok") {
+        pname = "Singular fit ok"
+    }
+    else if (param == "thresh") {
+        pname = "threshold"
+    }
+    else if (param == "maximumiterations") {
+        pname = "Maximum iterations"
+    }
+    else if (param == "ntree") {
+        pname = "number of trees"
+    }
+    else if (param == "mtry") {
+        pname = "number of variables at each split (mtry)"
+    }
+    else if (param == "nodesize") {
+        pname = "node size"
+    }
+    else if (param == "maxnodes") {
+        pname = "maximum nodes"
+    }
+    return(paste(pname, " = ", value, "\n", sep="", collapse=""))
+}
+
+parameter.print <- function(params) {
+    func = params[["function"]]
+    if (is.null(func))
+        return("")
+    cat("Algorithm:", func, "\n")
+
+    pnames = c("random_seed")
+    if (func == "ann") {
+        pnames = c("prevalence", "var_import", "maxit", "nbcv", "rang", "random_seed")
+    }
+    else if (func == "brt") {
+        pnames = c("tree_complexity", "learning_rate", "bag_fraction", "n_folds", "prev_stratify", "family", "n_trees", "max_trees", "tolerance_method", "tolerance_value", "random_seed")
+    }
+    else if (func == "cta") {
+        pnames = c("prevalence", "var_import", "method", "control_xval", "control_minbucket", "control_minsplit", "control_cp", "control_maxdepth", "random_seed")
+    }
+    else if (func == "fda") {
+        pnames = c("prevalence", "var_import", "method", "random_seed")
+    }
+    else if (func == "gam") {
+        pnames = c("prevalence", "var_import", "interaction_level", "family", "irls_reg", "epsilon", "maxit", "mgcv_tol", "mgcv_half", "random_seed")
+    }
+    else if (func == "gamlss") {
+        pnames = c("sigma_formula", "nu_formula", "tau_formula", "family", "weights", "contrasts", "method", "start_from", "mu_start", "sigma_start", "nu_start", "tau_start", "mu_fix", "sigma_fix", "nu_fix", "tau_fix", "control", "i_control", "other_args", "random_seed")
+    }
+    else if (func == "gbm") {
+        pnames = c("prevalence", "var_import", "distribution", "n_trees", "interaction_depth", "n_minobsinnode", "shrinkage", "bag_fraction", "train_fraction", "cv_folds", "random_seed")
+    }
+    else if (func == "glm") {
+        pnames = c("prevalence", "var_import", "type", "interaction_level", "test", "family", "mustart", "control_epsilon", "control_maxit", "control_trace", "random_seed")
+    }
+    else if (func == "lm") {
+        pnames = c("subset", "weights", "na_action", "method", "model", "x", "y", "qr", "singular_ok", "contrasts", "offset", "random_seed")
+    }
+    else if (func == "manova") {
+        pnames = c("projections_returned", "qr", "contrasts", "subset", "weights", "na_action", "random_seed")
+    }
+    else if (func == "mars") {
+        pnames = c("prevalence", "var_import", "degree", "nk", "penalty", "thresh", "prune", "random_seed")
+    }
+    else if (func == "maxent") {
+        pnames = c("prevalence", "var_import", "maximumiterations", "linear", "quadratic", "product", "threshold", "hinge", "lq2lqptthreshold", "lq2lqthreshold", "hingethreshold", "beta_threshold", "beta_categorical", "beta_lqp", "beta_hinge", "defaultprevalence", "random_seed")
+    }
+    else if (func == "rf") {
+        pnames = c("prevalence", "var_import", "do.classif", "ntree", "mtry", "nodesize", "maxnodes", "random_seed")
+    }
+    else if (func == "sre") {
+        pnames = c("prevalence", "var_import", "quant", "random_seed")
+    }
+
+    for (p in pnames) {
+        cat(parameter.as.string(p, params[[p]]))
+    }
+    return("")
+}
+
+
+# Print out parameters used
+parameter.print(bccvl.params)
+
 
 ############################################################
 #
