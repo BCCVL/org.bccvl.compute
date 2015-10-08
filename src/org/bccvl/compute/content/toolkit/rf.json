@@ -1,6 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Random Forest",
+    "description": "Grows many decision trees and averages the predictions of these trees to estimate the importance of each predictor variable.",
     "subjects": ["rf"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

@@ -1,6 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Classification Tree",
+    "description": "Predicts species occurrence by repeatedly splitting the dataset into mutually exclusive groups based on a threshold value of one of the predictor variables.",
     "subjects": ["cta"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

@@ -1,6 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Convex Hull",
+    "description": "Predicts that a species is present at sites inside the minimum spatial convex hull around observed occurrences, and absent outside that hull.",
     "subjects": ["convex hull"],    
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

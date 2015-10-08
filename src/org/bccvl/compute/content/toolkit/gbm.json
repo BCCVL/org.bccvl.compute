@@ -1,6 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Generalized Boosting Model",
+    "description": "Predicts species occurrence probabilities based on a combination of decision trees and boosting, It uses a stagewise procedure to iteratively fit random subsets of the data, and averages the suite of trees in the final model.",
     "subjects": ["gbm"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

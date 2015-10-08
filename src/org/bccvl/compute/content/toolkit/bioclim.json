@@ -1,6 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Bioclim",
+    "description": "Defines a multi-dimensional environmental space bounded by the minimum and maximum values of environmental variables for all occurrences as the potential range where a species can occur.",
     "subjects": ["bioclim"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

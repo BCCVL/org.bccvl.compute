@@ -1,6 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Generalized Linear Model",
+    "description": "A regression model for data with a non-normal distribution, fitted with maximum likelihood estimation.",
     "subjects": ["glm"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",
