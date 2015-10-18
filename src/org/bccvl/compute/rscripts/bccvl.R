@@ -379,6 +379,13 @@ bccvl.grdtogtiff <- function(folder) {
         grdname <- file_path_sans_ext(grdfile)
         # read grid raster
         grd <- raster(file.path(folder, grdfile))
+
+        if (is.na(proj4string(grd))) {
+            # Projection is missing, initialise it to EPSG:4326
+            crs = CRS("+init=epsg:4326")
+            proj4string(grd) <- crs
+        }
+
         # write raster as geotiff
         filename = file.path(folder, paste(grdname, 'tif', sep="."))
         writeRaster(grd, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
