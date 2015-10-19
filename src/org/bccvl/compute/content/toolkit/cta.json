@@ -9,5 +9,6 @@
     "schema": {"filename": "cta.xml"},
     "output": {"filename": "cta.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "machineLearning"
 }

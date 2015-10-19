@@ -9,5 +9,6 @@
     "schema": {"filename": "voronoiHull.xml"},
     "output": {"filename": "voronoiHull.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "geographic"
 }

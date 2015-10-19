@@ -9,5 +9,6 @@
     "schema": {"filename": "circles.xml"},
     "output": {"filename": "circles.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "geographic"
 }

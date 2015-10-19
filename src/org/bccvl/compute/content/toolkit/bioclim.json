@@ -9,5 +9,6 @@
     "schema": {"filename": "bioclim.xml"},
     "output": {"filename": "bioclim.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "profile"
 }

@@ -9,5 +9,6 @@
     "schema": {"filename": "brt.xml"},
     "output": {"filename": "brt.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "machineLearning"
 }

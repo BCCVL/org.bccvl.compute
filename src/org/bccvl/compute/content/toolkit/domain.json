@@ -9,5 +9,6 @@
     "schema": {"filename": "domain.xml"},
     "output": {"filename": "domain.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "profile"
 }

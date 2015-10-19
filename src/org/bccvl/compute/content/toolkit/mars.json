@@ -8,5 +8,6 @@
     "schema": {"filename": "mars.xml"},
     "output": {"filename": "mars.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "statistical"
 }

@@ -8,5 +8,6 @@
     "schema": {"filename": "fda.xml"},
     "output": {"filename": "fda.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "statistical"
 }

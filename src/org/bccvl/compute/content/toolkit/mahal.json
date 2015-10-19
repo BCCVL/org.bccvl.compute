@@ -9,5 +9,6 @@
     "schema": {"filename": "mahal.xml"},
     "output": {"filename": "mahal.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "profile"
 }

@@ -9,5 +9,6 @@
     "schema": {"filename": "convHull.xml"},
     "output": {"filename": "convHull.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "geographic"
 }

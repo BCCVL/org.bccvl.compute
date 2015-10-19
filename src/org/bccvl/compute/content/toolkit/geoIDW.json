@@ -9,5 +9,6 @@
     "schema": {"filename": "geoIDW.xml"},
     "output": {"filename": "geoIDW.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "geographic"
 }

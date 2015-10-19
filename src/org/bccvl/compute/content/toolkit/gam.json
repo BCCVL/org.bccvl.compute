@@ -9,5 +9,6 @@
     "schema": {"filename": "gam.xml"},
     "output": {"filename": "gam.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "statistical"
 }

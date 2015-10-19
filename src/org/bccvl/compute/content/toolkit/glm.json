@@ -9,5 +9,6 @@
     "schema": {"filename": "glm.xml"},
     "output": {"filename": "glm.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "statistical"
 }
