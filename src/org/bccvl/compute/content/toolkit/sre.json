@@ -1,9 +1,10 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Surface Range Envelope",
+    "description": "Equivalent to Bioclim: defines a multi-dimensional environmental space bounded by the minimum and maximum values of environmental variables for all occurrences as the potential range where a species can occur.",
     "subjects": ["sre"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "sre.R"},
     "schema": {"filename": "sre.xml"},
     "output": {"filename": "sre.txt"},

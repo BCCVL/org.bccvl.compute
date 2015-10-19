@@ -1,9 +1,10 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Domain",
+    "description": "Predicts species occurrence based on the environmental similarity of an unknown site to the nearest occurrence sites using the Gower coefficient of similarity.",
     "subjects": ["domain"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "domain.R"},
     "schema": {"filename": "domain.xml"},
     "output": {"filename": "domain.txt"},

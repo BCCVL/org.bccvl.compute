@@ -1,9 +1,10 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Circles",
+    "description": "Predicts that a species is present at sites within a certain radius around observed occurrences, and absent beyond that radius.",
     "subjects": ["circles"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "circles.R"},
     "schema": {"filename": "circles.xml"},
     "output": {"filename": "circles.txt"},

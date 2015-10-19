@@ -1,9 +1,10 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Generalized Additive Model",
+    "description": "A multiple regression model that uses smoothed functions of the environmental variables to model non-linear relationships.",
     "subjects": ["gam"],
-    "method": "org.bccvl.compute.sptraits.exetuce",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.speciestraitsexperiment",
     "script": {"filename": "speciestrait_gam.R"},
     "schema": {"filename": "speciestrait_gam.xml"},
     "output": {"filename": "speciestrait_gam.txt"},

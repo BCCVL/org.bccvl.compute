@@ -139,9 +139,9 @@ def execute_sdm(result, toolkit):
                        'url': result.__parent__.absolute_url()
                        }
     }
-    ### complete job infos
+    ##### complete job infos
     params['result'] = {
-        'results_dir': tempfile.mkdtemp(),
+        'results_dir': 'scp://plone@127.0.0.1' + tempfile.mkdtemp(),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {

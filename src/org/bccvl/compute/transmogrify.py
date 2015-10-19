@@ -50,7 +50,7 @@ def addLayersUsedInfo(bccvlmd, result):
             layers_used.add(layer)
     bccvlmd['layers_used'] = tuple(layers_used.union(bccvlmd.get('layers_used',())))
 
-    
+
 def addSpeciesInfo(bccvlmd, result):
     if ISDMExperiment.providedBy(result.__parent__):
         spds = uuidToObject(result.job_params['species_occurrence_dataset'])
@@ -172,9 +172,9 @@ class ResultSource(object):
 
                 # FIXME: find a cleaner way to attach metadata
                 if 'year' in self.context.job_params:
-                    year = "start={0}; end={0}; scheme=W3C-DTF;".format(
-                        self.context.job_params['year'])
-                    bccvlmd['temporal'] = year
+                    bccvlmd['year'] = self.context.job_params['year']
+                if 'month' in self.context.job_params:
+                    bccvlmd['month'] = self.context.job_params['month']
                 if 'emsc' in self.context.job_params:
                     bccvlmd['emsc'] = self.context.job_params['emsc']
                 if 'gcm' in self.context.job_params:

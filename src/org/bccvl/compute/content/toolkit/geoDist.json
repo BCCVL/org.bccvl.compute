@@ -1,9 +1,10 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Geographic Distance",
+    "description": "Predicts species occurrences based on the assumption that the closer to a known presence, the more likely it is to find the species.",
     "subjects": ["geodist"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "geoDist.R"},
     "schema": {"filename": "geoDist.xml"},
     "output": {"filename": "geoDist.txt"},

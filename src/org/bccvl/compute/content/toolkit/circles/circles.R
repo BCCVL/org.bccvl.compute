@@ -88,8 +88,5 @@ if (!all(enviro.data.type=="continuous")) {
     model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
     # save output
     bccvl.saveModelProjection(model.proj, projection.name, occur.species)
-    # evaluate model
-    if (!is.null(absen)) {
-        bccvl.evaluate.model('circles', model.sdm, occur, absen)
-    }
+    
 } # end if continuous
