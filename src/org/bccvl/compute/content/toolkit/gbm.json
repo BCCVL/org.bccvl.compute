@@ -9,5 +9,6 @@
     "schema": {"filename": "gbm.xml"},
     "output": {"filename": "gbm.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "machineLearning"
 }
