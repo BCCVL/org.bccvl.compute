@@ -1,12 +1,14 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Mahalanobis Model",
+    "description": "Predicts species occurrence based on the environmental similarity of an unknown site to the nearest occurrence sites using the Mahalanobis distance measure, which is independent of the scales of various predictors.",
     "subjects": ["mahal"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "mahal.R"},
     "schema": {"filename": "mahal.xml"},
     "output": {"filename": "mahal.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "profile"
 }

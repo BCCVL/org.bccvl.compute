@@ -2,11 +2,12 @@
     "_type": "org.bccvl.content.function",
     "title": "Multivariate Analysis of Variance",
     "subjects": ["manova"],
-    "method": "org.bccvl.compute.sptraits.exetuce",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.speciestraitsexperiment",
     "script": {"filename": "manova.R"},
     "schema": {"filename": "manova.xml"},
     "output": {"filename": "manova.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "statistical"
 }

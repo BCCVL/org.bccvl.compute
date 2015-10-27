@@ -1,12 +1,14 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Random Forest",
+    "description": "Grows many decision trees and averages the predictions of these trees to estimate the importance of each predictor variable.",
     "subjects": ["rf"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "rf.R"},
     "schema": {"filename": "rf.xml"},
     "output": {"filename": "rf.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "machineLearning"
 }

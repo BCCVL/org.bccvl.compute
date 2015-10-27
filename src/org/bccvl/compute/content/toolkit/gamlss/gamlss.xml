@@ -103,5 +103,12 @@
       <description>This field enables an expert user to specify arguments that can be passed to lower level regression functions.</description>
       <required>False</required>
     </field>
+    <field name="random_seed" type="zope.schema.Int">
+      <description>random seed used</description>
+      <required>False</required>
+      <title>random seed</title>
+      <min>-2147483648</min>
+      <max>2147483647</max>      
+    </field>    
   </schema>
 </model>

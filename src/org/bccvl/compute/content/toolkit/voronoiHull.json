@@ -1,12 +1,14 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Voronoi Hull Model",
+    "description": "Predicts that a species is present inside voronoi hulls around observed occurrences, which consist of all points whose distance to the known location is less than or equal to its distance to any other known location, and absent outside those hulls.",
     "subjects": ["voronoihull"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "voronoiHull.R"},
     "schema": {"filename": "voronoiHull.xml"},
     "output": {"filename": "voronoiHull.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "geographic"
 }

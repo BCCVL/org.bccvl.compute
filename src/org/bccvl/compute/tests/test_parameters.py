@@ -1,4 +1,4 @@
-import unittest2 as unittest
+import unittest
 import json
 from pkg_resources import resource_listdir
 from pkg_resources import resource_isdir

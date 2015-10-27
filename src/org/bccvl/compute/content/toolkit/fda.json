@@ -2,11 +2,12 @@
     "_type": "org.bccvl.content.function",
     "title": "Flexible Discriminant Analysis",
     "subjects": ["fda"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "fda.R"},
     "schema": {"filename": "fda.xml"},
     "output": {"filename": "fda.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "statistical"
 }

@@ -1,12 +1,14 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Inverse-Distance Weighted Model",
+    "description": "Predicts species occurrence probabilities for unknown locations as the average of values at nearby known locations weighted by their inverse distance from the unknown location.",
     "subjects": ["geoidw"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "geoIDW.R"},
     "schema": {"filename": "geoIDW.xml"},
     "output": {"filename": "geoIDW.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "geographic"
 }

@@ -38,6 +38,12 @@
       <max>1</max>
       <default>0.25</default>
     </field>
-
+    <field name="random_seed" type="zope.schema.Int">
+      <description>random seed used</description>
+      <required>False</required>
+      <title>random seed</title>
+      <min>-2147483648</min>
+      <max>2147483647</max>      
+    </field>
   </schema>
 </model>

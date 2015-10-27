@@ -2,11 +2,12 @@
     "_type": "org.bccvl.content.function",
     "title": "Artificial Neural Network",
     "subjects": ["ann"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "ann.R"},
     "schema": {"filename": "ann.xml"},
     "output": {"filename": "ann.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "machineLearning" 
 }

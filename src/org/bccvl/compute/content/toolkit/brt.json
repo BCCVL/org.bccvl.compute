@@ -1,12 +1,14 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Boosted Regression Tree",
+    "description": "Predicts species occurrence probabilities based on a combination of decision trees and boosting, It uses a stagewise procedure to iteratively fit random subsets of the data, and averages the suite of trees in the final model.",
     "subjects": ["brt"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.sdmexperiment",
     "script": {"filename": "brt.R"},
     "schema": {"filename": "brt.xml"},
     "output": {"filename": "brt.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "machineLearning"
 }

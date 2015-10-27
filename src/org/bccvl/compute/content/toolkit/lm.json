@@ -2,11 +2,12 @@
     "_type": "org.bccvl.content.function",
     "title": "Linear Models",
     "subjects": ["lm"],
-    "method": "org.bccvl.compute.sptraits.exetuce",
     "interpreter": "R",
+    "experiment_type": "org.bccvl.content.speciestraitsexperiment",
     "script": {"filename": "lm.R"},
     "schema": {"filename": "lm.xml"},
     "output": {"filename": "lm.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "statistical"
 }
