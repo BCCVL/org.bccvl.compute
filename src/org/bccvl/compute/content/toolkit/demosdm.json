@@ -2,11 +2,12 @@
     "_type": "org.bccvl.content.function",
     "title": "DemoSDM",
     "subjects": ["maxent"],
-    "method": "org.bccvl.compute.rscript.execute_sdm",
     "interpreter": "R",
+    "experiment_type": null,    
     "script": {"filename": "demosdm.R"},
     "schema": {"filename": "demosdm.xml"},
     "output": {"filename": "demosdm.txt"},
     "_fileattributes": ["script", "schema", "output"],
-    "_transitions": "publish"
+    "_transitions": "publish",
+    "algorithm_category": "machineLearning"     
 }
