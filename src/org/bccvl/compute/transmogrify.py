@@ -150,6 +150,7 @@ class ResultSource(object):
 
         datasetid = normalizer.normalize(name)
 
+        layermd = {}
         bccvlmd = {}
         genre = info.get('genre', None)
 
@@ -160,12 +161,26 @@ class ResultSource(object):
             #  resolution, toolkit, species, layers
             #  future: year, emsc, gcm
             if genre in ('DataGenreSDMModel', 'DataGenreCP', 'DataGenreClampingMask'):
+                
+                # Add layer information
+                if genre == 'DataGenreCP' and self.context.job_params['function'] in ('circles', 'convhull', 'voronoiHull'):
+                    from celery.contrib import rdb; rdb.set_trace()
+                    layermd = {'files': {name: {'layer': 'projection_binary', 'data_type': 'Categorical'}}} 
+                elif genre in ('DataGenreCP', 'DataGenreClampingMask'):
+                    layermd = {'files': {name: {'layer': 'projection', 'data_type': 'Continuous'}}} 
+
                 addLayersUsedInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
                 addSpeciesInfo(bccvlmd, self.context)
             if genre == 'DataGenreEnsembleResult':
                 bccvlmd['resolution'] = self.context.job_params['resolution']
             elif genre == 'DataGenreFP':
+                # Add layer information
+                from celery.contrib import rdb; rdb.set_trace()
+                layermd = {'files': {name: {'layer': 'projection', 'data_type': 'Continuous'}}} 
+                if self.context.job_params['function'] in ('circles', 'convhull', 'voronoiHull'):
+                    layermd = {'files': {name: {'layer': 'projection_binary', 'data_type': 'Categorical'}}} 
+
                 addLayersUsedInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
                 addSpeciesInfo(bccvlmd, self.context)
@@ -211,7 +226,8 @@ class ResultSource(object):
                     'path': fname,
                     'data': open(fname, 'r')
                 }
-            }
+            },
+            '_layermd': layermd
         }
 
     def __iter__(self):
