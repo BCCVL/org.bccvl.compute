@@ -162,12 +162,14 @@ class ResultSource(object):
             #  future: year, emsc, gcm
             if genre in ('DataGenreSDMModel', 'DataGenreCP', 'DataGenreClampingMask'):
                 
-                # Add layer information
-                if genre == 'DataGenreCP' and self.context.job_params['function'] in ('circles', 'convhull', 'voronoiHull'):
-                    from celery.contrib import rdb; rdb.set_trace()
-                    layermd = {'files': {name: {'layer': 'projection_binary', 'data_type': 'Categorical'}}} 
-                elif genre in ('DataGenreCP', 'DataGenreClampingMask'):
-                    layermd = {'files': {name: {'layer': 'projection', 'data_type': 'Continuous'}}} 
+                # Add layer information for DataGenreClampingMask and DataGenreCP
+                if genre == 'DataGenreClampingMask':
+                    layermd = {'files': {name: {'layer': 'clamping_mask', 'data_type': 'Discrete'}}} 
+                elif genre == 'DataGenreCP':
+                    if self.context.job_params['function'] in ('circles', 'convhull', 'voronoiHull'):
+                        layermd = {'files': {name: {'layer': 'projection_binary', 'data_type': 'Categorical'}}} 
+                    else:
+                        layermd = {'files': {name: {'layer': 'projection', 'data_type': 'Continuous'}}} 
 
                 addLayersUsedInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
@@ -176,7 +178,6 @@ class ResultSource(object):
                 bccvlmd['resolution'] = self.context.job_params['resolution']
             elif genre == 'DataGenreFP':
                 # Add layer information
-                from celery.contrib import rdb; rdb.set_trace()
                 layermd = {'files': {name: {'layer': 'projection', 'data_type': 'Continuous'}}} 
                 if self.context.job_params['function'] in ('circles', 'convhull', 'voronoiHull'):
                     layermd = {'files': {name: {'layer': 'projection_binary', 'data_type': 'Categorical'}}} 
