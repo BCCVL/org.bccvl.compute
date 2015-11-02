@@ -161,15 +161,15 @@ class ResultSource(object):
             #  resolution, toolkit, species, layers
             #  future: year, emsc, gcm
             if genre in ('DataGenreSDMModel', 'DataGenreCP', 'DataGenreClampingMask'):
-                
+                # TODO: add layer info to info dictionary (comes from return value description)
                 # Add layer information for DataGenreClampingMask and DataGenreCP
                 if genre == 'DataGenreClampingMask':
-                    layermd = {'files': {name: {'layer': 'clamping_mask', 'data_type': 'Discrete'}}} 
+                    layermd = {'files': {name: {'layer': 'clamping_mask', 'data_type': 'Discrete'}}}
                 elif genre == 'DataGenreCP':
                     if self.context.job_params['function'] in ('circles', 'convhull', 'voronoiHull'):
-                        layermd = {'files': {name: {'layer': 'projection_binary', 'data_type': 'Categorical'}}} 
+                        layermd = {'files': {name: {'layer': 'projection_binary', 'data_type': 'Categorical'}}}
                     else:
-                        layermd = {'files': {name: {'layer': 'projection', 'data_type': 'Continuous'}}} 
+                        layermd = {'files': {name: {'layer': 'projection', 'data_type': 'Continuous'}}}
 
                 addLayersUsedInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
@@ -178,9 +178,9 @@ class ResultSource(object):
                 bccvlmd['resolution'] = self.context.job_params['resolution']
             elif genre == 'DataGenreFP':
                 # Add layer information
-                layermd = {'files': {name: {'layer': 'projection', 'data_type': 'Continuous'}}} 
+                layermd = {'files': {name: {'layer': 'projection', 'data_type': 'Continuous'}}}
                 if self.context.job_params['function'] in ('circles', 'convhull', 'voronoiHull'):
-                    layermd = {'files': {name: {'layer': 'projection_binary', 'data_type': 'Categorical'}}} 
+                    layermd = {'files': {name: {'layer': 'projection_binary', 'data_type': 'Categorical'}}}
 
                 addLayersUsedInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
