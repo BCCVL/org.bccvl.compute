@@ -131,13 +131,15 @@ def execute_sdm(result, toolkit):
     member = api.user.get_current()
     context = {
         'context': '/'.join(result.getPhysicalPath()),
-        'user': {'id': member.getUserName(),
-                 'email': member.getProperty('email'),
-                 'fullname': member.getProperty('fullname')
-                 },
-        'experiment': {'title': result.__parent__.title,
-                       'url': result.__parent__.absolute_url()
-                       }
+        'user': {
+            'id': member.getUserName(),
+            'email': member.getProperty('email'),
+            'fullname': member.getProperty('fullname')
+        },
+        'experiment': {
+            'title': result.__parent__.title,
+            'url': result.__parent__.absolute_url()
+        }
     }
     ##### complete job infos
     params['result'] = {
