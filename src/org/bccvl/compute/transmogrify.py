@@ -2,7 +2,6 @@ from itertools import chain
 import mimetypes
 import tempfile
 import os.path
-import glob
 from shutil import copyfileobj
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
@@ -13,10 +12,8 @@ from org.bccvl.site.content.interfaces import (IProjectionExperiment,
 from plone.i18n.normalizer.interfaces import IFileNameNormalizer
 from zope.component import getUtility
 from Products.CMFCore.utils import getToolByName
-from zipfile import ZipFile, ZIP_DEFLATED
 from plone.app.uuid.utils import uuidToObject
-from csv import DictReader
-from decimal import Decimal, InvalidOperation
+from urlparse import urlparse
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -61,63 +58,6 @@ def addSpeciesInfo(bccvlmd, result):
         bccvlmd['species'] = speciesmd.copy()
 
 
-def extractThresholdValues(fname):
-    # parse csv file and add threshold values as dict
-    # this method might be called multiple times for one item
-
-    # There are various formats:
-    #   combined.modelEvaluation: Threshold Name, Testing.data, Cutoff,
-    #                             Sensitivity, Specificity
-    #   biomod2.modelEvaluation: Threshold Name, Testing.data, Cutoff.*,
-    #                            Sensitivity.*, Specificity.*
-    #   maxentResults.csv: Species,<various columns with interesting values>
-    #                <threshold name><space><cumulative threshold,
-    #                              logistic threshold,area,training omission>
-    # FIXME: this is really ugly and csv format detection should be done
-    #        differently
-    thresholds = {}
-    if fname.endswith('maxentResults.csv'):
-        csvfile = open(fname, 'r')
-        dictreader = DictReader(csvfile)
-        row = dictreader.next()
-        # There is only one row in maxentResults
-        namelist = (
-            'Fixed cumulative value 1', 'Fixed cumulative value 5',
-            'Fixed cumulative value 10', 'Minimum training presence',
-            '10 percentile training presence',
-            '10 percentile training presence',
-            'Equal training sensitivity and specificity',
-            'Maximum training sensitivity plus specificity',
-            'Balance training omission, predicted area and threshold value',
-            'Equate entropy of thresholded and original distributions')
-        for name in namelist:
-            # We extract only 'cumulative threshold'' values
-            threshold = '{} cumulative threshold'.format(name)
-            thresholds[threshold] = Decimal(row[threshold])
-    else:
-        # assume it's one of our biomod/dismo results
-        csvfile = open(fname, 'r')
-        dictreader = DictReader(csvfile)
-        # search the field with Cutoff
-        name = 'Cutoff'
-        for fieldname in dictreader.fieldnames:
-            if fieldname.startswith('Cutoff.'):
-                name = fieldname
-                break
-        try:
-            for row in dictreader:
-                try:
-                    thresholds[row['']] = Decimal(row[name])
-                except (TypeError, InvalidOperation) as e:
-                    LOG.warn("Couldn't parse threshold value '%s' (%s) from"
-                             "file '%s': %s",
-                             name, row[name], fname, repr(e))
-        except KeyError:
-            LOG.warn("Couldn't extract Threshold '%s' from file '%s'",
-                     name, fname)
-    return thresholds
-
-
 @provider(ISectionBlueprint)
 @implementer(ISection)
 class ResultSource(object):
@@ -140,8 +80,9 @@ class ResultSource(object):
         # keys for sections further down the chain
         self.pathkey = options.get('path-key', '_path').strip()
         self.fileskey = options.get('files-key', '_files').strip()
+        self.filesmd = options.get('outputmd', {})
 
-    def createItem(self, fname, info):
+    def createItem(self, fname, info, thresholds):
         # fname: full path to file
         # info: 'title', 'type'
         name = os.path.basename(fname)
@@ -200,20 +141,27 @@ class ResultSource(object):
                 if 'gcm' in self.context.job_params:
                     bccvlmd['gcm'] = self.context.job_params['gcm']
                 # exp.future_climate_datasets()
-            elif genre == 'DataGenreSDMEval':
-                if info.get('mimetype') == 'text/csv':
-                    thresholds = extractThresholdValues(fname)
-                    if thresholds:
-                        bccvlmd['thresholds'] = thresholds
+            elif genre == 'DataGenreSDMEval' and info.get('mimetype') == 'text/csv':
+                if thresholds:
+                    bccvlmd['thresholds'] = thresholds
 
         mimetype = info.get('mimetype', None)
         if mimetype is None:
             mimetype = guess_mimetype(fname, mtr)
 
+        fileinfo = { 'name': name, 'path': fname }
+        if urlparse(fname).scheme == 'file':
+            # Dataset stored locally in plone
+            datasettype = 'org.bccvl.content.dataset'
+            fileinfo['data'] = open(fname, 'r')
+        else:
+            # Dataset stored in remote host
+            datasettype = 'org.bccvl.content.remotedataset'
+
         LOG.info("Ingest item: %s, %s", datasetid, name)
         return {
             '_path': datasetid,
-            '_type': 'org.bccvl.content.dataset',
+            '_type': datasettype,
             'title': unicode(name),
             'description': info.get('title', u''),
             'file': {
@@ -225,12 +173,10 @@ class ResultSource(object):
             # FIXME: I think adding open file descriptors works just fine,
             #        otherwise could use new 'path' feature with additional blueprint
             '_files': {
-                name: {
-                    # FIXME: is it name or filename as key?
-                    'name': name,
-                    'path': fname,
-                    'data': open(fname, 'r')
-                }
+                name: fileinfo
+            },
+            '_filemetadata': {
+                    name: md
             },
             '_layermd': layermd
         }
@@ -240,54 +186,10 @@ class ResultSource(object):
         for item in self.previous:
             yield item
 
-        # build list of available files
-        filelist = set()
-        for root, dirs, files in os.walk(self.path):
-            for name in files:
-                filelist.add(os.path.join(self.path, root, name))
-
-        # import defined files:
-        # sort list of globs with longest first:
-        globlist = sorted(self.outputmap.get('files', {}).items(),
-                          key=lambda item: (-len(item[0]), item[0]))
-        for fileglob, filedef in globlist:
-            for fname in glob.glob(os.path.join(self.path, fileglob)):
-                if fname in filelist:
-                    # we import only if we haven't done so already
-                    # otherwise a 2nd glob may match again
-                    if not filedef.get('skip', False):
-                        # Import file only if it is not marked 'skip' = True
-                        item = self.createItem(fname, filedef)
-                        yield item
-                filelist.discard(fname)
-
-        # import archives
-        for archname, archdef in self.outputmap.get('archives', {}).items():
-            # create archive
-            farchname = os.path.join(self.path, archname)
-            empty = True
-            with ZipFile(farchname, 'w', ZIP_DEFLATED) as zipf:
-                for fileglob in archdef['files']:
-                    absglob = os.path.join(self.path, fileglob)
-                    for fname in glob.glob(absglob):
-                        empty = False
-                        zipf.write(fname, os.path.relpath(fname, self.path))
-                        # discard all archived file from filelist
-                        filelist.discard(fname)
-            # create item of archive
-            if not empty:
-                # only import non empty zip files
-                item = self.createItem(farchname, archdef)
-                yield item
-
-        # still something left?
-        LOG.info("check file names: %s", ", ".join(files))
-        for fname in filelist:
-            LOG.info("Importing undefined item %s", fname)
-            item = self.createItem(fname, {})
-            # TODO: what output info do I want here?
+        # Import each item 
+        for urlpath, mdinfo in self.filesmd.items():
+            item = self.createItem(urlpath, mdinfo['fileinfo'], mdinfo['thresholds'])
             yield item
-
 
 @provider(ISectionBlueprint)
 @implementer(ISection)
@@ -369,20 +271,6 @@ class FileMetadata(object):
                 tmpfile = self._place_file_on_filesystem(fileitem)
                 filepath = tmpfile
 
-            # ok .. everything ready let's try our luck
-            # fileio ... stream to read data from
-            # filect ... the supposed content type of the file
-            from .mdextractor import MetadataExtractor
-            mdextractor = MetadataExtractor()
-            # mdextractor = getUtility(IMetadataExtractor)
-            try:
-                md = mdextractor.from_file(filepath, filect)
-                item['_filemetadata'] = {
-                    fileid: md
-                }
-            except Exception as ex:
-                LOG.warn("Couldn't extract metadata from file: %s : %s",
-                         filename, repr(ex))
             finally:
                 if tmpfile:
                     os.unlink(tmpfile)
