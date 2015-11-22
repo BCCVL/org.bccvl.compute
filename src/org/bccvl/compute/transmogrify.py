@@ -186,11 +186,15 @@ class ResultSource(object):
         for item in self.previous:
             yield item
 
-        # Import each item 
+        # Import each item
         for urlpath, mdinfo in self.filesmd.items():
             item = self.createItem(urlpath, mdinfo['fileinfo'], mdinfo['thresholds'])
             yield item
 
+
+# TODO: this step will disappear, once background workers do the
+#       metadata extraction
+#       also the metadata generated here should be produced somewhere else
 @provider(ISectionBlueprint)
 @implementer(ISection)
 class FileMetadata(object):
@@ -271,7 +275,10 @@ class FileMetadata(object):
                 tmpfile = self._place_file_on_filesystem(fileitem)
                 filepath = tmpfile
 
-            finally:
-                if tmpfile:
-                    os.unlink(tmpfile)
+
+            # finally:
+            #     if tmpfile:
+            #         os.unlink(tmpfile)
+            if tmpfile:
+                os.unlink(tmpfile)
             yield item
