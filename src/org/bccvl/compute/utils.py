@@ -41,7 +41,6 @@ def getDatasetInfo(datasetitem, uuid):
         'uuid': uuid,
         'filename': info['filename'],
         'downloadurl': info['url'],
-        'internalurl':  info['alturl'][0]
     }
 
 

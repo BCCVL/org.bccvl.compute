@@ -53,7 +53,6 @@ def get_sdm_params(result):
                 'uuid': dsinfo['uuid'],
                 'filename': dsinfo['filename'],
                 'downloadurl': dsinfo['downloadurl'],
-                'internalurl': dsinfo['internalurl'],
                 # TODO: should we use layer title or URI?
                 'layer': layer,
                 'type': dsinfo['layers'][layer]['datatype']

@@ -34,7 +34,6 @@ def get_project_params(result):
                 'uuid': dsinfo['uuid'],
                 'filename': dsinfo['filename'],
                 'downloadurl': dsinfo['downloadurl'],
-                'internalurl': dsinfo['internalurl'],
                 'layer': layer,
                 'zippath': dsinfo['layers'][layer]['filename'],
                 # TODO: add year, gcm, emsc here?
