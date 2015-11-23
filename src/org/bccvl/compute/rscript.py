@@ -1,15 +1,18 @@
-from pkg_resources import resource_string
-import logging
-import json
-import re
-import tempfile
 from copy import deepcopy
-from org.bccvl.compute.utils import getdatasetparams
+import json
+import logging
+from pkg_resources import resource_string
+import re
+
+from plone import api
+from plone.uuid.interfaces import IUUID
 from zope.interface import provider
+
+from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod
 from org.bccvl.tasks.compute import r_task
 from org.bccvl.tasks.plone import after_commit_task
-from plone import api
+
 
 LOG = logging.getLogger(__name__)
 
@@ -142,7 +145,8 @@ def execute_sdm(result, toolkit):
     }
     ##### complete job infos
     params['result'] = {
-        'results_dir': 'swift://nectar' + tempfile.mkdtemp(),
+        # store results at swift://nectar/results/resultuuid/
+        'results_dir': 'swift://nectar/results/' + IUUID(result),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {

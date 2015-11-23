@@ -1,15 +1,18 @@
+from copy import deepcopy
+import json
+import logging
 from pkg_resources import resource_string
-from org.bccvl.compute.utils import getdatasetparams
+
+from plone import api
+from plone.uuid.interfaces import IUUID
 # do this dynamically in site module?
 from zope.interface import provider
+
+from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod
-from copy import deepcopy
-from plone import api
-import tempfile
 from org.bccvl.tasks.compute import r_task
 from org.bccvl.tasks.plone import after_commit_task
-import logging
-import json
+
 
 LOG = logging.getLogger(__name__)
 
@@ -73,7 +76,8 @@ def execute(result, toolkit):
     }
     ### add result infos
     params['result'] = {
-        'results_dir': 'swift://nectar' + tempfile.mkdtemp(),
+        # store results at swift://nectar/results/resultuuid/
+        'results_dir': 'swift://nectar/results/' + IUUID(result),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {
