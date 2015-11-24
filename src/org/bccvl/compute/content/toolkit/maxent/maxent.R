@@ -118,6 +118,8 @@ if (exists("enviro.data.constraints")) {
   occur <- constrainedResults$occur
 }
 
+# TODO: Update number of pseudo absence points
+
 # shall we use pseudo absences?
 # TODO: this will ignore given absence file in case we want pseudo absences
 if (bccvl.params$species_pseudo_absence_points) {

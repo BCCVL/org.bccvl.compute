@@ -372,7 +372,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
   }
   
   # Mask the rasterstack
-  geoconstrained <- mask(r, SpP)
+  geoconstrained <- mask(rasterstack, SpP)
   
   # Constrain the occurrence points
   occurSP <- SpatialPoints(occur)
