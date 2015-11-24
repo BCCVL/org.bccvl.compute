@@ -33,3 +33,5 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+src/org/bccvl/compute/content/toolkit/demosdm/.Rhistory

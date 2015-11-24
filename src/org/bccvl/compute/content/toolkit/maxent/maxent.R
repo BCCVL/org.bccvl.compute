@@ -26,6 +26,8 @@ absen.data = bccvl.params$species_absence_dataset$filename
 enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
 #type in terms of continuous or categorical
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
+#geographic constraints
+try(enviro.data.constraints = bccvl.params$modelling_region)
 
 
 ############### BIOMOD2 Models ###############
@@ -107,6 +109,14 @@ current.climate.scenario = bccvl.enviro.stack(enviro.data.current)
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
 # keep only lon and lat columns
 occur = occur[c("lon","lat")]
+
+# geographically constrained modelling
+if (exists("enviro.data.constraints")) {
+  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints);
+  
+  current.climate.scenario <- constrainedResults$raster
+  occur <- constrainedResults$occur
+}
 
 # shall we use pseudo absences?
 # TODO: this will ignore given absence file in case we want pseudo absences

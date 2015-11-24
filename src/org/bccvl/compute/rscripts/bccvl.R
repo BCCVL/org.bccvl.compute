@@ -342,6 +342,48 @@ bccvl.enviro.stack <- function(filenames) {
     return(stack(rasters))
 }
 
+# geographically constrained modelling
+# bccvl.sdm.geoconstrained
+bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
+  
+  # Parse the geojson from text to SpatialPointsDataFrame
+  parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
+  
+  # Assign the same projection to the raster 
+  # TO-DO: Check if this is valid
+  proj4string(rasterstack) <- CRS(proj4string(parsedgeojson))
+  
+  # Check if it's a box, or something more complex
+  # Assume length(2) is a box
+  if (length(parsedgeojson) == 2) {
+    ext <- bbox(parsedgeojson)
+    xmin <- ext[1]
+    xmax <- ext[3]
+    ymin <- ext[2]
+    ymax <- ext[4]
+    Sr1 <- Polygon(cbind(c(xmin, xmax, xmax, xmin),c(ymin, ymin, ymax, ymax)))
+    Srs1 <- Polygons(list(Sr1), "polygon1")
+    SpP <- SpatialPolygons(list(Srs1), 1:1)
+  } else
+  {
+    Sr1 <- Polygon(coordinates(parsedgeojson))
+    Srs1 <- Polygons(list(Sr1), "polygon1")
+    SpP <- SpatialPolygons(list(Srs1), 1:1)
+  }
+  
+  # Mask the rasterstack
+  geoconstrained <- mask(r, SpP)
+  
+  # Constrain the occurrence points
+  occurSP <- SpatialPoints(occur)
+  occurSPconstrained <- occurSP[!is.na(over(occurSP, SpP))]
+  occurconstrained <- as.data.frame(occurSPconstrained)
+  
+  # Return the masked raster stack and constrained occurrence points
+  mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
+  return(mylist)
+}
+
 # function to save projection output raster
 bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir) {
     ## save projections under biomod2 compatible name:
