@@ -5,10 +5,9 @@ from pkg_resources import resource_string
 import re
 
 from plone import api
-from plone.uuid.interfaces import IUUID
 from zope.interface import provider
 
-from org.bccvl.compute.utils import getdatasetparams
+from org.bccvl.compute.utils import getdatasetparams, get_results_dir
 from org.bccvl.site.interfaces import IComputeMethod
 from org.bccvl.tasks.compute import r_task
 from org.bccvl.tasks.plone import after_commit_task
@@ -145,8 +144,9 @@ def execute_sdm(result, toolkit):
     }
     ##### complete job infos
     params['result'] = {
-        # store results at swift://nectar/results/resultuuid/
-        'results_dir': 'swift://nectar/results/' + IUUID(result),
+        # FIXME: not optimal to access request this way
+        #        rather pass in as parameter
+        'results_dir': get_results_dir(result, result.REQUEST),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {
@@ -156,4 +156,7 @@ def execute_sdm(result, toolkit):
     # set debug flag
     params['worker']['zipworkenv'] = api.env.debug_mode()
     ### send job to queue
+
+    # TODO: define job chain here (and in other methods as well)
+
     after_commit_task(r_task, params, context)

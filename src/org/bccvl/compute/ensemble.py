@@ -2,10 +2,9 @@ from copy import deepcopy
 from pkg_resources import resource_string
 
 from plone import api
-from plone.uuid.interfaces import IUUID
 from zope.interface import provider
 
-from org.bccvl.compute.utils import getdatasetparams
+from org.bccvl.compute.utils import getdatasetparams, get_results_dir
 from org.bccvl.site.interfaces import IComputeMethod
 from org.bccvl.tasks.plone import after_commit_task
 from org.bccvl.tasks.compute import r_task
@@ -145,8 +144,7 @@ def execute(result, toolkit):
                        }
     }
     params['result'] = {
-        # store results at swift://nectar/results/resultuuid/
-        'results_dir': 'swift://nectar/results/' + IUUID(result),
+        'results_dir': get_results_dir(result, result.REQUEST),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {
