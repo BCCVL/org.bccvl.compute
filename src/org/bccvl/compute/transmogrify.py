@@ -1,22 +1,21 @@
-from itertools import chain
 from decimal import Decimal, InvalidOperation
+from itertools import chain
+import logging
 import mimetypes
-import tempfile
 import os.path
 import re
-from shutil import copyfileobj
+from urlparse import urlsplit
+
 from collective.transmogrifier.interfaces import ISectionBlueprint
 from collective.transmogrifier.interfaces import ISection
+from plone.app.uuid.utils import uuidToObject
+from plone.i18n.normalizer.interfaces import IFileNameNormalizer
+from zope.component import getUtility
 from zope.interface import implementer, provider
+
 from org.bccvl.site.interfaces import IBCCVLMetadata
 from org.bccvl.site.content.interfaces import (IProjectionExperiment,
                                                ISDMExperiment)
-from plone.i18n.normalizer.interfaces import IFileNameNormalizer
-from zope.component import getUtility
-from Products.CMFCore.utils import getToolByName
-from plone.app.uuid.utils import uuidToObject
-from urlparse import urlsplit
-import logging
 
 LOG = logging.getLogger(__name__)
 
@@ -86,7 +85,7 @@ class ResultSource(object):
         self.fileskey = options.get('files-key', '_files').strip()
 
 
-    def createItem(self, import_item):
+    def create_item(self, import_item):
         # fname: full path to file
         # info: 'title', 'type'
         url = import_item['file']['url']
@@ -124,7 +123,10 @@ class ResultSource(object):
         # if mimetype is None:
         #     mimetype = guess_mimetype(fname, mtr)
 
+
         # build item
+        # 2 cases here... if context is a folder (result) we create a new item inside
+        #                 otherwise context itself is the object we want
         item = {
             '_path': datasetid,
             'title': unicode(name),
@@ -185,97 +187,5 @@ class ResultSource(object):
 
         # Import each item
         for import_item in self.items:
-            item = self.createItem(import_item)
-            yield item
-
-
-# TODO: this step will disappear, once background workers do the
-#       metadata extraction
-#       also the metadata generated here should be produced somewhere else
-@provider(ISectionBlueprint)
-@implementer(ISection)
-class FileMetadata(object):
-
-    """Use hachoir library to extract metadata from file and try to do.
-
-    something meaningful with.
-
-    metadata is stored under item["_filemetadata"] as a simple dict as
-    returned by hachoir.
-    """
-
-    def __init__(self, transmogrifier, name, options, previous):
-        """missing docstring."""
-        self.transmogrifier = transmogrifier
-        self.name = name
-        self.options = options
-        self.previous = previous
-        self.context = transmogrifier.context
-
-        # keys for sections further down the chain
-        self.fileskey = options.get('files-key', '_files').strip()
-        self.filemetadatakey = options.get('filemetadata-key',
-                                           '_filemetadata').strip()
-
-    def _place_file_on_filesystem(self, fileitem):
-        _, ext = os.path.split(fileitem['name'])
-        # Add suffix to temp file to keep gdal's VSI happy
-        tmpfd, tmpname = tempfile.mkstemp(suffix=ext)
-        tmpfile = os.fdopen(tmpfd, 'w')
-        try:
-            copyfileobj(fileitem['data'], tmpfile)
-        except AttributeError:
-            # we get an AttributeError in case data is not a file like object
-            # let's try to write data directly
-            tmpfile.write(fileitem['data'])
-        tmpfile.close()
-        # TODO: catch exception during copy and cleanup if necessary
-        return tmpname
-
-    def __iter__(self):
-        """missing docstring."""        # exhaust previous iterator
-        for item in self.previous:
-            tmpfile = None
-            # check if we have a dataset
-            if item['_type'] not in ('org.bccvl.content.dataset',
-                                     'org.bccvl.content.remotedataset'):
-                # not a dataset
-                yield item
-                continue
-
-            fileid = (item.get('remoteUrl') or
-                      item.get('file', {}).get('file'))
-            if not fileid:
-                # nothing to inspect
-                yield item
-                continue
-
-            # check if we have a file
-            files = item.setdefault(self.fileskey, {})
-            if not files:
-                # we have a file but no data for it
-                yield item
-                continue
-            fileitem = files.get(fileid)
-            if not fileitem:
-                # our file is not in the _files list
-                yield item
-                continue
-            # get content type and filename
-            filect = fileitem.get('contenttype') or item.get('file', {}).get('contenttype')
-            filename = fileitem.get('filename') or item.get('file', {}).get('filename')
-            # get path to data on local filesystem
-            # FIXME: data might be file like object
-            if 'path' in fileitem:
-                filepath = fileitem['path']
-            elif 'data' in fileitem:
-                tmpfile = self._place_file_on_filesystem(fileitem)
-                filepath = tmpfile
-
-
-            # finally:
-            #     if tmpfile:
-            #         os.unlink(tmpfile)
-            if tmpfile:
-                os.unlink(tmpfile)
+            item = self.create_item(import_item)
             yield item
