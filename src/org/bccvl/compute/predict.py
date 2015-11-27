@@ -8,8 +8,9 @@ from plone.app.uuid.utils import uuidToObject
 # do this dynamically in site module?
 from zope.interface import provider
 
-from org.bccvl.compute.utils import getdatasetparams, get_results_dir
+from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod, IBCCVLMetadata
+from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.compute import r_task
 from org.bccvl.tasks.plone import after_commit_task
 

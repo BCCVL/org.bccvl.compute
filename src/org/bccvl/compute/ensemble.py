@@ -4,8 +4,9 @@ from pkg_resources import resource_string
 from plone import api
 from zope.interface import provider
 
-from org.bccvl.compute.utils import getdatasetparams, get_results_dir
+from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod
+from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.plone import after_commit_task
 from org.bccvl.tasks.compute import r_task
 
