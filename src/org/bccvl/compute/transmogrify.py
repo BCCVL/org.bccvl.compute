@@ -72,7 +72,6 @@ class ResultSource(object):
         self.options = options
         self.previous = previous
         self.items = options.get('items')
-
         self.path = options['path'].strip()
         # if self.path is None or not os.path.isdir(self.path):
         #     raise Exception(

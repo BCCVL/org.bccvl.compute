@@ -159,5 +159,4 @@ def execute_sdm(result, toolkit):
     ### send job to queue
 
     # TODO: define job chain here (and in other methods as well)
-
     after_commit_task(r_task, params, context)
