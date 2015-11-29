@@ -27,11 +27,6 @@ setup(
     install_requires=[
         'setuptools',  # distribute
         'gu.transmogrifier',
-        'GDAL',
-        'python-xmp-toolkit',
-        # 'hachoir-core',
-        # 'hachoir-parser',
-        # 'hachoir-metadata',
     ],
     extras_require={
         'test': [
