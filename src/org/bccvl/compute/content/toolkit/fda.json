@@ -1,6 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Flexible Discriminant Analysis",
+    "description": "A classification model based on a mixture of linear regression models, which uses optimal scoring to transform the response variable so that the data are in a better form for linear separation, and multiple adaptive regression splines to generate the discriminant surface.",
     "subjects": ["fda"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

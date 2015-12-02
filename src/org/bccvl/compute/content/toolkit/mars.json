@@ -1,6 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Multiple Adaptive Regression Splines",
+    "description": "A regression model that builds multiple linear regression models across the range of predictor values, by partitioning the data and run a linear regression model on each different partition. This allows to model complex relationships between the response and predictor variables.",
     "subjects": ["mars"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

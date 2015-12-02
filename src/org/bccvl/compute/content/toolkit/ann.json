@@ -1,6 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Artificial Neural Network",
+    "description": "A ‘black box’ model that predicts species occurrence probabilities as a weighted combination of features, which are calculated in a hidden layer from linear combinations of the predictor variables.",
     "subjects": ["ann"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",
