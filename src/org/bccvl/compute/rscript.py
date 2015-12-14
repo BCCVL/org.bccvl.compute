@@ -1,15 +1,18 @@
-from pkg_resources import resource_string
-import logging
-import json
-import re
-import tempfile
 from copy import deepcopy
-from org.bccvl.compute.utils import getdatasetparams
+import json
+import logging
+from pkg_resources import resource_string
+import re
+
+from plone import api
 from zope.interface import provider
+
+from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod
+from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.compute import r_task
 from org.bccvl.tasks.plone import after_commit_task
-from plone import api
+
 
 LOG = logging.getLogger(__name__)
 
@@ -53,7 +56,6 @@ def get_sdm_params(result):
                 'uuid': dsinfo['uuid'],
                 'filename': dsinfo['filename'],
                 'downloadurl': dsinfo['downloadurl'],
-                'internalurl': dsinfo['internalurl'],
                 # TODO: should we use layer title or URI?
                 'layer': layer,
                 'type': dsinfo['layers'][layer]['datatype']
@@ -143,7 +145,9 @@ def execute_sdm(result, toolkit):
     }
     ##### complete job infos
     params['result'] = {
-        'results_dir': 'scp://plone@127.0.0.1' + tempfile.mkdtemp(),
+        # FIXME: not optimal to access request this way
+        #        rather pass in as parameter
+        'results_dir': get_results_dir(result, result.REQUEST),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {
@@ -153,4 +157,6 @@ def execute_sdm(result, toolkit):
     # set debug flag
     params['worker']['zipworkenv'] = api.env.debug_mode()
     ### send job to queue
+
+    # TODO: define job chain here (and in other methods as well)
     after_commit_task(r_task, params, context)

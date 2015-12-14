@@ -1,16 +1,18 @@
+from copy import deepcopy
+import os.path
 from pkg_resources import resource_string
 import re
-from org.bccvl.compute.utils import getdatasetparams
+
+from plone import api
 from plone.app.uuid.utils import uuidToObject
 # do this dynamically in site module?
 from zope.interface import provider
+
+from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod, IBCCVLMetadata
-from copy import deepcopy
-from plone import api
-import tempfile
+from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.compute import r_task
 from org.bccvl.tasks.plone import after_commit_task
-import os.path
 
 
 def get_project_params(result):
@@ -34,7 +36,6 @@ def get_project_params(result):
                 'uuid': dsinfo['uuid'],
                 'filename': dsinfo['filename'],
                 'downloadurl': dsinfo['downloadurl'],
-                'internalurl': dsinfo['internalurl'],
                 'layer': layer,
                 'zippath': dsinfo['layers'][layer]['filename'],
                 # TODO: add year, gcm, emsc here?
@@ -140,7 +141,7 @@ def execute(result, func):
     }
     ### add result infos
     params['result'] = {
-        'results_dir': 'scp://plone@127.0.0.1' + tempfile.mkdtemp(),
+        'results_dir': get_results_dir(result, result.REQUEST),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {

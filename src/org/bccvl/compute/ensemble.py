@@ -1,10 +1,12 @@
-from pkg_resources import resource_string
-from zope.interface import provider
-from org.bccvl.site.interfaces import IComputeMethod
 from copy import deepcopy
-from org.bccvl.compute.utils import getdatasetparams
+from pkg_resources import resource_string
+
 from plone import api
-import tempfile
+from zope.interface import provider
+
+from org.bccvl.compute.utils import getdatasetparams
+from org.bccvl.site.interfaces import IComputeMethod
+from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.plone import after_commit_task
 from org.bccvl.tasks.compute import r_task
 
@@ -143,7 +145,7 @@ def execute(result, toolkit):
                        }
     }
     params['result'] = {
-        'results_dir': 'scp://plone@127.0.0.1' + tempfile.mkdtemp(),
+        'results_dir': get_results_dir(result, result.REQUEST),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {

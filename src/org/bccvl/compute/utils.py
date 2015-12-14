@@ -5,23 +5,15 @@
 
 .. moduleauthor:: Gerhard Weis <g.weis@griffith.edu.au>
 """
-from decimal import Decimal
+import logging
+
 from plone.app.uuid.utils import uuidToObject
+
 from org.bccvl.site.api.dataset import getdsmetadata
 from org.bccvl.site.interfaces import IDownloadInfo, IBCCVLMetadata
 
-import logging
+
 LOG = logging.getLogger(__name__)
-
-DATA_MOVER = 'http://127.0.0.1:10700/data_mover'
-COMPUTE_HOST = 'localhost'
-COMPUTE_USER = 'bccvl'
-
-
-def decimal_encoder(o):
-    if isinstance(o, Decimal):
-        return float(o)
-    raise TypeError(repr(o) + " is not JSON serializable")
 
 
 # TODO: use getDatasetMetadata from xmlrpc package. (remove
@@ -41,7 +33,6 @@ def getDatasetInfo(datasetitem, uuid):
         'uuid': uuid,
         'filename': info['filename'],
         'downloadurl': info['url'],
-        'internalurl':  info['alturl'][0]
     }
 
 

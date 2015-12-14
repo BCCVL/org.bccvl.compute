@@ -32,10 +32,10 @@ def setUp(test):
 def test_suite():
     import sys
     suite = unittest.findTestCases(sys.modules[__name__])
-    suite.addTests((
-        doctest.DocFileSuite(
-            '../filemetadata.rst',
-            setUp=setUp, tearDown=tearDown,
-            optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS),
-    ))
+    # suite.addTests((
+    #     doctest.DocFileSuite(
+    #         '../filemetadata.rst',
+    #         setUp=setUp, tearDown=tearDown,
+    #         optionflags=doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS),
+    # ))
     return suite

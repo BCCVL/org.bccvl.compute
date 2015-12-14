@@ -1,14 +1,16 @@
+from copy import deepcopy
+import logging
 from pkg_resources import resource_string
-from org.bccvl.compute.utils import getdatasetparams
+
+from plone import api
 # do this dynamically in site module?
 from zope.interface import provider
+
+from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod
-from plone import api
-from copy import deepcopy
+from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.compute import perl_task
 from org.bccvl.tasks.plone import after_commit_task
-import logging
-import tempfile
 
 
 LOG = logging.getLogger(__name__)
@@ -165,7 +167,7 @@ def execute(result, toolkit):
                        }
     }
     params['result'] = {
-        'results_dir': 'scp://plone@127.0.0.1' + tempfile.mkdtemp(),
+        'results_dir': get_results_dir(result, result.REQUEST),
         'outputs': OUTPUTS
     }
     params['worker']['script'] = {

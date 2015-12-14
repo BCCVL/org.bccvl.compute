@@ -9,7 +9,7 @@ from zope.interface.verify import verifyClass
 from zope.interface.verify import verifyObject
 
 
-class test_algorithm_config(unittest.TestCase):
+class Test_algorithm_config(unittest.TestCase):
 
     def iter_content_resource(self, root='content/toolkit'):
         for item in resource_listdir('org.bccvl.compute', root):
