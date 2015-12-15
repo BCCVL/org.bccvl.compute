@@ -648,10 +648,10 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
         dev.off()
 
         png(file=file.path(bccvl.env$outputdir, paste("true_and_false_posivite_rates", model_name, "png", sep=".")))
-        plot(roc1$thresholds, 100-roc1$specificities, type="p", col="blue", xlab="Classification threshold", ylab="Rate")
+        plot(roc1$thresholds, 100-roc1$specificities, type="l", col="blue", xlab="Classification threshold", ylab="Rate")
         par(new=TRUE)
-        plot(roc1$thresholds, roc1$sensitivities, type="p", col="red", xlab="", ylab="")
-        legend("topright",  title='', legend=c("True positive rate", "False positive rate"), fill=c("red", "blue"), horiz=TRUE)
+        plot(roc1$thresholds, roc1$sensitivities, type="l", col="red", xlab="", ylab="")
+        legend("topright",  title='', legend=c("True positive rate", "False positive rate"), fill=c("red", "blue"), horiz=TRUE, box.lwd = 0)
         title("True and false positive rates according to\nclassification threshold")
         dev.off()
 
