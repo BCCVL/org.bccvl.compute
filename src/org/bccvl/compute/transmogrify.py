@@ -128,8 +128,8 @@ class ResultSource(object):
         #                 otherwise context itself is the object we want
         item = {
             '_path': datasetid,
-            'title': unicode(name),
-            'description': import_item.get('title', u''),
+            'title': import_item.get('title', u''),
+            'description': import_item.get('description', u''),
             'bccvlmetadata': bccvlmd,
             '_layermd': import_item.get('layermd', {})
         }
