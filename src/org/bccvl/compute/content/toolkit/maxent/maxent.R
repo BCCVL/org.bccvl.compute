@@ -27,8 +27,9 @@ enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$
 #type in terms of continuous or categorical
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 #geographic constraints
-try(enviro.data.constraints = bccvl.params$modelling_region)
-
+if (!is.null(bccvl.params$modelling_region)){
+  try(enviro.data.constraints = bccvl.params$modelling_region)  
+}
 
 ############### BIOMOD2 Models ###############
 #
