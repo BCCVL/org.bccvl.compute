@@ -94,10 +94,10 @@ bccvl.Find.Optim.Stat <- function(Stat='TSS',Fit,Obs,Precision = 5, Fixed.thresh
 
       misc <- table(Fit >= cutoff, Obs)
       misc <- bccvl.contagency.table.check(misc)
-      true.pos <- misc['TRUE','1']
-      true.neg <- misc['FALSE','0']
-      specificity <- (true.neg * 100)/sum(misc[,'0'])
-      sensibility <- (true.pos * 100)/sum(misc[,'1'])
+      true.pos <- as.numeric(misc['TRUE','1'])
+      true.neg <- as.numeric(misc['FALSE','0'])
+      specificity <- (true.neg * 100)/sum(as.numeric(misc[,'0']))
+      sensibility <- (true.pos * 100)/sum(as.numeric(misc[,'1']))
     } else{
 #       require(pROC,quietly=T)
       roc1 <- pROC::roc(Obs, Fit, percent=T, direction="<")
@@ -150,16 +150,16 @@ function(Misc, stat='TSS')
   Misc <- bccvl.contagency.table.check(Misc)
   
   # Defining Classification index
-  hits <- Misc['TRUE','1']
-  misses <- Misc['FALSE','1']
-  false_alarms <- Misc['TRUE','0']
-  correct_negatives <- Misc['FALSE','0']
+  hits <- as.numeric(Misc['TRUE','1'])
+  misses <- as.numeric(Misc['FALSE','1'])
+  false_alarms <- as.numeric(Misc['TRUE','0'])
+  correct_negatives <- as.numeric(Misc['FALSE','0'])
   
-  total <- sum(Misc)
-  forecast_1 <- sum(Misc['TRUE',])
-  forecast_0 <- sum(Misc['FALSE',])
-  observed_1 <- sum(Misc[,'1'])
-  observed_0 <- sum(Misc[,'0'])
+  total <- sum(as.numeric(Misc))
+  forecast_1 <- sum(as.numeric(Misc['TRUE',]))
+  forecast_0 <- sum(as.numeric(Misc['FALSE',]))
+  observed_1 <- sum(as.numeric(Misc[,'1']))
+  observed_0 <- sum(as.numeric(Misc[,'0']))
   
   # Calculating choosen evaluating metric
   if(stat=='TSS'){
