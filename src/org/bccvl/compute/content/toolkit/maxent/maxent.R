@@ -27,9 +27,8 @@ enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$
 #type in terms of continuous or categorical
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 #geographic constraints
-if (!is.null(bccvl.params$modelling_region)){
-  try(enviro.data.constraints = bccvl.params$modelling_region)  
-}
+enviro.data.constraints = bccvl.params$modelling_region
+
 
 ############### BIOMOD2 Models ###############
 #
@@ -112,7 +111,7 @@ occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
 occur = occur[c("lon","lat")]
 
 # geographically constrained modelling
-if (exists("enviro.data.constraints")) {
+if (!is.null(enviro.data.constraints)) {
   constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints);
   
   current.climate.scenario <- constrainedResults$raster
