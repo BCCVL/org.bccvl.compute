@@ -26,6 +26,8 @@ absen.data = bccvl.params$species_absence_dataset$filename
 enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
 #type in terms of continuous or categorical
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
+#geographic constraints
+enviro.data.constraints = bccvl.params$modelling_region
 
 brt.fold.vector = NULL #a fold vector to be read in for cross validation with offsets
 brt.tree.complexity = bccvl.params$tree_complexity #sets the complexity of individual trees
@@ -67,6 +69,17 @@ current.climate.scenario = bccvl.enviro.stack(enviro.data.current)
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
 # keep only lon and lat columns
 occur = occur[c("lon","lat")]
+
+# geographically constrained modelling
+if (!is.null(enviro.data.constraints)) {
+  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints);
+  
+  current.climate.scenario <- constrainedResults$raster
+  occur <- constrainedResults$occur
+}
+
+# TODO: Update number of pseudo absence points
+
 # prepare absence points
 absen = bccvl.dismo.absence(absen.data,
                             bccvl.params$species_pseudo_absence_points,
