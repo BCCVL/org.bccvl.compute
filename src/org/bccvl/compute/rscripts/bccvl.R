@@ -339,49 +339,46 @@ bccvl.rasters.to.common.extent.and.lowest.resolution <- function(raster.filename
 bccvl.enviro.stack <- function(filenames) {
 
     rasters = bccvl.rasters.to.common.extent.and.lowest.resolution(filenames)
-    return(stack(rasters))
+    rasterstack = stack(rasters)
+    if (is.na(crs(rasterstack))) {
+        # Default to EPSG:4326
+        crs(rasterstack) <- '+init=epsg:4326'
+    }
+    return(rasterstack)
 }
 
 # geographically constrained modelling
 # bccvl.sdm.geoconstrained
 bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
   
-  # Parse the geojson from text to SpatialPointsDataFrame
-  parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
+    # Parse the geojson from text to SpatialPointsDataFrame
+    parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
   
-  # Assign the same projection to the raster 
-  # TO-DO: Check if this is valid
-  proj4string(rasterstack) <- CRS(proj4string(parsedgeojson))
+    # Assign the same projection to the raster 
+    if (!compareCRS(rasterstack, parsedgeojson)) {
+        # CRS is different, reproject geojson to rasterstack
+        parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
+    }
+    
+    # Mask the rasterstack
+    geoconstrained <- mask(rasterstack, parsedgeojson)
   
-  # Check if it's a box, or something more complex
-  # Assume length(2) is a box
-  if (length(parsedgeojson) == 2) {
-    ext <- bbox(parsedgeojson)
-    xmin <- ext[1]
-    xmax <- ext[3]
-    ymin <- ext[2]
-    ymax <- ext[4]
-    Sr1 <- Polygon(cbind(c(xmin, xmax, xmax, xmin),c(ymin, ymin, ymax, ymax)))
-    Srs1 <- Polygons(list(Sr1), "polygon1")
-    SpP <- SpatialPolygons(list(Srs1), 1:1)
-  } else
-  {
-    Sr1 <- Polygon(coordinates(parsedgeojson))
-    Srs1 <- Polygons(list(Sr1), "polygon1")
-    SpP <- SpatialPolygons(list(Srs1), 1:1)
-  }
+    # Constrain the occurrence points
+    occurSP <- SpatialPoints(occur)
+    # We have to make sure occurSP has the same CRS
+    if (is.na(crs(occurSP))) {
+        crs(occurSP) <- '+init=epsg:4326'
+    } else if (!compareCRS(occurSP, parsedgeojson)) {
+        spTransform(occurSP, crs(parsedgeojson))
+    }
+    occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
+    occurconstrained <- as.data.frame(occurSPconstrained)
+    # rest of scripts expects names "lon", "lat" and not "x", "y"
+    names(occurconstrained) <- c("lon", "lat")
   
-  # Mask the rasterstack
-  geoconstrained <- mask(rasterstack, SpP)
-  
-  # Constrain the occurrence points
-  occurSP <- SpatialPoints(occur)
-  occurSPconstrained <- occurSP[!is.na(over(occurSP, SpP))]
-  occurconstrained <- as.data.frame(occurSPconstrained)
-  
-  # Return the masked raster stack and constrained occurrence points
-  mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
-  return(mylist)
+    # Return the masked raster stack and constrained occurrence points
+    mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
+    return(mylist)
 }
 
 # function to save projection output raster
