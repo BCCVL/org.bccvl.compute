@@ -359,9 +359,9 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
         # CRS is different, reproject geojson to rasterstack
         parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
     }
-    
-    # Mask the rasterstack
-    geoconstrained <- mask(rasterstack, parsedgeojson)
+
+    # Mask the rasterstack (and make sure it is a RasterStack)    
+    geoconstrained <- stack(mask(rasterstack, parsedgeojson))
   
     # Constrain the occurrence points
     occurSP <- SpatialPoints(occur)
