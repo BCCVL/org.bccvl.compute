@@ -368,7 +368,8 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
     # We have to make sure occurSP has the same CRS
     if (is.na(crs(occurSP))) {
         crs(occurSP) <- '+init=epsg:4326'
-    } else if (!compareCRS(occurSP, parsedgeojson)) {
+    }
+    if (!compareCRS(occurSP, parsedgeojson)) {
         occurSP <- spTransform(occurSP, crs(parsedgeojson))
     }
     occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
