@@ -338,7 +338,7 @@ bccvl.rasters.to.common.extent.and.lowest.resolution <- function(raster.filename
 
     resamp_func <- function(x)
     {
-        rsp = if (all(res(x) == lr$lowest.res)) x else resample(x, master)
+        rsp = if (all(res(x) == lr$lowest.res)) x else resample(x, master, method='ngb')
         return(rsp)
     }
 
@@ -369,7 +369,7 @@ bccvl.rasters.to.common.extent.and.highest.resolution <- function(raster.filenam
   
   resamp_func <- function(x)
   {
-    rsp = if (all(res(x) == lr$highest.res)) x else resample(x, master)
+    rsp = if (all(res(x) == lr$highest.res)) x else resample(x, master, method='ngb')
     return(rsp)
   }
   
