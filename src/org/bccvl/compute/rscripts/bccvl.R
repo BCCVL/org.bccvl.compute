@@ -296,6 +296,19 @@ bccvl.raster.lowest.resolution <- function(rasters)
     return (list(lowest.res=lowest.res, is.same.res=is.same.res))
 }
 
+# rasters: a vector of rasters
+bccvl.raster.highest.resolution <- function(rasters)
+{
+    res.list = lapply(rasters, res)
+    
+    highest.res = c(min(sapply(res.list, function(x) x[[1]])),
+                    min(sapply(res.list, function(x) x[[2]])))
+    
+    is.same.res = all(sapply(res.list, function (x) all(highest.res == x)))
+    
+    return (list(highest.res=highest.res, is.same.res=is.same.res))
+}
+
 bccvl.raster.extent.to.str <- function(ext)
 {
     return(sprintf("xmin=%f xmax=%f ymin=%f ymax=%f", ext@xmin, ext@xmax, ext@ymin, ext@ymax));
@@ -333,12 +346,44 @@ bccvl.rasters.to.common.extent.and.lowest.resolution <- function(raster.filename
 
 }
 
+# raster.filenames : a vector of filenames that will be loaded as rasters
+bccvl.rasters.to.common.extent.and.highest.resolution <- function(raster.filenames)
+{
+  rasters = lapply(raster.filenames, raster)
+  
+  ce = bccvl.raster.common.extent(rasters)
+  if (ce$equal.extents == FALSE)
+  {
+    bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
+    rasters = lapply(rasters, function(x) crop(x, ce$common.extent))
+  }
+  
+  lr=bccvl.raster.highest.resolution(rasters)
+  if (! lr$is.same.res)
+  {
+    bccvl.log.warning(sprintf("Auto resampling to highest resolution [%f %f]", lr$highest.res[[1]], lr$highest.res[[2]]))
+  }
+  
+  # get raster with highest resolution
+  master = Filter(function(x) all(res(x) == lr$highest.res), rasters)[[1]]
+  
+  resamp_func <- function(x)
+  {
+    rsp = if (all(res(x) == lr$highest.res)) x else resample(x, master)
+    return(rsp)
+  }
+  
+  return(lapply(rasters, resamp_func))
+  
+}
+
 # return a RasterStack of given vector of input files
 # intersecting extent
 # lowest resolution
 bccvl.enviro.stack <- function(filenames) {
-
-    rasters = bccvl.rasters.to.common.extent.and.lowest.resolution(filenames)
+  
+    # rasters = bccvl.rasters.to.common.extent.and.lowest.resolution(filenames)
+    rasters = bccvl.rasters.to.common.extent.and.highest.resolution(filenames)
     return(stack(rasters))
 }
 
