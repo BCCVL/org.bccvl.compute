@@ -362,21 +362,27 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
 
     # Mask the rasterstack (and make sure it is a RasterStack)    
     geoconstrained <- stack(mask(rasterstack, parsedgeojson))
-  
-    # Constrain the occurrence points
-    occurSP <- SpatialPoints(occur)
-    # We have to make sure occurSP has the same CRS
-    if (is.na(crs(occurSP))) {
-        crs(occurSP) <- '+init=epsg:4326'
+
+    # If there are occurrence points, constrain them
+    if (!is.null(occur)) {
+        # Constrain the occurrence points
+        occurSP <- SpatialPoints(occur)
+        # We have to make sure occurSP has the same CRS
+        if (is.na(crs(occurSP))) {
+            crs(occurSP) <- '+init=epsg:4326'
+        }
+        if (!compareCRS(occurSP, parsedgeojson)) {
+            occurSP <- spTransform(occurSP, crs(parsedgeojson))
+        }
+        occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
+        occurconstrained <- as.data.frame(occurSPconstrained)
+        # rest of scripts expects names "lon", "lat" and not "x", "y"
+        names(occurconstrained) <- c("lon", "lat")
     }
-    if (!compareCRS(occurSP, parsedgeojson)) {
-        occurSP <- spTransform(occurSP, crs(parsedgeojson))
+    else {
+        occurconstrained = NULL
     }
-    occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
-    occurconstrained <- as.data.frame(occurSPconstrained)
-    # rest of scripts expects names "lon", "lat" and not "x", "y"
-    names(occurconstrained) <- c("lon", "lat")
-  
+    
     # Return the masked raster stack and constrained occurrence points
     mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
     return(mylist)

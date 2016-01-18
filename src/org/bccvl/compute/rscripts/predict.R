@@ -23,6 +23,14 @@ projectdataset <- function(model.obj, futuredata, projection.name, species) {
     future.climate.scenario = bccvl.enviro.stack(futuredata)
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario)
+    # geographically constrained modelling
+    if (!is.null(enviro.data.constraints)) {
+      constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, NULL, enviro.data.constraints);
+      
+      current.climate.scenario <- constrainedResults$raster
+      occur <- constrainedResults$occur
+    }
+    
     # do projection
     if (inherits(model.obj, "DistModel")) {
         # dismo package
