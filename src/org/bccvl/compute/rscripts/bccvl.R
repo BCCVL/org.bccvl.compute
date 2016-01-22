@@ -355,7 +355,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
     parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
   
     # Assign the same projection to the raster 
-    if (!compareCRS(rasterstack, parsedgeojson)) {
+    if (!compareCRS(rasterstack, parsedgeojson, verbatim=TRUE)) {
         # CRS is different, reproject geojson to rasterstack
         parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
     }
@@ -371,7 +371,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
         if (is.na(crs(occurSP))) {
             crs(occurSP) <- '+init=epsg:4326'
         }
-        if (!compareCRS(occurSP, parsedgeojson)) {
+        if (!compareCRS(occurSP, parsedgeojson, verbatim=TRUE)) {
             occurSP <- spTransform(occurSP, crs(parsedgeojson))
         }
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
