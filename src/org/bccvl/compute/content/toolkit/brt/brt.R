@@ -4,7 +4,7 @@
 ##
 ##  occur.data ... filename for occurence data
 ##  absen.data  ... filename for absence data
-##  enviro.data.current ... list of filenames for climate data
+##  enviro.data.current, resamplingflag="lowest" ... list of filenames for climate data
 ##  enviro.data.type    ... continuous
 ##  opt.tails ... predict parameter
 ##
@@ -23,7 +23,7 @@ occur.species = bccvl.params$species_occurrence_dataset$species
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
 absen.data = bccvl.params$species_absence_dataset$filename
 #define the current enviro data to use
-enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
+enviro.data.current, resamplingflag="lowest" = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
 #type in terms of continuous or categorical
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 
@@ -61,7 +61,7 @@ biomod.models.eval.meth = c("KAPPA", "TSS", "ROC", "FAR", "SR", "ACCURACY", "BIA
 model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 
 # read current climate data
-current.climate.scenario = bccvl.enviro.stack(enviro.data.current)
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current, resamplingflag="lowest")
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
