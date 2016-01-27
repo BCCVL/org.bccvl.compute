@@ -34,6 +34,4 @@ nosetests.xml
 .project
 .pydevproject
 
-src/org/bccvl/compute/content/toolkit/demosdm/.Rhistory
-
 src/org/bccvl/compute/rscripts/.Rhistory

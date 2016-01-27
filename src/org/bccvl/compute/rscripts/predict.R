@@ -22,7 +22,7 @@ enviro.data.constraints = bccvl.params$modelling_region
 future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x) x$filename)
 
 projectdataset <- function(model.obj, futuredata, projection.name, species) {
-    future.climate.scenario = bccvl.enviro.stack(futuredata)
+    future.climate.scenario = bccvl.enviro.stack(futuredata, resamplingflag="lowest")
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario)
     # geographically constrained modelling

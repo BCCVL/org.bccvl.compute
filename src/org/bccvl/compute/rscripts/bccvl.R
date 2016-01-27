@@ -270,7 +270,6 @@ bccvl.log.warning <-function(str, prefix="BCCVL Warning: ")
     print(paste(prefix, str, sep=""))
 }
 
-
 # rasters: a vector of rasters
 bccvl.raster.common.extent <- function(rasters)
 {
@@ -283,68 +282,73 @@ bccvl.raster.common.extent <- function(rasters)
     return (list(equal.extents=equal.extents, common.extent=common.extent))
 }
 
-# rasters: a vector of rasters
-bccvl.raster.lowest.resolution <- function(rasters)
-{
-    res.list = lapply(rasters, res)
-
-    lowest.res = c(max(sapply(res.list, function(x) x[[1]])),
-                  max(sapply(res.list, function(x) x[[2]])))
-
-    is.same.res = all(sapply(res.list, function (x) all(lowest.res == x)))
-
-    return (list(lowest.res=lowest.res, is.same.res=is.same.res))
-}
-
 bccvl.raster.extent.to.str <- function(ext)
 {
-    return(sprintf("xmin=%f xmax=%f ymin=%f ymax=%f", ext@xmin, ext@xmax, ext@ymin, ext@ymax));
+  return(sprintf("xmin=%f xmax=%f ymin=%f ymax=%f", ext@xmin, ext@xmax, ext@ymin, ext@ymax));
 }
 
+# rasters: a vector of rasters
+# resamplingflag: a flag to determine which resampling approach to take
+bccvl.raster.resample.resolution <- function(rasters, resamplingflag)
+{
+    res.list = lapply(rasters, res)
+    
+    if (resamplingflag == "lowest"){
+        common.res = c(max(sapply(res.list, function(x) x[[1]])),
+                     max(sapply(res.list, function(x) x[[2]])))
+    } else if (resamplingflag == "highest"){
+        common.res = c(min(sapply(res.list, function(x) x[[1]])),
+                     min(sapply(res.list, function(x) x[[2]])))
+    }
+    is.same.res = all(sapply(res.list, function (x) all(common.res == x)))
+    return (list(common.res=common.res, is.same.res=is.same.res))
+}
 
 # raster.filenames : a vector of filenames that will be loaded as rasters
-bccvl.rasters.to.common.extent.and.lowest.resolution <- function(raster.filenames)
+# resamplingflag: a flag to determine which resampling approach to take
+bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, resamplingflag)
 {
+    # Load rasters
     rasters = lapply(raster.filenames, raster)
-
+    
+    # Crop to common extent
     ce = bccvl.raster.common.extent(rasters)
     if (ce$equal.extents == FALSE)
     {
-        bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
-        rasters = lapply(rasters, function(x) crop(x, ce$common.extent))
+      bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
+      rasters = lapply(rasters, function(x) crop(x, ce$common.extent))
     }
-
-    lr=bccvl.raster.lowest.resolution(rasters)
-    if (! lr$is.same.res)
+  
+    # Resample based on resample flag 
+    cr = bccvl.raster.resample.resolution(rasters, resamplingflag)
+    if (! cr$is.same.res) 
     {
-        bccvl.log.warning(sprintf("Auto resampling to lowest resolution [%f %f]", lr$lowest.res[[1]], lr$lowest.res[[2]]))
+      bccvl.log.warning(sprintf("Auto resampling to %s resolution [%f %f]", resamplingflag, cr$common.res[[1]], cr$common.res[[2]]))
     }
 
     # get raster with lowest resolution
-    master = Filter(function(x) all(res(x) == lr$lowest.res), rasters)[[1]]
-
+    master = Filter(function(x) all(res(x) == cr$commom.res), rasters)[[1]]
+    
     resamp_func <- function(x)
     {
-        rsp = if (all(res(x) == lr$lowest.res)) x else resample(x, master)
-        return(rsp)
+      rsp = if (all(res(x) == cr$common.res)) x else resample(x, master, method='ngb')
+      return(rsp)
     }
-
+    
     return(lapply(rasters, resamp_func))
-
 }
 
 # return a RasterStack of given vector of input files
 # intersecting extent
-# lowest resolution
-bccvl.enviro.stack <- function(filenames) {
+# lowest or highest resolution depending upon flag
+bccvl.enviro.stack <- function(filenames, resamplingflag) {
 
-    rasters = bccvl.rasters.to.common.extent.and.lowest.resolution(filenames)
-    rasterstack = stack(rasters)
+    rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, resamplingflag)
     if (is.na(crs(rasterstack))) {
         # Default to EPSG:4326
         crs(rasterstack) <- '+init=epsg:4326'
     }
-    return(rasterstack)
+    return(stack(rasters))
 }
 
 # geographically constrained modelling

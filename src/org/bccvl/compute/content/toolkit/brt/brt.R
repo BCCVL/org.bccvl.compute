@@ -63,7 +63,7 @@ biomod.models.eval.meth = c("KAPPA", "TSS", "ROC", "FAR", "SR", "ACCURACY", "BIA
 model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 
 # read current climate data
-current.climate.scenario = bccvl.enviro.stack(enviro.data.current)
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current, resamplingflag="lowest")
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
