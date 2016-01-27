@@ -344,11 +344,12 @@ bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filen
 bccvl.enviro.stack <- function(filenames, resamplingflag) {
 
     rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, resamplingflag)
+    rasterstack = stack(rasters)
     if (is.na(crs(rasterstack))) {
         # Default to EPSG:4326
         crs(rasterstack) <- '+init=epsg:4326'
     }
-    return(stack(rasters))
+    return(rasterstack)
 }
 
 # geographically constrained modelling
