@@ -16,13 +16,21 @@
 sdm.species = bccvl.params$species_distribution_models$species
 sdm.model.file = bccvl.params$species_distribution_models$filename
 projection.name = bccvl.params$projection_name
+#geographic constraints
+enviro.data.constraints = bccvl.params$modelling_region
 
 future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x) x$filename)
 
 projectdataset <- function(model.obj, futuredata, projection.name, species) {
-    future.climate.scenario = bccvl.enviro.stack(futuredata)
+    future.climate.scenario = bccvl.enviro.stack(futuredata, resamplingflag="lowest")
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario)
+    # geographically constrained modelling
+    if (!is.null(enviro.data.constraints)) {
+      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, enviro.data.constraints);
+      predictors <- constrainedResults$raster
+    }
+    
     # do projection
     if (inherits(model.obj, "DistModel")) {
         # dismo package
