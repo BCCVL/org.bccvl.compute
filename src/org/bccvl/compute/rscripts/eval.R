@@ -35,6 +35,12 @@ bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
     dev.off()
 }
 
+# function to save outputs of new evaluation script (29/01/16)
+bccvl.saveNewEvaluation <- function(out.summary, out.performance){
+    bccvl.write.csv(data.frame(out.summary), name="evaluation.summary.csv")
+    bccvl.write.csv(data.frame(out.performance), name="evaluation.performance.csv")
+}
+
 #
 # returns:
 #
@@ -567,6 +573,10 @@ bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
     # save output
     bccvl.saveModelEvaluation(model.eval, model.combined.eval)
 
+    # Call the new evaluation script
+    res = performance.2D(model.obs, model.fit, make.plot=model.name, kill.plot=F)
+    bccvl.saveNewEvaluation(res$summary, res$performance)
+
     # create response curves
     bccvl.createMarginalResponseCurves(model.obj, model.name)
 
@@ -684,4 +694,255 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
          # EMG need to investigate why you would want to use this option - uses presence data only
         dev.off()
     }
+}
+
+absmean <- function(x) abs(mean(x, na.rm=T))
+absdiff <- function(x) abs(diff(x, na.rm=T))
+
+
+performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
+  library(gridExtra)
+  
+  # AIM: Calculate 2D measures of predictive performance for any
+  # model that predicts a probability of presence (or success), 
+  # to be compared to binary observations of presence/absence (or 
+  # success/failure).
+  #
+  # AUTHOR: S.Low-Choy, 2 Jan 2016
+  # ACKNOWLEDGEMENTS: Shawn Laffan for useful discussions, 
+  # Chantal Huijbers, Sara Richmond and Linda for testcase
+  #
+  # INPUTS
+  # obs = vector of observations of presence/absence (binary)
+  # pred = vector of predicted probabilities of presence
+  # 
+  # OUTPUTS
+  # a list with two components,
+  # summary - by loss type:
+  #  range of threshold ppp for which loss falls within 5% of minimum,
+  #  best ppp (corresponding to minimum loss) 
+  # performance - measures across varying threshold ppp:
+  #  ppp, TPR, FNR, TNR, FPR
+  #  loss functions: balanced with FAPP for diagnostic or predictive errors 
+  #    in omission; or across select errors: all or diagnostic or predictive. 
+  # 
+  # TEST: obs <- all$pa; pred <- preds2$fit
+  #############################################################
+  #
+  # MEASURES
+  #
+  # ERROR CHECKING
+  #
+  # Check that observations and predictions match length
+  nobs <- length(obs)
+  if (nobs != length(pred)) stop("Ensure that vectors for observations and predictions are of equal length!")
+  
+  # Check observations are binary, then recode as a factor if necessary
+  tbl.obs <- table(obs)
+  diversity.obs <- length(tbl.obs)
+  if (diversity.obs==1) stop("All observations are the same!")
+  if (diversity.obs!=2) stop("Ensure that the vector of observations only has two possible values.")
+  
+  # Check coding of presence and absence
+  if (is.factor(obs)) {
+    truth <- as.character(obs)
+    temp <- as.numeric(truth)
+    if (!is.na(temp)) 
+      truth <- temp 
+  } else {
+    truth <- obs
+  }
+  if (is.numeric(truth)) {
+    if (any(truth==0)) {
+      # presume 0 is coded to be absence
+      # if presences are not 1s then recode them to be 1s
+      if (any(truth[truth!=0]!=1)) {
+        truth[truth!=0] <- 1
+      } 
+    } else if (any(truth ==1)) {
+      # if there are no zeros, then presume 1-2 coding
+      if (any(truth ==2)) {
+        truth <- truth-1
+      }
+    } else {
+      stop("Can't figure out coding of absence-presence as it is not 0-1 or 1-2. Suggest you recode obs as a factor, with levels 0 and 1")
+    } # end if any truth == 0
+  } else if (is.character(truth)) {
+    # look for "p" for presence, "d" for detected or "o" for occupied
+    the.pres <- grep("^[pP]", truth)
+    if (any(the.pres)) {
+      letter.pres <- "p"
+    } else {
+      the.pres <- grep("^[Dd]", truth)
+      if (any(the.pres)) {
+        letter.pres <- "d"
+      } else {
+        the.pres <- grep("^[oO]", truth)
+        if (any(the.pres)) {
+          letter.pres <- "o"
+        } else {
+          stop("Can't figure out coding of presences as they do not start with the letter p, d or o. Suggest you recode presences using one of these options.")
+        }
+      }
+    } # end if any the.pres
+    truth[the.pres] <- 1
+    
+    # recode all non "p" or "d" to be absence (could be "a" for absence, or "n" for not present/seen/detected/occupied, or "u" for unseen etc, or "b" for background)
+    tbl.obs <- table(truth)
+    letter.abs <- names(tbl.obs)[-grep("1", names(tbl.obs))]
+    truth[grep(paste("^",letter.abs,sep=""), truth)] <- 0
+    
+    if (any(the.pres)) {
+      truth <- as.numeric(truth)
+    }
+  } else {
+    stop("Ensure that the data type of observations is numeric, character or factor.")	
+  } # end if is.numeric(truth) or is.character(truth)
+  
+  # Check predictions are probabilities between 0 and 1
+  if (any(pred < 0) | any(pred > 1)) stop("Predictions should be probabilities between zero and one. (Check that predictions are not on the log odds scale.)")
+  
+  # MEASURES
+  
+  # STEP 1. CALCULATE ERROR MATRICES
+  list.ppp <- sort(unique(pred))
+  
+  fnrs <- tnrs <- fprs <- tprs <- rep(NA, length(list.ppp))
+  fns <- tns <- fps <- tps <- rep(NA, length(list.ppp))
+  ppvs <- npvs <- fors <- fdrs <- rep(NA, length(list.ppp))
+  fpa <- L.bal.diag <- L.bal.pred <- rep(NA, length(list.ppp))
+  
+  # STEP 2. CALCULATE 1D MEASURES OF PREDICTIVE PERFORMANCE
+  for (ell in seq(along=list.ppp)) { 
+    # TESTING: ell <- 1; th <- 0.5
+    
+    th <- list.ppp[ell]
+    
+    tps[ell] <- length(which(pred>=th & obs==1))
+    fps[ell] <- length(which(pred>=th & obs==0))
+    tns[ell] <- length(which(pred<th & obs==0))
+    fns[ell] <- length(which(pred<th & obs==1))
+    
+    tprs[ell] <- tps[ell]/(tps[ell]+fns[ell])
+    fprs[ell] <- fps[ell]/(fps[ell]+tns[ell])
+    tnrs[ell] <- tns[ell]/(tns[ell]+fps[ell])
+    fnrs[ell] <- fns[ell]/(fns[ell]+tps[ell])
+    # c(tprs[ell],fprs[ell],tnrs[ell],fnrs[ell])
+    
+    # TPR + FNR = 1, FPR + TNR = 1
+    # Typically compare TPR v FPR (or TNR v FNR)
+    # and TPR v TNR
+    
+    # PPV + FDR = 1, NPV + FOR = 1
+    # Hence not instructive to compare PPV to FDR (or NPV to FOR)
+    # Better to compare PPV v NPV (or FOR v FDR)
+    # Also PPV v TPR (or NPV v TNR)
+    
+    # when predicted present, how many were true presences?
+    ppvs[ell] <- tps[ell]/(tps[ell]+fps[ell])
+    # when predicted absent, how many were false absences?
+    fors[ell] <- fns[ell]/(tns[ell]+fns[ell])
+    # when predicted absent, how many were true absences?
+    npvs[ell] <- tns[ell]/(tns[ell]+fns[ell])
+    # when predicted present, how many were false presences?
+    fdrs[ell] <- fps[ell]/(tps[ell]+fps[ell])
+    
+    # fractional predicted area
+    fpa[ell] <- (tps[ell] + fps[ell])/(tps[ell] + fps[ell] + tns[ell] + fns[ell])
+    # balance performance metric used in dismo maxent (Hijmans & Elith, 2015)
+    # 6 * training omission rate + .04 * cumulative threshold (100%) + 1.6 * fractional predicted area.
+    # note rescale of 0.04 to 4 when th is a fraction not a percentage
+    L.bal.diag[ell] <- fnrs[ell] * 6 + th*.04 + fpa[ell] * 1.6
+    L.bal.pred[ell] <- fors[ell] * 6 + th*.04 + fpa[ell] * 1.6
+  }
+  
+  # compile the information into a dataframe
+  temp <- data.frame(list(ppp=list.ppp, tpr=tprs, fpr=fprs,  tnr=tnrs, fnr=fnrs, ppv=ppvs, fdr=fdrs, npv=npvs, fors=fors, fpa=fpa, L.bal.diag=L.bal.diag, L.bal.pred=L.bal.pred))	
+  
+  # calculate some losses as cost functions across errors
+  list.errors <- c("fpr","fnr","fors","fdr")
+  temp$L.all <- apply(temp[, list.errors],1, absmean)
+  temp$L.diag <- apply(temp[, c("fpr","fnr")],1, absmean)
+  temp$L.pred <- apply(temp[, c("fors","fdr")],1, absmean)
+  temp$L.pos <- apply(temp[, c("tpr", "ppv")], 1, absmean)
+  temp$L.eq.diag <- apply(temp[, c("tpr", "tnr")], 1, absdiff)
+  temp$L.eq.pred <- apply(temp[, c("ppv", "npv")], 1, absdiff)
+  
+  # calculate the best threshold ppp: minimal value of each type of loss
+  best <- list(
+    bal.diag =temp$ppp[which(temp$L.bal.diag==min(temp$L.bal.diag, na.rm=T))],
+    bal.pred =temp$ppp[which(temp$L.bal.pred==min(temp$L.bal.pred, na.rm=T))],
+    all =temp$ppp[which(temp$L.all == min(temp$L.all, na.rm=T))], 	
+    diag=temp$ppp[which(temp$L.diag == min(temp$L.diag, na.rm=T))],
+    pred=temp$ppp[which(temp$L.pred == min(temp$L.pred, na.rm=T))],
+    pos= temp$ppp[which(temp$L.pos == max(temp$L.pos, na.rm=T))],
+    eq.diag = temp$ppp[which(temp$L.eq.diag==min(temp$L.eq.diag, na.rm=T))],
+    eq.pred =temp$ppp[which(temp$L.eq.pred==min(temp$L.eq.pred, na.rm=T))]
+  )
+  
+  # calculate the range of ppp for which each of the losses fall within 5% of the best value
+  rangeperf <- matrix(NA, nrow=8, ncol=2, dimnames=list(names(best), c("lower","upper")))
+  for (v in names(best)) { # v<-"eq.pred"
+    the.v <- paste("L.", v, sep="")
+    min.v <- min(temp[,the.v], na.rm=T)
+    d.minv <- (abs(temp[,the.v] - min.v) / min.v) 
+    the.range <- temp$ppp[ d.minv < 0.05 ]
+    rangeperf[dimnames(rangeperf)[[1]]==v, 1:2] <- c(min(the.range, na.rm=T), max(the.range, na.rm=T))
+  }
+  for (v in c("pos")) { # v<-"pos"
+    the.v <- paste("L.", v, sep="")
+    max.v <- max(temp[,the.v], na.rm=T)
+    d.maxv <- (abs(temp[,the.v] - max.v) / max.v) 
+    the.range <- temp$ppp[ d.maxv < 0.05 ]
+    rangeperf[dimnames(rangeperf)[[1]]==v, ] <- c(min(the.range, na.rm=T), max(the.range, na.rm=T))		
+  }
+  rangeperf <- as.data.frame(rangeperf)
+  rangeperf$type.of.loss <- names(best)
+  rangeperf$best <- unlist(best)
+  
+  # rescale
+  temp$L.bal.diag <- temp$L.bal.diag/max(temp$L.bal.diag, na.rm=T) 
+  temp$L.bal.pred <- temp$L.bal.pred/max(temp$L.bal.pred, na.rm=T) 
+  temp$L.eq.diag <- temp$L.eq.diag/max(temp$L.eq.diag, na.rm=T) 
+  temp$L.eq.pred <- temp$L.eq.pred/max(temp$L.eq.pred, na.rm=T) 
+  
+  if (make.plot!="") {
+    library(reshape2)
+    # reshape the data so that it is in long rather than wide format
+    errs <- melt(temp, id.var="ppp", measure.var=c("fpr", "fnr", "fdr", "fors", "fpa", "L.bal.diag", "L.bal.pred", "L.all", "L.diag", "L.pred", "L.pos", "L.eq.diag", "L.eq.pred"))
+    names(errs)[2] <- c("measure")
+    
+    # create graph: errors vs different thresholds for predicted probability of presence
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-error.png", make.plot)), width=480, height=480)
+    g1 <- ggplot(aes(x=ppp,y=value,colour=measure), data=errs[errs$measure %in% c("fpr", "fnr", "fdr", "fors", "fpa"), ]) + geom_line() + labs(x="Threshold ppp")
+    dev.off()
+
+    # create graph: show the tradeoffs among errors
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-tradeoffs.png", make.plot)), width=480, height=480)
+    g2 <- ggplot(aes(x=ppp,y=value,colour=measure), data=errs[errs$measure %in% rev(c("L.bal.diag", "L.bal.pred", "L.all", "L.diag", "L.pred", "L.pos", "L.eq.diag", "L.eq.pred")), ]) + geom_line() + labs(x="Threshold ppp") + guides(col=guide_legend(title="Type of Loss, for\nerror tradeoff")) 
+    dev.off()
+
+    # add intervals showing within 5%
+    rangeperf$type.of.loss <- factor(rangeperf$type.of.loss, levels=(c("bal.diag", "bal.pred", "all", "diag", "pred", "pos", "eq.diag", "eq.pred")))
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-intervals.png", make.plot)), width=480, height=480)
+    g3 <- ggplot(aes(x=type.of.loss, y=best, ymin=lower, ymax=upper, colour=type.of.loss), data=rangeperf) + geom_pointrange() + coord_flip() + labs(y="Threshold ppp", title="Range of ppp within 5% of minimum per loss") + theme(legend.position="none") + theme(axis.title.x = element_text(hjust = 0)) 
+    dev.off()
+
+    # ROC 
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-roc.png", make.plot)), width=480, height=480)
+    g4 <- ggplot(aes(x=fpr, y=tpr), data=temp) + geom_line() + geom_abline(intercept=0, slope=1, colour="grey") + labs(title="ROC", x="Omission rate (FPR)", y="Sensitivity (TPR)")
+    dev.off()
+
+    # density ppp for presence and absence
+    temp2 <- data.frame(list(pred=pred, obs=obs))
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-ppp.png", make.plot)), width=480, height=480)
+    g5 <- ggplot(aes(x=pred, colour=factor(obs)), data=temp2) + geom_line(stat="density") + labs(x="ppp", y="Density") + guides(col=guide_legend(title="Observed\ndata")) + theme(legend.position = "top")
+    dev.off()
+  }
+  
+  return(list(summary=rangeperf, performance=temp))	
+}
+
+dev.save <- function(fileroot, ext=".pdf") {
+  if (ext==".eps") {dev.copy2eps(file=paste(fileroot,ext,sep="."))} else {dev.copy2pdf(file=paste(fileroot,"pdf",sep="."))}
 }
