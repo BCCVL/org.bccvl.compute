@@ -270,7 +270,6 @@ bccvl.log.warning <-function(str, prefix="BCCVL Warning: ")
     print(paste(prefix, str, sep=""))
 }
 
-
 # rasters: a vector of rasters
 bccvl.raster.common.extent <- function(rasters)
 {
@@ -283,63 +282,115 @@ bccvl.raster.common.extent <- function(rasters)
     return (list(equal.extents=equal.extents, common.extent=common.extent))
 }
 
-# rasters: a vector of rasters
-bccvl.raster.lowest.resolution <- function(rasters)
-{
-    res.list = lapply(rasters, res)
-
-    lowest.res = c(max(sapply(res.list, function(x) x[[1]])),
-                  max(sapply(res.list, function(x) x[[2]])))
-
-    is.same.res = all(sapply(res.list, function (x) all(lowest.res == x)))
-
-    return (list(lowest.res=lowest.res, is.same.res=is.same.res))
-}
-
 bccvl.raster.extent.to.str <- function(ext)
 {
-    return(sprintf("xmin=%f xmax=%f ymin=%f ymax=%f", ext@xmin, ext@xmax, ext@ymin, ext@ymax));
+  return(sprintf("xmin=%f xmax=%f ymin=%f ymax=%f", ext@xmin, ext@xmax, ext@ymin, ext@ymax));
 }
 
+# rasters: a vector of rasters
+# resamplingflag: a flag to determine which resampling approach to take
+bccvl.raster.resample.resolution <- function(rasters, resamplingflag)
+{
+    res.list = lapply(rasters, res)
+    
+    if (resamplingflag == "lowest"){
+        common.res = c(max(sapply(res.list, function(x) x[[1]])),
+                     max(sapply(res.list, function(x) x[[2]])))
+    } else if (resamplingflag == "highest"){
+        common.res = c(min(sapply(res.list, function(x) x[[1]])),
+                     min(sapply(res.list, function(x) x[[2]])))
+    }
+    is.same.res = all(sapply(res.list, function (x) all(common.res == x)))
+    return (list(common.res=common.res, is.same.res=is.same.res))
+}
 
 # raster.filenames : a vector of filenames that will be loaded as rasters
-bccvl.rasters.to.common.extent.and.lowest.resolution <- function(raster.filenames)
+# resamplingflag: a flag to determine which resampling approach to take
+bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, resamplingflag)
 {
+    # Load rasters
     rasters = lapply(raster.filenames, raster)
-
+    
+    # Crop to common extent
     ce = bccvl.raster.common.extent(rasters)
     if (ce$equal.extents == FALSE)
     {
-        bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
-        rasters = lapply(rasters, function(x) crop(x, ce$common.extent))
+      bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
+      rasters = lapply(rasters, function(x) crop(x, ce$common.extent))
     }
-
-    lr=bccvl.raster.lowest.resolution(rasters)
-    if (! lr$is.same.res)
+  
+    # Resample based on resample flag 
+    cr = bccvl.raster.resample.resolution(rasters, resamplingflag)
+    if (! cr$is.same.res) 
     {
-        bccvl.log.warning(sprintf("Auto resampling to lowest resolution [%f %f]", lr$lowest.res[[1]], lr$lowest.res[[2]]))
+      bccvl.log.warning(sprintf("Auto resampling to %s resolution [%f %f]", resamplingflag, cr$common.res[[1]], cr$common.res[[2]]))
     }
 
     # get raster with lowest resolution
-    master = Filter(function(x) all(res(x) == lr$lowest.res), rasters)[[1]]
-
+    master = Filter(function(x) all(res(x) == cr$commom.res), rasters)[[1]]
+    
     resamp_func <- function(x)
     {
-        rsp = if (all(res(x) == lr$lowest.res)) x else resample(x, master)
-        return(rsp)
+      rsp = if (all(res(x) == cr$common.res)) x else resample(x, master, method='ngb')
+      return(rsp)
     }
-
+    
     return(lapply(rasters, resamp_func))
-
 }
 
 # return a RasterStack of given vector of input files
 # intersecting extent
-# lowest resolution
-bccvl.enviro.stack <- function(filenames) {
+# lowest or highest resolution depending upon flag
+bccvl.enviro.stack <- function(filenames, resamplingflag) {
 
-    rasters = bccvl.rasters.to.common.extent.and.lowest.resolution(filenames)
-    return(stack(rasters))
+    rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, resamplingflag)
+    rasterstack = stack(rasters)
+    if (is.na(crs(rasterstack))) {
+        # Default to EPSG:4326
+        crs(rasterstack) <- '+init=epsg:4326'
+    }
+    return(rasterstack)
+}
+
+# geographically constrained modelling
+# bccvl.sdm.geoconstrained
+bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
+  
+    # Parse the geojson from text to SpatialPointsDataFrame
+    parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
+  
+    # Assign the same projection to the raster 
+    if (!compareCRS(rasterstack, parsedgeojson, verbatim=TRUE)) {
+        # CRS is different, reproject geojson to rasterstack
+        parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
+    }
+
+    # Mask the rasterstack (and make sure it is a RasterStack)    
+    geoconstrained <- stack(mask(rasterstack, parsedgeojson))
+
+    # If there are occurrence points, constrain them
+    if (!is.null(occur)) {
+        # Constrain the occurrence points
+        occurSP <- SpatialPoints(occur)
+        # We have to make sure occurSP has the same CRS
+        if (is.na(crs(occurSP))) {
+            crs(occurSP) <- '+init=epsg:4326'
+        }
+        if (!compareCRS(occurSP, parsedgeojson, verbatim=TRUE)) {
+            occurSP <- spTransform(occurSP, crs(parsedgeojson))
+        }
+        occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
+        occurconstrained <- as.data.frame(occurSPconstrained)
+        # rest of scripts expects names "lon", "lat" and not "x", "y"
+        names(occurconstrained) <- c("lon", "lat")
+    }
+    else {
+        occurconstrained = NULL
+    }
+    
+    # Return the masked raster stack and constrained occurrence points
+    mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
+    return(mylist)
 }
 
 # function to save projection output raster
