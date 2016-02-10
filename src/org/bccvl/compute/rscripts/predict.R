@@ -17,7 +17,7 @@ sdm.species = bccvl.params$species_distribution_models$species
 sdm.model.file = bccvl.params$species_distribution_models$filename
 projection.name = bccvl.params$projection_name
 #geographic constraints
-enviro.data.constraints = bccvl.params$modelling_region
+enviro.data.constraints = bccvl.params$projection_region
 
 future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x) x$filename)
 
