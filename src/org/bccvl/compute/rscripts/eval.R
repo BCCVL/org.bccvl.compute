@@ -635,6 +635,9 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
         #bccvl.write.csv(t(round(combined.eval, digits=3)), name="combined.modelEvaluation.csv")
         bccvl.write.csv(t(round(combined.eval, digits=3)), name=paste("combined", model_name, "modelEvaluation.csv", sep="."))
 
+        res = performance.2D(obs, model_predictions / 1000, make.plot=model_name, kill.plot=F)
+        bccvl.saveNewEvaluation(res$summary, res$performance)
+
         # save AUC curve
         require(pROC, quietly=T)
         roc1 <- roc(as.numeric(obs), as.numeric(model_predictions), percent=T)
