@@ -13,6 +13,11 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv"
         },
+        "*.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
+        },
         "*/models/bccvl/*_MAXENT_outputs/maxentResults.csv": {
             "title": "Maxent Thresholds",
             "genre": "DataGenreSDMEval",

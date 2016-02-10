@@ -13,6 +13,11 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv"
         },
+        "*.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
+        },
         "dismo.eval.object.RData": {
             "title": "R ModelEvaluation object",
             "genre": "DataGenreSDMEval",

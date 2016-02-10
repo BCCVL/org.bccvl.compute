@@ -13,6 +13,11 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv"
         },
+        "*.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
+        },
         "mean_response_curves*.png": {
             "title": "Mean Response Curves",
             "genre": "DataGenreSDMEval",
