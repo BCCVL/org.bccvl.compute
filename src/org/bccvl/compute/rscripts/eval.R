@@ -652,7 +652,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
         vals=rbind(occur_vals,absen_vals)
 
         png(file=file.path(bccvl.env$outputdir, sprintf("%s-occurence_absence_pdf.png", model_name)), width=480, height=480)
-        myplot=ggplot(vals, aes(vals, fill=label))  + geom_density(alpha = 0.3)
+        myplot=ggplot(vals, aes(vals, fill=label)) + geom_density(alpha = 0.3)
         myplot = myplot + ggtitle("Occurrence/absence probability density functions\nbased on model predicted value")
         print(myplot)
         dev.off()
@@ -920,33 +920,33 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     
     # create graph: errors vs different thresholds for predicted probability of presence
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-error.png", make.plot)), width=480, height=480)
-    g1 <- ggplot(aes(x=ppp,y=value,colour=measure), data=errs[errs$measure %in% c("fpr", "fnr", "fdr", "fors", "fpa"), ]) + geom_line() + labs(x="Threshold ppp")
+    g1 <- ggplot(errs[errs$measure %in% c("fpr", "fnr", "fdr", "fors", "fpa"), ], aes(x=ppp, y=value, colour=measure)) + geom_line() + labs(x="Threshold ppp")
     print(g1)
     dev.off()
 
     # create graph: show the tradeoffs among errors
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-tradeoffs.png", make.plot)), width=480, height=480)
-    g2 <- ggplot(aes(x=ppp,y=value,colour=measure), data=errs[errs$measure %in% rev(c("L.bal.diag", "L.bal.pred", "L.all", "L.diag", "L.pred", "L.pos", "L.eq.diag", "L.eq.pred")), ]) + geom_line() + labs(x="Threshold ppp") + guides(col=guide_legend(title="Type of Loss, for\nerror tradeoff"))
+    g2 <- ggplot(errs[errs$measure %in% rev(c("L.bal.diag", "L.bal.pred", "L.all", "L.diag", "L.pred", "L.pos", "L.eq.diag", "L.eq.pred")), ], aes(x=ppp, y=value, colour=measure)) + geom_line() + labs(x="Threshold ppp") + guides(col=guide_legend(title="Type of Loss, for\nerror tradeoff"))
     print(g2)
     dev.off()
 
     # add intervals showing within 5%
     rangeperf$type.of.loss <- factor(rangeperf$type.of.loss, levels=(c("bal.diag", "bal.pred", "all", "diag", "pred", "pos", "eq.diag", "eq.pred")))
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-intervals.png", make.plot)), width=480, height=480)
-    g3 <- ggplot(aes(x=type.of.loss, y=best, ymin=lower, ymax=upper, colour=type.of.loss), data=rangeperf) + geom_pointrange() + coord_flip() + labs(y="Threshold ppp", title="Range of ppp within 5% of minimum per loss") + theme(legend.position="none") + theme(axis.title.x = element_text(hjust = 0))
+    g3 <- ggplot(rangeperf, aes(x=type.of.loss, y=best, ymin=lower, ymax=upper, colour=type.of.loss)) + geom_pointrange() + coord_flip() + labs(y="Threshold ppp", title="Range of ppp within 5% of minimum per loss") + theme(legend.position="none") + theme(axis.title.x = element_text(hjust = 0))
     print(g3)
     dev.off()
 
     # ROC 
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-roc.png", make.plot)), width=480, height=480)
-    g4 <- ggplot(aes(x=fpr, y=tpr), data=temp) + geom_line() + geom_abline(intercept=0, slope=1, colour="grey") + labs(title="ROC", x="Omission rate (FPR)", y="Sensitivity (TPR)")
+    g4 <- ggplot(temp, aes(x=fpr, y=tpr)) + geom_line() + geom_abline(intercept=0, slope=1, colour="grey") + labs(title="ROC", x="Omission rate (FPR)", y="Sensitivity (TPR)")
     print(g4)
     dev.off()
 
     # density ppp for presence and absence
     temp2 <- data.frame(list(pred=pred, obs=obs))
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-ppp.png", make.plot)), width=480, height=480)
-    g5 <- ggplot(aes(x=pred, colour=factor(obs)), data=temp2) + geom_line(stat="density") + labs(x="ppp", y="Density") + guides(col=guide_legend(title="Observed\ndata")) + theme(legend.position = "top")
+    g5 <- ggplot(temp2, aes(x=pred, colour=factor(obs))) + geom_line(stat="density") + labs(x="ppp", y="Density") + guides(col=guide_legend(title="Observed\ndata")) + theme(legend.position = "top")
     print(g5)
     dev.off()
   }
