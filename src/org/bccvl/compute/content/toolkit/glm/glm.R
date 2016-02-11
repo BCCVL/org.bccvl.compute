@@ -112,28 +112,6 @@ if (!is.null(enviro.data.constraints)) {
   occur <- constrainedResults$occur
 }
 
-# TODO: Update number of pseudo absence points
-
-# shall we use pseudo absences?
-# TODO: this will ignore given absence file in case we want pseudo absences
-if (bccvl.params$species_pseudo_absence_points) {
-    biomod.PA.nb.rep = 1
-    biomod.PA.nb.absences = bccvl.params$species_number_pseudo_absence_points
-    # create an empty data frame for bkgd points
-    absen = data.frame(lon=numeric(0), lat=numeric(0))
-} else {
-    # read absence points from file
-    absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
-    # keep only lon and lat columns
-    absen = absen[c("lon","lat")]
-}
-
-# extract enviro data for species observation points and append to species data
-#occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-#if (!is.null(absen)) {
-#    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
-#}
-
 
 ###run the models and store models
 ############### BIOMOD2 Models ###############
@@ -141,41 +119,6 @@ if (bccvl.params$species_pseudo_absence_points) {
 # 2. Define the model options
 # 3. Compute the model
 # NOTE: Model evaluation is included as part of model creation
-
-# BIOMOD_FormatingData(resp.var, expl.var, resp.xy = NULL, resp.name = NULL, eval.resp.var = NULL,
-#	eval.expl.var = NULL, eval.resp.xy = NULL, PA.nb.rep = 0, PA.nb.absences = 1000, PA.strategy = 'random',
-#	PA.dist.min = 0, PA.dist.max = NULL, PA.sre.quant = 0.025, PA.table = NULL, na.rm = TRUE)
-#
-# resp.var a vector, SpatialPointsDataFrame (or SpatialPoints if you work with `only presences' data) containing species data (a single species) in binary format (ones for presences, zeros for true absences and NA for indeterminated ) that will be used to build the species distribution models.
-# expl.var a matrix, data.frame, SpatialPointsDataFrame or RasterStack containing your explanatory variables that will be used to build your models.
-# resp.xy optional 2 columns matrix containing the X and Y coordinates of resp.var (only consider if resp.var is a vector) that will be used to build your models.
-# eval.resp.var	a vector, SpatialPointsDataFrame your species data (a single species) in binary format (ones for presences, zeros for true absences and NA for indeterminated ) that will be used to evaluate the models with independant data (or past data for instance).
-# eval.expl.var	a matrix, data.frame, SpatialPointsDataFrame or RasterStack containing your explanatory variables that will be used to evaluate the models with independant data (or past data for instance).
-# eval.resp.xy opional 2 columns matrix containing the X and Y coordinates of resp.var (only consider if resp.var is a vector) that will be used to evaluate the modelswith independant data (or past data for instance).
-# resp.name	response variable name (character). The species name.
-# PA.nb.rep	number of required Pseudo Absences selection (if needed). 0 by Default.
-# PA.nb.absences number of pseudo-absence selected for each repetition (when PA.nb.rep > 0) of the selection (true absences included)
-# PA.strategy strategy for selecting the Pseudo Absences (must be `random', `sre', `disk' or `user.defined')
-# PA.dist.min minimal distance to presences for `disk' Pseudo Absences selection (in meters if the explanatory is a not projected raster (+proj=longlat) and in map units (typically also meters) when it is projected or when explanatory variables are stored within table )
-# PA.dist.max maximal distance to presences for `disk' Pseudo Absences selection(in meters if the explanatory is a not projected raster (+proj=longlat) and in map units (typically also meters) when it is projected or when explanatory variables are stored within table )
-# PA.sre.quant quantile used for `sre' Pseudo Absences selection
-# PA.table a matrix (or a data.frame) having as many rows than resp.var values. Each column correspund to a Pseudo-absences selection. It contains TRUE or FALSE indicating which values of resp.var will be considered to build models. It must be used with `user.defined' PA.strategy.
-# na.rm	logical, if TRUE, all points having one or several missing value for environmental data will be removed from analysis
-
-# format the data as required by the biomod package
-formatBiomodData = function() {
-    biomod.data = rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
-    biomod.data.pa = c(rep(1, nrow(occur)), rep(0, nrow(absen)))
-    myBiomodData <-
-        BIOMOD_FormatingData(resp.var =  biomod.data.pa,
-                             expl.var  = stack(current.climate.scenario),
-                             resp.xy   = biomod.data,
-                             resp.name = biomod.species.name,
-                             PA.nb.rep = biomod.PA.nb.rep,
-                             PA.nb.absences = biomod.PA.nb.absences,
-                             PA.strategy = 'random')
-    return(myBiomodData)
-}
 
 # BIOMOD_Modeling(data, models = c('GLM','GBM','GAM','CTA','ANN','SRE','FDA','MARS','RF','MAXENT'), models.options = NULL,
 #	NbRunEval=1, DataSplit=100, Yweights=NULL, Prevalence=NULL, VarImport=0, models.eval.meth = c('KAPPA','TSS','ROC'),
@@ -221,8 +164,15 @@ formatBiomodData = function() {
 #		maxit - integer giving the maximal number of IWLS iterations
 #		trace - logical indicating if output should be produced for each iteration
 
-# 1. Format the data
-model.data = formatBiomodData()
+# 1. Format the data as required by the biomod package
+model.data = bccvl.biomod2.formatData(absen.filename    = absen.data,
+                                  pseudo.absen.enabled  = bccvl.params$species_pseudo_absence_points,
+                                  pseudo.absen.points   = bccvl.params$species_number_pseudo_absence_points,
+                                  pseudo.absen.strategy = 'random',
+                                  climate.data          = current.climate.scenario,
+                                  occur                 = occur,
+                                  species.name          = biomod.species.name)
+
 # 2. Define the model options
 model.options <- BIOMOD_ModelingOptions(GLM = model.options.glm)
 # 3. Compute the model

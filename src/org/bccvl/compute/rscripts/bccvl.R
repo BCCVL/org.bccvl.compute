@@ -235,33 +235,71 @@ bccvl.species.read <- function(filename) {
     }
 }
 
-# use either absen.data (1) or generate random pseudo absence points (2)
-# (1) extract "lat" and "lon" from absen.data
-# (2) generate number of absence points in area of climate.data
-bccvl.dismo.absence <- function(absen.data=NULL,
-                                pseudo.absen.enabled=FALSE,
-                                pseudo.absen.points=0,
-                                climate.data=NULL,
-                                occur.data=NULL) {
-    # TODO: combine random and given absence points:
-    # rbind(absen.datafromfile, bkgd.datarandom)
+# BIOMOD_FormatingData(resp.var, expl.var, resp.xy = NULL, resp.name = NULL, eval.resp.var = NULL,
+#   eval.expl.var = NULL, eval.resp.xy = NULL, PA.nb.rep = 0, PA.nb.absences = 1000, PA.strategy = 'random',
+#   PA.dist.min = 0, PA.dist.max = NULL, PA.sre.quant = 0.025, PA.table = NULL, na.rm = TRUE)
+#
+# resp.var a vector, SpatialPointsDataFrame (or SpatialPoints if you work with `only presences' data) containing species data (a single species) in binary format (ones for presences, zeros for true absences and NA for indeterminated ) that will be used to build the species distribution models.
+# expl.var a matrix, data.frame, SpatialPointsDataFrame or RasterStack containing your explanatory variables that will be used to build your models.
+# resp.xy optional 2 columns matrix containing the X and Y coordinates of resp.var (only consider if resp.var is a vector) that will be used to build your models.
+# eval.resp.var a vector, SpatialPointsDataFrame your species data (a single species) in binary format (ones for presences, zeros for true absences and NA for indeterminated ) that will be used to evaluate the models with independant data (or past data for instance).
+# eval.expl.var a matrix, data.frame, SpatialPointsDataFrame or RasterStack containing your explanatory variables that will be used to evaluate the models with independant data (or past data for instance).
+# eval.resp.xy opional 2 columns matrix containing the X and Y coordinates of resp.var (only consider if resp.var is a vector) that will be used to evaluate the modelswith independant data (or past data for instance).
+# resp.name response variable name (character). The species name.
+# PA.nb.rep number of required Pseudo Absences selection (if needed). 0 by Default.
+# PA.nb.absences number of pseudo-absence selected for each repetition (when PA.nb.rep > 0) of the selection (true absences included)
+# PA.strategy strategy for selecting the Pseudo Absences (must be `random', `sre', `disk' or `user.defined')
+# PA.dist.min minimal distance to presences for `disk' Pseudo Absences selection (in meters if the explanatory is a not projected raster (+proj=longlat) and in map units (typically also meters) when it is projected or when explanatory variables are stored within table )
+# PA.dist.max maximal distance to presences for `disk' Pseudo Absences selection(in meters if the explanatory is a not projected raster (+proj=longlat) and in map units (typically also meters) when it is projected or when explanatory variables are stored within table )
+# PA.sre.quant quantile used for `sre' Pseudo Absences selection
+# PA.table a matrix (or a data.frame) having as many rows than resp.var values. Each column correspund to a Pseudo-absences selection. It contains TRUE or FALSE indicating which values of resp.var will be considered to build models. It must be used with `user.defined' PA.strategy.
+# na.rm logical, if TRUE, all points having one or several missing value for environmental data will be removed from analysis
+
+
+# This uses the biomods function BIOMOD_FormatingData to format user input data. 
+# It generates pseudo absence points if true absence data are not available or 
+# adds pseudo absence data to an existing absence dataset.
+bccvl.biomod2.formatData <- function(absen.filename=NULL,
+                                  pseudo.absen.enabled=FALSE,
+                                  pseudo.absen.points=0,
+                                  pseudo.absen.strategy='random',
+                                  climate.data=NULL,
+                                  occur=NULL,
+                                  species.name=NULL,
+                                  save.pseudo.absen=TRUE) {
+   
     if (pseudo.absen.enabled) {
-        # generate randomPoints
-        bkgd = randomPoints(
-            climate.data,
-            pseudo.absen.points,
-            occur.data)
-        # as data frame
-        absen = as.data.frame(bkgd)
-        # rename columns
-        names(absen) <- c("lon","lat")
-    } else {
-        # otherwise read absence ponits from file
-        absen = bccvl.species.read(absen.data) #read in the background position data lon.lat
+        pseudo.absen.rep = 1
+        # create an empty data frame for bkgd points
+        absen = data.frame(lon=numeric(0), lat=numeric(0))
+    }
+    else {
+        pseudo.absen.rep = 0
+        # read absence points from file
+        absen = bccvl.species.read(absen.filename)
         # keep only lon and lat columns
         absen = absen[c("lon","lat")]
     }
-    return(absen);
+
+    biomod.data <- rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
+    biomod.data.pa <- c(rep(1, nrow(occur)), rep(0, nrow(absen)))
+    myBiomodData <-
+        BIOMOD_FormatingData(resp.var  = biomod.data.pa,
+                             expl.var  = climate.data,
+                             resp.xy   = biomod.data,
+                             resp.name = species.name,
+                             PA.nb.rep = pseudo.absen.rep,
+                             PA.nb.absences = pseudo.absen.points,
+                             PA.strategy = pseudo.absen.strategy)
+
+    # Save the pseudo absence points generated to file
+    if (save.pseudo.absen) {
+        pseudoAbsen = myBiomodData@coord[c(which(is.na(myBiomodData@data.species))), c('lon', 'lat')]
+        if (nrow(pseudoAbsen) > 0) {
+            bccvl.write.csv(pseudoAbsen, 'pseudo_absences.csv', rownames = FALSE)
+        }
+    }
+    return(myBiomodData)
 }
 
 # warning was doing odd things. I just want to print the deng thing.
@@ -410,9 +448,9 @@ bccvl.save <- function(robj, name, outputdir=bccvl.env$outputdir) {
 }
 
 # function to save CSV Data in outputdir
-bccvl.write.csv <- function(robj, name, outputdir=bccvl.env$outputdir) {
+bccvl.write.csv <- function(robj, name, outputdir=bccvl.env$outputdir, rownames=TRUE) {
     filename = file.path(outputdir, name)
-    write.csv(robj, file=filename)
+    write.csv(robj, file=filename, row.names=rownames)
 }
 
 # function to get model object

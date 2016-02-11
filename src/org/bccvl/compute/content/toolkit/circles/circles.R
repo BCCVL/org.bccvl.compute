@@ -60,21 +60,19 @@ if (!is.null(enviro.data.constraints)) {
   occur <- constrainedResults$occur
 }
 
-# TODO: Update number of pseudo absence points
 
-# prepare absence points
-absen = bccvl.dismo.absence(absen.data,
-                            bccvl.params$species_pseudo_absence_points,
-                            bccvl.params$species_number_pseudo_absence_points,
-                            current.climate.scenario,
-                            occur)
-
-# extract enviro data for species observation points and append to species data
-occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-if (!is.null(absen)) {
-    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
-}
-
+# Format the data as in biomod2. This will also generate the psedo absence points.
+biomod2.data = bccvl.biomod2.formatData(absen.filename  = absen.data,
+                                  pseudo.absen.enabled  = bccvl.params$species_pseudo_absence_points,
+                                  pseudo.absen.points   = bccvl.params$species_number_pseudo_absence_points,
+                                  pseudo.absen.strategy = 'random',
+                                  climate.data          = current.climate.scenario,
+                                  occur                 = occur,
+                                  species.name          = occur.species,
+                                  save.pseudo.absen     = FALSE)
+# Extract occurrence and absence data
+coord = cbind(biomod2.data@coord, biomod2.data@data.env.var)
+occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
 
 ###############
 #
