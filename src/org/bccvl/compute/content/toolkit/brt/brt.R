@@ -63,7 +63,7 @@ biomod.models.eval.meth = c("KAPPA", "TSS", "ROC", "FAR", "SR", "ACCURACY", "BIA
 model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 
 # read current climate data
-current.climate.scenario = bccvl.enviro.stack(enviro.data.current, resamplingflag="lowest")
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, resamplingflag="lowest")
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
@@ -78,20 +78,6 @@ if (!is.null(enviro.data.constraints)) {
   occur <- constrainedResults$occur
 }
 
-# TODO: Update number of pseudo absence points
-
-# prepare absence points
-absen = bccvl.dismo.absence(absen.data,
-                            bccvl.params$species_pseudo_absence_points,
-                            bccvl.params$species_number_pseudo_absence_points,
-                            current.climate.scenario,
-                            occur)
-
-# extract enviro data for species observation points and append to species data
-occur = cbind(occur, extract(current.climate.scenario, cbind(occur$lon, occur$lat)))
-if (!is.null(absen)) {
-    absen = cbind(absen, extract(current.climate.scenario, cbind(absen$lon, absen$lat)))
-}
 
 
 ############################################################
@@ -769,8 +755,22 @@ function (data,                             # the input dataframe
 # to be kept
 
 
+# Format the data as in biomod2. This will also generate the psedo absence points.
+biomod2.data = bccvl.biomod2.formatData(absen.filename  = absen.data,
+                                  pseudo.absen.enabled  = bccvl.params$species_pseudo_absence_points,
+                                  pseudo.absen.points   = bccvl.params$species_number_pseudo_absence_points,
+                                  pseudo.absen.strategy = 'random',
+                                  climate.data          = current.climate.scenario,
+                                  occur                 = occur,
+                                  species.name          = occur.species)
 
-brt.data = rbind(occur,absen)
+# Extract occurrence and absence data
+coord = cbind(biomod2.data@coord, biomod2.data@data.env.var)
+occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
+absen = coord[c(which(biomod2.data@data.species == 0 | is.na(biomod2.data@data.species))), names(coord)]
+
+
+brt.data = coord
 # setup the data as needed
 brt.data$pa = c(rep(1,nrow(occur)),rep(0,nrow(absen)))
 # run the algorithm
