@@ -8,6 +8,11 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png"
         },
+        "pseudo_absences.csv": {
+            "title": "Pseudo Absence Points",
+            "genre": "DataGenreSpeciesAbsence",
+            "mimetype": "text/csv"
+        },
         "*.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
