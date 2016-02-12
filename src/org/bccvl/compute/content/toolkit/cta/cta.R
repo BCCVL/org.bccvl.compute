@@ -170,13 +170,16 @@ if (!is.null(enviro.data.constraints)) {
 # NOTE: for method and parms, you can give a 'real' value as described in the rpart help file or 'default' that implies default rpart values.
 
 # 1. Format the data as required by the biomod package
-model.data = bccvl.biomod2.formatData(absen.filename    = absen.data,
-                                  pseudo.absen.enabled  = bccvl.params$species_pseudo_absence_points,
-                                  pseudo.absen.points   = bccvl.params$species_number_pseudo_absence_points,
-                                  pseudo.absen.strategy = 'random',
-                                  climate.data          = current.climate.scenario,
-                                  occur                 = occur,
-                                  species.name          = biomod.species.name)
+model.data = bccvl.biomod2.formatData(absen.filename     = absen.data,
+                                  pseudo.absen.enabled   = bccvl.params$species_pseudo_absence_points,
+                                  pseudo.absen.points    = bccvl.params$species_number_pseudo_absence_points,
+                                  pseudo.absen.strategy  = bccvl.params$pa_strategy,
+                                  pseudo.absen.disk.min  = bccvl.params$pa_disk_min,
+                                  pseudo.absen.disk.max  = bccvl.params$pa_disk_max,
+                                  pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
+                                  climate.data           = current.climate.scenario,
+                                  occur                  = occur,
+                                  species.name           = biomod.species.name)
 
 # 2. Define the model options
 model.options <- BIOMOD_ModelingOptions(CTA = model.options.cta)

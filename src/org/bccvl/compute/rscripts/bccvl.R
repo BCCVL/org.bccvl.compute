@@ -263,6 +263,9 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                                   pseudo.absen.enabled=FALSE,
                                   pseudo.absen.points=0,
                                   pseudo.absen.strategy='random',
+                                  pseudo.absen.disk.min=0,
+                                  pseudo.absen.disk.max=NULL,
+                                  pseudo.absen.sre.quant = 0.025,
                                   climate.data=NULL,
                                   occur=NULL,
                                   species.name=NULL,
@@ -281,6 +284,17 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         absen = absen[c("lon","lat")]
     }
 
+    # Initialise parameters to default value if not specified
+    if (is.null(pseudo.absen.strategy)) {
+        pseudo.absen.strategy = 'random'
+    }
+    if (is.null(pseudo.absen.disk.min)) {
+        pseudo.absen.disk.min = 0
+    }
+    if (is.null(pseudo.absen.sre.quant)) {
+        pseudo.absen.sre.quant = 0.025
+    }
+
     biomod.data <- rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
     biomod.data.pa <- c(rep(1, nrow(occur)), rep(0, nrow(absen)))
     myBiomodData <-
@@ -290,7 +304,10 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                              resp.name = species.name,
                              PA.nb.rep = pseudo.absen.rep,
                              PA.nb.absences = pseudo.absen.points,
-                             PA.strategy = pseudo.absen.strategy)
+                             PA.strategy = pseudo.absen.strategy,
+                             PA.dist.min = pseudo.absen.disk.min,
+                             PA.dist.max = pseudo.absen.disk.max,
+                             PA.sre.quant = pseudo.absen.sre.quant)
 
     # Save the pseudo absence points generated to file
     if (save.pseudo.absen) {

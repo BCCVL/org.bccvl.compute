@@ -62,14 +62,17 @@ if (!is.null(enviro.data.constraints)) {
 
 
 # Format the data as in biomod2. This will also generate the psedo absence points.
-biomod2.data = bccvl.biomod2.formatData(absen.filename  = absen.data,
-                                  pseudo.absen.enabled  = bccvl.params$species_pseudo_absence_points,
-                                  pseudo.absen.points   = bccvl.params$species_number_pseudo_absence_points,
-                                  pseudo.absen.strategy = 'random',
-                                  climate.data          = current.climate.scenario,
-                                  occur                 = occur,
-                                  species.name          = occur.species,
-                                  save.pseudo.absen     = FALSE)
+biomod2.data = bccvl.biomod2.formatData(absen.filename   = absen.data,
+                                  pseudo.absen.enabled   = bccvl.params$species_pseudo_absence_points,
+                                  pseudo.absen.points    = bccvl.params$species_number_pseudo_absence_points,
+                                  pseudo.absen.strategy  = bccvl.params$pa_strategy,
+                                  pseudo.absen.disk.min  = bccvl.params$pa_disk_min,
+                                  pseudo.absen.disk.max  = bccvl.params$pa_disk_max,
+                                  pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
+                                  climate.data           = current.climate.scenario,
+                                  occur                  = occur,
+                                  species.name           = occur.species,
+                                  save.pseudo.absen      = FALSE)
 
 # Extract occurrence and absence data
 coord = cbind(biomod2.data@coord, biomod2.data@data.env.var)
