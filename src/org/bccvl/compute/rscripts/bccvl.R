@@ -344,10 +344,11 @@ bccvl.raster.resample.resolution <- function(rasters, resamplingflag)
 
 # raster.filenames : a vector of filenames that will be loaded as rasters
 # resamplingflag: a flag to determine which resampling approach to take
-bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, resamplingflag)
+bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, raster.types, resamplingflag)
 {
-    # Load rasters
-    rasters = lapply(raster.filenames, raster)
+    # Load rasters. For categorical raster, load it as factor
+    rasters = c(lapply(raster.filenames[which(raster.types == "continuous")], raster), 
+                lapply(lapply(raster.filenames[which(raster.types != "continuous")], raster), as.factor));
     
     # Crop to common extent
     ce = bccvl.raster.common.extent(rasters)
@@ -379,9 +380,9 @@ bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filen
 # return a RasterStack of given vector of input files
 # intersecting extent
 # lowest or highest resolution depending upon flag
-bccvl.enviro.stack <- function(filenames, resamplingflag) {
+bccvl.enviro.stack <- function(filenames, types, resamplingflag) {
 
-    rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, resamplingflag)
+    rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, types, resamplingflag)
     rasterstack = stack(rasters)
     if (is.na(crs(rasterstack))) {
         # Default to EPSG:4326

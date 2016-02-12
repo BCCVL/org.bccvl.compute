@@ -91,7 +91,7 @@ model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 
 # read current climate data
 # TODO: check env.data for spatial reference
-current.climate.scenario = bccvl.enviro.stack(enviro.data.current, resamplingflag="lowest")
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, resamplingflag="lowest")
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
