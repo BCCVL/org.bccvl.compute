@@ -203,6 +203,7 @@ parameter.print <- function(params) {
         pnames = c("prevalence", "var_import", "quant", "random_seed")
     }
 
+    pnames = c(pnames, "pa_ratio", "pa_strategy", "pa_sre_quant", "pa_disk_min", "pa_disk_max")
     for (p in pnames) {
         cat(parameter.as.string(p, params[[p]]))
     }
@@ -260,7 +261,6 @@ bccvl.species.read <- function(filename) {
 # It generates pseudo absence points if true absence data are not available or 
 # adds pseudo absence data to an existing absence dataset.
 bccvl.biomod2.formatData <- function(absen.filename=NULL,
-                                  pseudo.absen.enabled=FALSE,
                                   pseudo.absen.points=0,
                                   pseudo.absen.strategy='random',
                                   pseudo.absen.disk.min=0,
@@ -270,18 +270,29 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                                   occur=NULL,
                                   species.name=NULL,
                                   save.pseudo.absen=TRUE) {
-   
-    if (pseudo.absen.enabled) {
-        pseudo.absen.rep = 1
+
+    # Read true absence point if available. Will generate pseudo absence point if
+    # there is not enough absence point.    
+    if (is.null(absen.filename)) {        
         # create an empty data frame for bkgd points
         absen = data.frame(lon=numeric(0), lat=numeric(0))
     }
     else {
-        pseudo.absen.rep = 0
+        
         # read absence points from file
         absen = bccvl.species.read(absen.filename)
         # keep only lon and lat columns
         absen = absen[c("lon","lat")]
+    }
+
+    # Check if we need to generate pseudo absence point here,
+    # as BIOMOD_FormatingData() cannot handle it properly if
+    # number of true absence points is more than pseudo absence
+    # point required.
+    pseudo.absen.rep = 1
+    if (nrow(absen) >=  pseudo.absen.points) {
+        pseudo.absen.rep = 0
+        cat("No pseudo absence points are generated as there are enought absence points.")
     }
 
     # Initialise parameters to default value if not specified

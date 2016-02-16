@@ -60,11 +60,12 @@ if (!is.null(enviro.data.constraints)) {
   occur <- constrainedResults$occur
 }
 
+# Circle algorithm does not need pseudo absence points
+pa_number_point = 0
 
 # Format the data as in biomod2. This will also generate the psedo absence points.
 biomod2.data = bccvl.biomod2.formatData(absen.filename   = absen.data,
-                                  pseudo.absen.enabled   = bccvl.params$species_pseudo_absence_points,
-                                  pseudo.absen.points    = bccvl.params$species_number_pseudo_absence_points,
+                                  pseudo.absen.points    = pa_number_point,
                                   pseudo.absen.strategy  = bccvl.params$pa_strategy,
                                   pseudo.absen.disk.min  = bccvl.params$pa_disk_min,
                                   pseudo.absen.disk.max  = bccvl.params$pa_disk_max,

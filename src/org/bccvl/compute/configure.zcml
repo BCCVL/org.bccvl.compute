@@ -30,6 +30,10 @@
         name="lm_na_action_vocab" />
 
     <utility
+        component=".vocabularies.pa_strategy_vocab_factory"
+        name="pa_strategy_vocab" />        
+
+    <utility
         component=".rscript.execute_sdm"
         name="org.bccvl.site.content.interfaces.ISDMExperiment"
     />

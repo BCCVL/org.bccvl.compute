@@ -40,3 +40,15 @@ lm_na_action_vocab = SimpleVocabulary([
 @provider(IVocabularyFactory)
 def lm_na_action_vocab_factory(context):
     return lm_na_action_vocab
+
+
+pa_strategy_vocab = SimpleVocabulary([
+    SimpleTerm('random', 'random', 'random'),
+    SimpleTerm('sre', 'sre', 'sre'),
+    SimpleTerm('disk', 'disk', 'disk'),
+])
+
+
+@provider(IVocabularyFactory)
+def pa_strategy_vocab_factory(context):
+    return pa_strategy_vocab
