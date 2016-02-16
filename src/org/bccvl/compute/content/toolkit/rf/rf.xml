@@ -74,5 +74,37 @@
       <min>-2147483648</min>
       <max>2147483647</max>      
     </field>    
+    <field name="pa_ratio" type="zope.schema.Decimal">
+      <default>1</default>
+      <description>Ratio of pseudo absence/presence points</description>
+      <required>True</required>
+      <title>PA ratio</title>
+      <min>0</min>
+    </field>
+    <field name="pa_strategy" type="zope.schema.Choice">
+      <description>Pseudo Absences strategy</description>
+      <required>False</required>
+      <title>PA strategy</title>
+      <vocabulary>pa_strategy_vocab</vocabulary>
+    </field>
+    <field name="pa_sre_quant" type="zope.schema.Decimal">
+      <description>The quantile use for sre calculation in PA generation when sre PA strategy is chosen</description>
+      <required>False</required>
+      <title>PA sre quant</title>
+      <min>0</min>
+    </field>
+    <field name="pa_disk_min" type="zope.schema.Decimal">
+      <default>0</default>
+      <description>Pseudo Absences minimum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <required>False</required>
+      <title>PA disk min distance</title>
+      <min>0</min>
+    </field>
+    <field name="pa_disk_max" type="zope.schema.Decimal">
+      <description>Pseudo Absences maxmum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <required>False</required>
+      <title>PA disk max distance</title>
+      <min>0</min>
+    </field>
   </schema>
 </model>

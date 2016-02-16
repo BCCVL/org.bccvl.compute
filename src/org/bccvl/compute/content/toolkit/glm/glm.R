@@ -112,6 +112,12 @@ if (!is.null(enviro.data.constraints)) {
   occur <- constrainedResults$occur
 }
 
+# Determine the number of pseudo absence points from pa_ratio
+pa_ratio = bccvl.params$pa_ratio
+pa_number_point = 0
+if (pa_ratio > 0) {
+  pa_number_point = floor(pa_ratio * nrow(occur))
+}
 
 ###run the models and store models
 ############### BIOMOD2 Models ###############
@@ -165,13 +171,15 @@ if (!is.null(enviro.data.constraints)) {
 #		trace - logical indicating if output should be produced for each iteration
 
 # 1. Format the data as required by the biomod package
-model.data = bccvl.biomod2.formatData(absen.filename    = absen.data,
-                                  pseudo.absen.enabled  = bccvl.params$species_pseudo_absence_points,
-                                  pseudo.absen.points   = bccvl.params$species_number_pseudo_absence_points,
-                                  pseudo.absen.strategy = 'random',
-                                  climate.data          = current.climate.scenario,
-                                  occur                 = occur,
-                                  species.name          = biomod.species.name)
+model.data = bccvl.biomod2.formatData(absen.filename     = absen.data,
+                                  pseudo.absen.points    = pa_number_point,
+                                  pseudo.absen.strategy  = bccvl.params$pa_strategy,
+                                  pseudo.absen.disk.min  = bccvl.params$pa_disk_min,
+                                  pseudo.absen.disk.max  = bccvl.params$pa_disk_max,
+                                  pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
+                                  climate.data           = current.climate.scenario,
+                                  occur                  = occur,
+                                  species.name           = biomod.species.name)
 
 # 2. Define the model options
 model.options <- BIOMOD_ModelingOptions(GLM = model.options.glm)
