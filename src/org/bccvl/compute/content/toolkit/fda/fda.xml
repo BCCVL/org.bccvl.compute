@@ -52,14 +52,15 @@
     </field>    
     <field name="pa_ratio" type="zope.schema.Decimal">
       <default>1</default>
-      <description>Ratio of pseudo absence/presence points</description>
-      <required>True</required>
-      <title>PA ratio</title>
+      <description>Ratio of absence to presence points</description>
+      <required>False</required>
+      <title>absence-presence ratio</title>
       <min>0</min>
     </field>
     <field name="pa_strategy" type="zope.schema.Choice">
+      <default>random</default>      
       <description>Pseudo Absences strategy</description>
-      <required>False</required>
+      <required>True</required>
       <title>PA strategy</title>
       <vocabulary>pa_strategy_vocab</vocabulary>
     </field>

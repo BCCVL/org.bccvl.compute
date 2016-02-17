@@ -150,6 +150,9 @@ parameter.as.string <- function (param, value) {
     else if (param == "maxnodes") {
         pname = "maximum nodes"
     }
+    else if (param == "pa_ratio") {
+        pname = "absence-presence ratio"
+    }
     return(paste(pname, " = ", value, "\n", sep="", collapse=""))
 }
 
@@ -271,28 +274,16 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                                   species.name=NULL,
                                   save.pseudo.absen=TRUE) {
 
-    # Read true absence point if available. Will generate pseudo absence point if
-    # there is not enough absence point.    
+    # Read true absence point if available.
     if (is.null(absen.filename)) {        
         # create an empty data frame for bkgd points
         absen = data.frame(lon=numeric(0), lat=numeric(0))
     }
     else {
-        
         # read absence points from file
         absen = bccvl.species.read(absen.filename)
         # keep only lon and lat columns
         absen = absen[c("lon","lat")]
-    }
-
-    # Check if we need to generate pseudo absence point here,
-    # as BIOMOD_FormatingData() cannot handle it properly if
-    # number of true absence points is more than pseudo absence
-    # point required.
-    pseudo.absen.rep = 1
-    if (nrow(absen) >=  pseudo.absen.points) {
-        pseudo.absen.rep = 0
-        cat("No pseudo absence points are generated as there are enought absence points.")
     }
 
     # Initialise parameters to default value if not specified
@@ -305,6 +296,16 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
     if (is.null(pseudo.absen.sre.quant)) {
         pseudo.absen.sre.quant = 0.025
     }
+
+    # Check if we need to generate pseudo absence point here.
+    # as BIOMOD_FormatingData() cannot handle it properly if
+    # number of true absence points is more than absence
+    # point required.
+    pseudo.absen.rep = 1
+    if (pseudo.absen.strategy == 'none' | nrow(absen) >=  pseudo.absen.points) {
+        pseudo.absen.rep = 0
+        cat("No pseudo absence point is generated.")
+    }    
 
     biomod.data <- rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
     biomod.data.pa <- c(rep(1, nrow(occur)), rep(0, nrow(absen)))
