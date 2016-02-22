@@ -46,6 +46,7 @@ pa_strategy_vocab = SimpleVocabulary([
     SimpleTerm('random', 'random', 'random'),
     SimpleTerm('sre', 'sre', 'sre'),
     SimpleTerm('disk', 'disk', 'disk'),
+    SimpleTerm('none', 'none', 'none'),
 ])
 
 
