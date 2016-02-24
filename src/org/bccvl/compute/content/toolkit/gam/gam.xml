@@ -79,7 +79,7 @@
     </field>
     <field name="mgcv_tol" type="zope.schema.Decimal">
       <default>1E-7</default>
-      <required>True</required>
+      <required>False</required>
       <title>convergence tolerance</title>
       <description>the convergence tolerance parameter to use in the GCV/UBRE optimization</description>
     </field>
