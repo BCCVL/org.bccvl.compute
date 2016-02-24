@@ -77,7 +77,7 @@
       <description>maximum number of IRLS iterations to perform</description>
       <min>0</min>
     </field>
-    <field name="mgcv_tol" type="zope.schema.TextLine">
+    <field name="mgcv_tol" type="zope.schema.Decimal">
       <default>1E-7</default>
       <required>False</required>
       <title>convergence tolerance</title>

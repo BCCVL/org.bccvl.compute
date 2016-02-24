@@ -72,7 +72,7 @@
       <description>starting values for the vector of means</description>
       <title>mustart</title>
     </field>
-    <field name="control_epsilon" type="zope.schema.TextLine">
+    <field name="control_epsilon" type="zope.schema.Decimal">
       <default>1E-8</default>
       <description>positive convergence tolerance e</description>
       <title>control: epsilon</title>
