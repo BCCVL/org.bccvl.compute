@@ -72,6 +72,7 @@ class ResultSource(object):
         self.options = options
         self.previous = previous
         self.items = options.get('items')
+        # FIXME: self.path is not being used anymore
         self.path = options['path'].strip()
         # if self.path is None or not os.path.isdir(self.path):
         #     raise Exception(
@@ -131,7 +132,8 @@ class ResultSource(object):
             'title': import_item.get('title', u''),
             'description': import_item.get('description', u''),
             'bccvlmetadata': bccvlmd,
-            '_layermd': import_item.get('layermd', {})
+            '_layermd': import_item.get('layermd', {}),
+            '_partof': import_item.get('_partof'),
         }
 
         # dataset or remotedataset?
