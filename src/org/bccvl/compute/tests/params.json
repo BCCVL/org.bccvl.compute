@@ -1,0 +1,59 @@
+{
+    "env": {
+        "outputdir": "output", 
+        "workdir": "."
+    }, 
+    "params": {
+        "data_split": 80, 
+        "do_full_models": false, 
+        "environmental_datasets": [
+            {
+                "filename": "../data/mini_current_50to00_.3/bioclim_01.tif", 
+                "layer": "bioclim_01", 
+                "type": "continuous"
+           }, 
+            {
+                "filename": "../data/mini_current_50to00_.3/bioclim_04.tif", 
+                "layer": "bioclim_04", 
+                "type": "continuous"
+           }, 
+            {
+                "filename": "../data/mini_current_50to00_.3/bioclim_12.tif", 
+                "layer": "bioclim_12", 
+                "type": "continuous" 
+           }, 
+            {
+                "filename": "../data/mini_current_50to00_.3/bioclim_15.tif", 
+                "layer": "bioclim_15", 
+                "type": "continuous"
+           } 
+       ], 
+        "maxit": 200, 
+        "modeling_id": "bccvl", 
+        "nb_run_eval": 1, 
+        "nbcv": 5, 
+        "prevalence": 0.5, 
+        "random_seed": 1, 
+        "rang": 0.1, 
+        "rescale_all_models": true, 
+        "selected_models": "all", 
+        "compress": "xz",
+        "species_absence_dataset": {
+            "filename": "../data/koala/absence/absence.csv"
+        }, 
+        "species_occurrence_dataset": {
+            "filename": "../data/koala/occurrence/occurrence.csv", 
+            "species": "koala"
+        }, 
+        "tails": "both", 
+        "var_import": 3,
+        "pa_ratio": 0,
+        "pa_strategy": "none",
+        "method": "class",
+        "control_xval": 5,
+        "control_minbucket": 5,
+        "control_minsplit": 5,
+        "cp": 0.001,
+        "maxdepth": 25
+    }
+}
