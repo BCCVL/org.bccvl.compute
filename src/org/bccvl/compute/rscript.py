@@ -40,7 +40,9 @@ def get_sdm_params(result):
 
     # get all necessary metadata for files, and add worker hints to download files
     for paramname in ('species_occurrence_dataset', 'species_absence_dataset'):
-        # TODO: absence might be none
+        # Skip empty or non existing params
+        if not params.get(paramname, None):
+            continue
         uuid = params[paramname]
         params[paramname] = getdatasetparams(uuid)
         # replace all spaces and underscores to '.' (biomod does the same)
@@ -69,8 +71,8 @@ def get_sdm_params(result):
     params['environmental_datasets'] = envlist
     # add hints for worker to download files
     workerhints = {
-        'files':  ('species_occurrence_dataset', 'species_absence_dataset',
-                   'environmental_datasets')
+        # only those parameters that are actually in params dict
+        'files':  [x for x in ('species_occurrence_dataset', 'species_absence_dataset', 'environmental_datasets') if x in params]
     }
     return {'env': {}, 'params': params, 'worker': workerhints}
 
