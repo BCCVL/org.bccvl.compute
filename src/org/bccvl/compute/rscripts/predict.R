@@ -18,12 +18,16 @@ sdm.model.file = bccvl.params$species_distribution_models$filename
 projection.name = bccvl.params$projection_name
 #geographic constraints
 enviro.data.constraints = bccvl.params$projection_region
+# resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
+enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
+                                ! as.logical(bccvl.params$scale_down),
+                                'highest', 'lowest')
 
 future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x) x$filename)
 future.climate.data.type = lapply(bccvl.params$future_climate_datasets, function(x) x$type)
 
 projectdataset <- function(model.obj, futuredata, datatype, projection.name, species) {
-    future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, resamplingflag="lowest")
+    future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, resamplingflag=enviro.data.resampling)
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario)
     # geographically constrained modelling
