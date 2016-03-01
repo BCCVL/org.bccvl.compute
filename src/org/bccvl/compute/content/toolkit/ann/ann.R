@@ -28,6 +28,10 @@ enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 #geographic constraints
 enviro.data.constraints = bccvl.params$modelling_region
+# resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
+enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
+                                ! as.logical(bccvl.params$scale_down),
+                                'highest', 'lowest')
 
 ############### BIOMOD2 Models ###############
 #
@@ -91,7 +95,7 @@ model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 
 # read current climate data
 # TODO: check env.data for spatial reference
-current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, resamplingflag="lowest")
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, resamplingflag=enviro.data.resampling)
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
