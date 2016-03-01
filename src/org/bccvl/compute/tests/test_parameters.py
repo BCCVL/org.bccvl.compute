@@ -3,10 +3,7 @@ import json
 from pkg_resources import resource_listdir
 from pkg_resources import resource_isdir
 from pkg_resources import resource_string
-import org.bccvl.compute
 import os.path
-from zope.interface.verify import verifyClass
-from zope.interface.verify import verifyObject
 
 
 class Test_algorithm_config(unittest.TestCase):
