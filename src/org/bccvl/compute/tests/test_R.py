@@ -539,7 +539,7 @@ class Test_GEODIST(BaseTestCase.AlgorithmTestCase):
         'content/toolkit/geoDist/geoDist.R'
     ]
     md5_digests = {
-        'proj_current_Rhinella.tif' : '896efaaded8035a41ec8b67b23af81b0',
+        'proj_current_Rhinella.tif' : 'df899c0d1d10ae0c6169e1afe4047860',
         'Rhinella.model.object.RData' : None
     }
 
