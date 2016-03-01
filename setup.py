@@ -24,9 +24,10 @@ setup(
     namespace_packages=['org', 'org.bccvl'],
     include_package_data=True,
     zip_safe=False,
+    test_suite='org.bccvl.compute.tests',
     install_requires=[
         'setuptools',  # distribute
-        'gu.transmogrifier',
+        'zope.i18nmessageid',
     ],
     extras_require={
         'test': [
