@@ -237,4 +237,4 @@ loaded.model = BIOMOD_LoadModels(model.sdm, models="CTA") # load model
 bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm) 	# save output
 
 # save the projection
-bccvl.saveProjection(model.proj)
+bccvl.saveProjection(model.proj, biomod.species.name)

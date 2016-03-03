@@ -41,7 +41,7 @@ bccvl.saveNewEvaluation <- function(out.summary, out.performance){
     bccvl.write.csv(data.frame(out.performance), name="evaluation.performance.csv")
 }
 
-bccvl.saveProjection <- function(proj.model) {
+bccvl.saveProjection <- function(proj.model, species) {
   basename = paste("proj", 'current', species, sep="_")
   png(file=file.path(bccvl.env$outputdir, paste(basename, 'png', sep=".")))
   plot(proj.model)

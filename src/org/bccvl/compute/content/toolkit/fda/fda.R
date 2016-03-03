@@ -214,4 +214,4 @@ loaded.model = BIOMOD_LoadModels(model.sdm, models="FDA") # load model
 bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)
 
 # save the projection
-bccvl.saveProjection(model.proj)
+bccvl.saveProjection(model.proj, biomod.species.name)
