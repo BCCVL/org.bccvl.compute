@@ -216,3 +216,6 @@ bccvl.grdtogtiff(file.path(getwd(),
 # evaluate model
 loaded.model = BIOMOD_LoadModels(model.sdm, models="ANN") # load model
 bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)
+
+# save the projection
+bccvl.saveProjection(model.proj)

@@ -469,6 +469,12 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
     basename = paste("proj", projection.name, species, sep="_")
     filename = file.path(outputdir, paste(basename, 'tif', sep="."))
     writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
+
+    # Save as image as well
+    png(file.path(outputdir, paste(basename, 'png', sep=".")))
+    title = paste(species, projection.name, "projections", sep=" ")
+    plot(model.obj, xlab="latitude", ylab="longtitude", main=title)
+    dev.off()
 }
 
 # function to save RData in outputdir
