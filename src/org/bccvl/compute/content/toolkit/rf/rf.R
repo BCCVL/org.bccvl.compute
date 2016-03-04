@@ -26,6 +26,8 @@ absen.data = bccvl.params$species_absence_dataset$filename
 enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
 #type in terms of continuous or categorical
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
+#layer names for the current environmental layers used
+enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
 #geographic constraints
 enviro.data.constraints = bccvl.params$modelling_region
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'

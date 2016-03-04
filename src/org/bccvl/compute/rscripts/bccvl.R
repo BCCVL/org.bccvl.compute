@@ -409,7 +409,7 @@ bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filen
 # return a RasterStack of given vector of input files
 # intersecting extent
 # lowest or highest resolution depending upon flag
-bccvl.enviro.stack <- function(filenames, types, resamplingflag) {
+bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
 
     rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, types, resamplingflag)
     rasterstack = stack(rasters)
@@ -417,6 +417,7 @@ bccvl.enviro.stack <- function(filenames, types, resamplingflag) {
         # Default to EPSG:4326
         crs(rasterstack) <- '+init=epsg:4326'
     }
+    names(rasterstack) = unlist(layernames)
     return(rasterstack)
 }
 
