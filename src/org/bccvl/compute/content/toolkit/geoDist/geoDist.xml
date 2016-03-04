@@ -10,37 +10,37 @@
       <min>-2147483648</min>
       <max>2147483647</max>      
     </field>    
-    <field name="pa_ratio" type="zope.schema.Decimal">
+    <field name="pa_ratio" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
       <default>1</default>
-      <description>Ratio of absence to presence points</description>
+      <description>ratio of absence to presence points</description>
       <required>False</required>
       <title>absence-presence ratio</title>
       <min>0</min>
     </field>
-    <field name="pa_strategy" type="zope.schema.Choice">
+    <field name="pa_strategy" type="zope.schema.Choice" form:mode="z3c.form.interfaces.IForm:hidden">
       <default>random</default>      
-      <description>Pseudo Absences strategy</description>
+      <description>pseudo-absence point generation strategy</description>
       <required>True</required>
-      <title>PA strategy</title>
+      <title>pseudo-absence strategy</title>
       <vocabulary>pa_strategy_vocab</vocabulary>
     </field>
-    <field name="pa_sre_quant" type="zope.schema.Decimal">
-      <description>The quantile use for sre calculation in PA generation when sre PA strategy is chosen</description>
+    <field name="pa_sre_quant" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
+      <description>the quantile used for SRE calculation for the 'SRE' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA sre quant</title>
+      <title>pseudo-absence SRE quantile</title>
       <min>0</min>
     </field>
-    <field name="pa_disk_min" type="zope.schema.Decimal">
+    <field name="pa_disk_min" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
       <default>0</default>
-      <description>Pseudo Absences minimum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>minimum distance from occurrence sites for the 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk min distance</title>
+      <title>pseudo-absence disk minimum distance</title>
       <min>0</min>
     </field>
-    <field name="pa_disk_max" type="zope.schema.Decimal">
-      <description>Pseudo Absences maxmum distance between pres and selected absences when disk PA strategy is chosen</description>
+    <field name="pa_disk_max" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
+      <description>maximum distance from occurrence sites for the 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk max distance</title>
+      <title>pseudo-absence disk maximum distance</title>
       <min>0</min>
     </field>
   </schema>  	
