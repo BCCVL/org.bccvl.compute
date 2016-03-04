@@ -31,6 +31,8 @@ setup(
     ],
     tests_require = [
         'numpy',
+        'scipy',
+        'Pillow',
         'scikit-image',
         'GDAL'
     ],
@@ -40,6 +42,8 @@ setup(
         ],
         'test_r': [
             'numpy',
+            'scipy',
+            'Pillow',
             'scikit-image',
             'GDAL'
         ]
