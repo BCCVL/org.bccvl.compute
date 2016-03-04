@@ -1,0 +1,9 @@
+"","lower","upper","type.of.loss","best"
+"bal.diag",0,0,"bal.diag",0
+"bal.pred",1,1,"bal.pred",1
+"all",1,1,"all",1
+"diag",1,1,"diag",1
+"pred",1,1,"pred",1
+"pos",0,1,"pos",0
+"eq.diag",1,1,"eq.diag",1
+"eq.pred",1,1,"eq.pred",1

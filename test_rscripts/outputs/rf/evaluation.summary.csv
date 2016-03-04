@@ -1,0 +1,9 @@
+"","lower","upper","type.of.loss","best"
+"bal.diag",0.039,0.243,"bal.diag",0.122
+"bal.pred",0.067,0.322,"bal.pred",0.183
+"all",0.305,0.597,"all",0.434
+"diag",0.231,0.473,"diag",0.322
+"pred",0.461,0.695,"pred",0.566
+"pos",0.075,0.811,"pos",0.422
+"eq.diag",0.396,0.396,"eq.diag",0.396
+"eq.pred",0.589,0.589,"eq.pred",0.589
