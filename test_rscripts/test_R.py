@@ -11,7 +11,6 @@ import json
 import os
 import os.path
 from pkg_resources import resource_string
-from pkg_resources import resource_filename
 import subprocess
 import shutil
 import tempfile
@@ -29,6 +28,7 @@ except ImportError:
 
 
 # A map for known csv files to parse the correct data types
+#    only str, int and float allowed, as  compare_csv is not handling anything else
 DTYPE_MAP = {
     'biomod2_like_VariableImportance.csv': [(str, 50), float, float, float, float],
     'biomod2.modelEvaluation.csv': [(str, 50), float, float, float, float],
@@ -46,12 +46,12 @@ def compare_geotiff(img1, img2, eps=1e-03):
     """
     d1 = gdal.Open(img1)
     b1 = d1.GetRasterBand(1)
-    a1 = np.ma.masked_equal(b1.ReadAsArray(), b1.GetNoDataValue())
+    a1 = np.nan_to_num(b1.ReadAsArray())  # replace no data with 0
     d2 = gdal.Open(img2)
     b2 = d2.GetRasterBand(1)
-    a2 = np.ma.masked_equal(b2.ReadAsArray(), b2.GetNoDataValue())
+    a2 = np.nan_to_num(b2.ReadAsArray())  # replace no data with 0
     # return true if the two arrays are equal (with tolerance)
-    return np.allclose(a1, a2, rtol=0, atol=eps, equal_nan=True)
+    return np.allclose(a1, a2, rtol=0, atol=eps)
 
 
 def compare_png(img1, img2, eps=0.99):
@@ -76,7 +76,8 @@ def compare_png(img1, img2, eps=0.99):
         nch = im1.shape[-1]
         mssim = np.empty(nch)
         for ch in range(nch):
-            ch_result = ssim(im1[..., ch], im2[..., ch])
+            # use copy to generate contiguous array and avoid warning
+            ch_result = ssim(im1[..., ch].copy(), im2[..., ch].copy())
             mssim[..., ch] = ch_result
         mssim = mssim.mean()
     return mssim > eps
@@ -101,9 +102,10 @@ def compare_csv(csv1, csv2, column_headers=True, eps=1e-3):
     ret = ret and (d1[fields] == d2[fields]).all()
     # compare all float type columns (with epsilon)
     fields = [field for field in d1.dtype.fields if d1.dtype[field].kind == 'f']
-    ret = ret and np.allclose(d1[fields].view('f'),
-                              d2[fields].view('f'),
-                              rtol=0, atol=eps, equal_nan=True)
+    # make copy of float view, so that we can safely replace nan's
+    f1 = np.nan_to_num(d1[fields].view((float, len(fields))))
+    f2 = np.nan_to_num(d2[fields].view((float, len(fields))))
+    ret = ret and np.allclose(f1, f2, rtol=0, atol=eps)
     return ret
 
 
@@ -134,10 +136,7 @@ class BaseTestCase(object):
                 jfile = open(os.path.join(temp_dir, 'params.json'), mode='w')
                 json.dump(self.params, jfile, indent=2)
                 # setup algorithm script
-                script = u'\n'.join([
-                    resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
-                    resource_string('org.bccvl.compute', 'rscripts/eval.R')] +
-                    [resource_string('org.bccvl.compute', script) for script in self.algo_scripts])
+                script = self.build_r_script()
                 test_script = os.path.join(temp_dir, 'test.R')
                 open(test_script, 'w').write(script)
             except Exception as e:
@@ -151,33 +150,42 @@ class BaseTestCase(object):
                 shutil.rmtree(self.temp_dir)
             self.temp_dir = None
 
+        def build_r_script(self):
+            return u'\n'.join([
+                resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
+                resource_string('org.bccvl.compute', 'rscripts/eval.R'),
+                resource_string('org.bccvl.compute', 'content/toolkit/{0}/{0}.R'.format(self.algo_name)),
+            ])
+
         def setup_parameters(self):
-            params = json.load(open(resource_filename('org.bccvl.compute', 'tests/params.json')))
+
+            data_dir = os.path.join(os.path.dirname(__file__), 'data', 'Rhinella')
+            params = json.load(open(os.path.join(os.path.dirname(__file__), 'params.json')))
             params["env"]["outputdir"] = self.out_dir
             params["env"]["workdir"] = self.temp_dir
-            params["params"]["species_absence_dataset"]["filename"] = resource_filename('org.bccvl.compute', 'tests/data/Rhinella/rhinella_absence.csv')
-            params["params"]["species_occurrence_dataset"]["filename"] = resource_filename('org.bccvl.compute', 'tests/data/Rhinella/rhinella_occurrence.csv')
+            params["params"]["species_absence_dataset"]["filename"] = os.path.join(data_dir, 'rhinella_absence.csv')
+            params["params"]["species_occurrence_dataset"]["filename"] = os.path.join(data_dir, 'rhinella_occurrence.csv')
             params["params"]["species_occurrence_dataset"]["species"] = 'Rhinella'
             params["params"]["environmental_datasets"] = [
                 {
                     "layer": "bioclim_01",
                     "type": "continuous",
-                    "filename": resource_filename('org.bccvl.compute', 'tests/data/Rhinella/B01.tif')
+                    "filename": os.path.join(data_dir, 'B01.tif')
                 },
                 {
                     "layer": "bioclim_04",
                     "type": "continuous",
-                    "filename": resource_filename('org.bccvl.compute', 'tests/data/Rhinella/B04.tif')
+                    "filename": os.path.join(data_dir, 'B04.tif')
                 },
                 {
                     "layer": "bioclim_12",
                     "type": "continuous",
-                    "filename": resource_filename('org.bccvl.compute', 'tests/data/Rhinella/B12.tif')
+                    "filename": os.path.join(data_dir, 'B12.tif')
                 },
                 {
                     "layer": "bioclim_15",
                     "type": "continuous",
-                    "filename": resource_filename('org.bccvl.compute', 'tests/data/Rhinella/B15.tif')
+                    "filename": os.path.join(data_dir, 'B15.tif')
                 }
             ]
             return params
@@ -271,10 +279,15 @@ class Test_ANN(BaseTestCase.AlgorithmTestCase):
         'rang': 0.1,
         'maxit': 200
     }
-    algo_scripts = [
-        'tests/SampleMat2.R',
-        'content/toolkit/ann/ann.R'
-    ]
+
+    def build_r_script(self):
+        return u'\n'.join([
+            resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
+            resource_string('org.bccvl.compute', 'rscripts/eval.R'),
+            open(os.path.join(os.path.dirname(__file__), 'SampleMat2.R')).read(),
+            resource_string('org.bccvl.compute', 'content/toolkit/{0}/{0}.R'.format(self.algo_name)),
+        ])
+
 
 
 class Test_CTA(BaseTestCase.AlgorithmTestCase):
@@ -288,9 +301,6 @@ class Test_CTA(BaseTestCase.AlgorithmTestCase):
         'control_cp': 0.001,
         'control_maxdepth': 25,
     }
-    algo_scripts = [
-        'content/toolkit/cta/cta.R'
-    ]
 
 
 class Test_FDA(BaseTestCase.AlgorithmTestCase):
@@ -299,9 +309,6 @@ class Test_FDA(BaseTestCase.AlgorithmTestCase):
     algo_params = {
         'method': 'mars',
     }
-    algo_scripts = [
-        'content/toolkit/fda/fda.R'
-    ]
 
 
 class Test_SRE(BaseTestCase.AlgorithmTestCase):
@@ -310,9 +317,6 @@ class Test_SRE(BaseTestCase.AlgorithmTestCase):
     algo_params = {
         'quant': 0.025,
     }
-    algo_scripts = [
-        'content/toolkit/sre/sre.R'
-    ]
 
 
 class Test_GAM(BaseTestCase.AlgorithmTestCase):
@@ -326,9 +330,6 @@ class Test_GAM(BaseTestCase.AlgorithmTestCase):
         'mgcv_tol': 1e-07,
         'mgcv_half': 15,
     }
-    algo_scripts = [
-        'content/toolkit/gam/gam.R'
-    ]
 
 
 class Test_GBM(BaseTestCase.AlgorithmTestCase):
@@ -344,9 +345,6 @@ class Test_GBM(BaseTestCase.AlgorithmTestCase):
         'train_fraction': 1,
         'cv_folds': 3,
     }
-    algo_scripts = [
-        'content/toolkit/gbm/gbm.R'
-    ]
 
 
 class Test_GLM(BaseTestCase.AlgorithmTestCase):
@@ -362,9 +360,6 @@ class Test_GLM(BaseTestCase.AlgorithmTestCase):
         'control_maxit': 50,
         'control_trace': False,
     }
-    algo_scripts = [
-        'content/toolkit/glm/glm.R'
-    ]
 
 
 class Test_MARS(BaseTestCase.AlgorithmTestCase):
@@ -376,9 +371,6 @@ class Test_MARS(BaseTestCase.AlgorithmTestCase):
         'thresh': 0.001,
         'prune': True,
     }
-    algo_scripts = [
-        'content/toolkit/mars/mars.R'
-    ]
 
 
 class Test_RF(BaseTestCase.AlgorithmTestCase):
@@ -390,9 +382,6 @@ class Test_RF(BaseTestCase.AlgorithmTestCase):
         'nodesize': 5,
         'mtry': 'default',
     }
-    algo_scripts = [
-        'content/toolkit/rf/rf.R'
-    ]
 
 
 class Test_MAXENT(BaseTestCase.AlgorithmTestCase):
@@ -414,9 +403,7 @@ class Test_MAXENT(BaseTestCase.AlgorithmTestCase):
         'beta_hinge': -1.0,
         'defaultprevalence': 0.5,
     }
-    algo_scripts = [
-        'content/toolkit/maxent/maxent.R'
-    ]
+
 
 class Test_BRT(BaseTestCase.AlgorithmTestCase):
 
@@ -433,54 +420,33 @@ class Test_BRT(BaseTestCase.AlgorithmTestCase):
         'tolerance_method': 'auto',
         'tolerance_value': 0.001,
     }
-    algo_scripts = [
-        'content/toolkit/brt/brt.R'
-    ]
 
 
 class Test_BIOCLIM(BaseTestCase.AlgorithmTestCase):
 
     algo_name = 'bioclim'
-    algo_scripts = [
-        'content/toolkit/bioclim/bioclim.R'
-    ]
 
 
 class Test_CIRCLES(BaseTestCase.AlgorithmTestCase):
 
     algo_name = 'circles'
-    algo_scripts = [
-        'content/toolkit/circles/circles.R'
-    ]
 
 
 class Test_CONVHULL(BaseTestCase.AlgorithmTestCase):
 
     algo_name = 'convHull'
-    algo_scripts = [
-        'content/toolkit/convHull/convHull.R'
-    ]
 
 
 class Test_VORONOIHULL(BaseTestCase.AlgorithmTestCase):
 
     algo_name = 'voronoiHull'
-    algo_scripts = [
-        'content/toolkit/voronoiHull/voronoiHull.R'
-    ]
 
 
 class Test_GEODIST(BaseTestCase.AlgorithmTestCase):
 
     algo_name = 'geoDist'
-    algo_scripts = [
-        'content/toolkit/geoDist/geoDist.R'
-    ]
 
 
 class Test_GEOIDW(BaseTestCase.AlgorithmTestCase):
 
     algo_name = 'geoIDW'
-    algo_scripts = [
-        'content/toolkit/geoIDW/geoIDW.R'
-    ]
