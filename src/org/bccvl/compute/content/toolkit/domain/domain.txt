@@ -9,8 +9,8 @@
             "mimetype": "image/png"
         },
         "proj_current_*.png": {
-            "title": "Projection to current",
-            "genre": "DataGenreCP",
+            "title": "Projection plot",
+            "genre": "DataGenreSDMEval",
             "mimetype": "image/png"
         },        
         "pseudo_absences.csv": {
