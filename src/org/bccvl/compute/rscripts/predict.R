@@ -25,11 +25,14 @@ enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
 
 future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x) x$filename)
 future.climate.data.type = lapply(bccvl.params$future_climate_datasets, function(x) x$type)
+#layer names for the current environmental layers used
+future.climate.data.layer = lapply(bccvl.params$future_climate_datasets, function(x) x$layer)
 
-projectdataset <- function(model.obj, futuredata, datatype, projection.name, species) {
-    future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, resamplingflag=enviro.data.resampling)
+
+projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species) {
+    future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, datalayername, resamplingflag=enviro.data.resampling)
     # filter out unused layers from future.climate.scenario
-    predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario)
+    predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario, futuredata)
     # geographically constrained modelling
     if (!is.null(enviro.data.constraints)) {
       constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, enviro.data.constraints);
@@ -121,4 +124,4 @@ if (tolower(file_ext(modelfile)) == "zip") {
 model.obj <- bccvl.getModelObject(modelfile)
 
 # use folder name of first dataset to generate name for projection output
-projectdataset(model.obj, future.climate.dataset, future.climate.data.type, projection.name, sdm.species)
+projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species)

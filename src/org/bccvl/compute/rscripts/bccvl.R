@@ -530,7 +530,7 @@ bccvl.grdtogtiff <- function(folder) {
 # model are the same as the ones used to create the model object
 #    model.obj     ... model to project
 #    climatelayers ... climate data to project onto
-bccvl.checkModelLayers <- function(model.obj, climatelayers) {
+bccvl.checkModelLayers <- function(model.obj, climatelayers, climate_filenames) {
     message("Checking environmental layers used for projection")
     # get the names of the environmental layers from the original model
     if (inherits(model.obj, "DistModel")) {
@@ -548,7 +548,21 @@ bccvl.checkModelLayers <- function(model.obj, climatelayers) {
     pred.layers = names(climatelayers)
 
     # check if the env layers were in the original model
-    if(sum(!(pred.layers %in% model.layers)) > 0 ){
+    if (sum(!(pred.layers %in% model.layers)) > 0 ){
+        # To do: Shall remove this sometimes later.
+        # The model layer name is to be matched to climate layer name, or its file name.
+        # This is to allow for old SDM result to be used.
+        if (sum(!(model.layers %in% pred.layers)) > 0){
+            filenames = lapply(climate_filenames, function(x) sub("^([^.]*).*", "\\1", basename(x)))
+            indexes = match(model.layers, filenames)
+            for (i in indexes){
+                if (!is.na(i)){
+                    pred.layers[i] = model.layers[i]    #Use the corresponding layer name in the model
+                }
+            }
+            names(climatelayers) = pred.layers
+        }
+
         message("Dropping environmental layers not used in the original model creation...")
         # create a new list of env predictors by dropping layers not in the original model
         new.predictors = climatelayers
@@ -562,7 +576,6 @@ bccvl.checkModelLayers <- function(model.obj, climatelayers) {
         return(climatelayers)
     }
 }
-
 
 
 family_from_string <- function(s)
