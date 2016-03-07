@@ -16,13 +16,14 @@
     </field>
     <field name='prevalence' type='zope.schema.Decimal'>
       <required>False</required>
+      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value < 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
       <title>weighted response weights</title>
       <min>0</min>
       <max>1</max>
     </field>
     <field name="var_import" type="zope.schema.Int">
       <default>0</default>
-      <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
+      <description>number of permutations to estimate the importance of each variable</description>
       <title>resampling</title>
       <min>0</min>
     </field>
@@ -32,11 +33,11 @@
       <title>do full models</title>
     </field>
     <field name='quant' type='zope.schema.Decimal'>
-      <title>quant</title>
-      <description>the value defines the most extreme values for each variable not to be taken into account for determining the tolerance boundaries for the considered species</description>
+      <title>quantile</title>
+      <description>the quantile used to remove the most extreme values of each environmental variable for determining tolerance boundaries; default is 0.025 corresponding to a 95% confidence interval in normal distributions</description>
       <min>0</min>
       <max>1</max>
-      <default>0.25</default>
+      <default>0.025</default>
     </field>
     <field name="random_seed" type="zope.schema.Int">
       <description>random seed used</description>
@@ -47,35 +48,35 @@
     </field>
     <field name="pa_ratio" type="zope.schema.Decimal">
       <default>1</default>
-      <description>Ratio of absence to presence points</description>
+      <description>ratio of absence to presence points</description>
       <required>False</required>
       <title>absence-presence ratio</title>
       <min>0</min>
     </field>
     <field name="pa_strategy" type="zope.schema.Choice">
       <default>random</default>      
-      <description>Pseudo Absences strategy</description>
+      <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
       <required>True</required>
-      <title>PA strategy</title>
+      <title>pseudo-absence strategy</title>
       <vocabulary>pa_strategy_vocab</vocabulary>
     </field>
     <field name="pa_sre_quant" type="zope.schema.Decimal">
-      <description>The quantile use for sre calculation in PA generation when sre PA strategy is chosen</description>
+      <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
       <required>False</required>
-      <title>PA sre quant</title>
+      <title>pseudo-absence SRE quantile</title>
       <min>0</min>
     </field>
     <field name="pa_disk_min" type="zope.schema.Decimal">
       <default>0</default>
-      <description>Pseudo Absences minimum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk min distance</title>
+      <title>pseudo-absence disk minimum distance</title>
       <min>0</min>
     </field>
     <field name="pa_disk_max" type="zope.schema.Decimal">
-      <description>Pseudo Absences maxmum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk max distance</title>
+      <title>pseudo-absence disk maximum distance</title>
       <min>0</min>
     </field>
   </schema>
