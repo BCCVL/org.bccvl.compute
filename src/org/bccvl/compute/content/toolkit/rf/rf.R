@@ -98,7 +98,7 @@ model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 # TODO: these functions are used to evaluate the model ... configurable?
 
 # read current climate data
-current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, resamplingflag=enviro.data.resampling)
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
