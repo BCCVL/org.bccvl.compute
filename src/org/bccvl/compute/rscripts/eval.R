@@ -44,7 +44,7 @@ bccvl.saveNewEvaluation <- function(out.summary, out.performance){
 bccvl.saveProjection <- function(proj.model, species) {
   basename = paste("proj", 'current', species, sep="_")
   png(file=file.path(bccvl.env$outputdir, paste(basename, 'png', sep=".")))
-  plot(proj.model)
+  plot(proj.model, on_0_1000=FALSE)
   dev.off()
 }
 
@@ -972,7 +972,7 @@ dev.save <- function(fileroot, ext=".pdf") {
 ########################################################
 require('rasterVis')
 setMethod('plot', signature(x='BIOMOD.projection.out', y="missing"),
-          function(x,col=NULL, str.grep=NULL){
+          function(x,col=NULL, str.grep=NULL, on_0_1000=TRUE){
             models_selected <- x@models.projected 
             if(length(str.grep)){
               models_selected <- grep(paste(str.grep,collapse="|"), models_selected,value=T)
@@ -984,13 +984,14 @@ setMethod('plot', signature(x='BIOMOD.projection.out', y="missing"),
             
             if(class(x@proj) == "BIOMOD.stored.raster.stack"){
               require(rasterVis)
-              
+
+              my.scale = ifelse(on_0_1000, 1, 1000)
               ## define the breaks of the color key
-              my.at <- seq(0,1000,by=100)
+              my.at <- seq(0,1000,by=100) / my.scale
               ## the labels will be placed vertically centered
-              my.labs.at <- seq(0,1000,by=250)
+              my.labs.at <- seq(0,1000,by=250) / my.scale
               ## define the labels
-              my.lab <- seq(0,1000,by=250)
+              my.lab <- seq(0,1000,by=250) / my.scale
               ## define colors
               #               my.col <- colorRampPalette(c("red4","orange4","yellow4","green4"))(100)
               my.col <- colorRampPalette(c("grey90","yellow4","green4"))(100)
