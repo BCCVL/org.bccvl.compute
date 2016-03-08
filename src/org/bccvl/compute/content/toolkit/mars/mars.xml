@@ -16,13 +16,14 @@
     </field>
     <field name='prevalence' type='zope.schema.Decimal'>
       <required>False</required>
+      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value < 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
       <title>weighted response weights</title>
       <min>0</min>
       <max>1</max>
     </field>
     <field name="var_import" type="zope.schema.Int">
       <default>0</default>
-      <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
+      <description>number of permutations to estimate the relative importance of each variable</description>
       <title>resampling</title>
       <min>0</min>
     </field>
@@ -32,18 +33,18 @@
       <title>do full models</title>
     </field>
     <field name="degree" type="zope.schema.Int">
-      <default>2</default>
-      <description>maximum interaction degree</description>
-      <title>degree</title>
+      <default>1</default>
+      <description>number of interactions between predictor variables that need to be considered; value of 1 will fit an additive model, value = 2 will include interactions between variables, higher degrees are possible if needed</description>
+      <title>maximum interaction degree</title>
     </field>
     <field name="nk" type="zope.schema.Int">
-      <description>the maximum number of model terms</description>
-      <title>nk</title>
+      <description>maximum number of terms in the model before pruning</description>
+      <title>maximum number of terms</title>
       <required>False</required>
     </field>
     <field name="penalty" type="zope.schema.Decimal">
       <default>2.0</default>
-      <description>the cost per degree of freedom change</description>
+      <description>the cost per degree of freedom change; default = 2 if maximum interaction degree = 1, if degree > 1, suggested penalty = 3</description>
       <title>penalty</title>
     </field>
     <field name="thresh" type="zope.schema.Decimal">
@@ -53,7 +54,7 @@
     </field>
     <field name="prune" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
-      <description>specify whether the model should be pruned in a backward stepwise fashion</description>
+      <description>whether the model should be pruned in a backward stepwise fashion</description>
       <title>prune</title>
       <required>False</required>
     </field>
@@ -66,35 +67,35 @@
     </field>    
     <field name="pa_ratio" type="zope.schema.Decimal">
       <default>1</default>
-      <description>Ratio of absence to presence points</description>
+      <description>ratio of absence to presence points</description>
       <required>False</required>
       <title>absence-presence ratio</title>
       <min>0</min>
     </field>
     <field name="pa_strategy" type="zope.schema.Choice">
       <default>random</default>      
-      <description>Pseudo Absences strategy</description>
+      <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
       <required>True</required>
-      <title>PA strategy</title>
+      <title>pseudo-absence strategy</title>
       <vocabulary>pa_strategy_vocab</vocabulary>
     </field>
     <field name="pa_sre_quant" type="zope.schema.Decimal">
-      <description>The quantile use for sre calculation in PA generation when sre PA strategy is chosen</description>
+      <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
       <required>False</required>
-      <title>PA sre quant</title>
+      <title>pseudo-absence SRE quantile</title>
       <min>0</min>
     </field>
     <field name="pa_disk_min" type="zope.schema.Decimal">
       <default>0</default>
-      <description>Pseudo Absences minimum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk min distance</title>
+      <title>pseudo-absence disk minimum distance</title>
       <min>0</min>
     </field>
     <field name="pa_disk_max" type="zope.schema.Decimal">
-      <description>Pseudo Absences maxmum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk max distance</title>
+      <title>pseudo-absence disk maximum distance</title>
       <min>0</min>
     </field>
   </schema>
