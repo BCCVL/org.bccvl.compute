@@ -13,8 +13,10 @@ import os.path
 from pkg_resources import resource_string
 import subprocess
 import shutil
+import tarfile
 import tempfile
 import unittest
+import urllib
 
 import numpy as np
 from osgeo import gdal
@@ -26,6 +28,8 @@ except ImportError:
     from skimage.measure import structural_similarity as ssim
     HAVE_MULTICHANNEL_SSIM = False
 
+OUTPUTS_VERSION = "1.11.0"
+OUTPUTS_LOCATION = "https://swift.rc.nectar.org.au:8888/v1/AUTH_0bc40c2c2ff94a0b9404e6f960ae5677/test_r_outputs/test_r_outputs-{0}.tar.bz2".format(OUTPUTS_VERSION)
 
 # A map for known csv files to parse the correct data types
 #    only str, int and float allowed, as  compare_csv is not handling anything else
@@ -97,15 +101,21 @@ def compare_csv(csv1, csv2, column_headers=True, eps=1e-3):
     d2 = read_csv(csv2, column_headers, column_types)
     # compare cloumn names
     ret = d1.dtype.names == d2.dtype.names
-    # compare all non float columns
-    fields = [field for field in d1.dtype.fields if d1.dtype[field].kind != 'f']
-    ret = ret and (d1[fields] == d2[fields]).all()
+    # compare all string columns
+    fields = [field for field in d1.dtype.fields if d1.dtype[field].kind == 'S']
+    if fields:
+        ret = ret and (d1[fields] == d2[fields]).all()
+    # compare all integer fields
+    fields = [field for field in d1.dtype.fields if d1.dtype[field].kind == 'i']
+    if fields:
+        ret = ret and (d1[fields] == d2[fields]).all()
     # compare all float type columns (with epsilon)
     fields = [field for field in d1.dtype.fields if d1.dtype[field].kind == 'f']
     # make copy of float view, so that we can safely replace nan's
-    f1 = np.nan_to_num(d1[fields].view((float, len(fields))))
-    f2 = np.nan_to_num(d2[fields].view((float, len(fields))))
-    ret = ret and np.allclose(f1, f2, rtol=0, atol=eps)
+    if fields:
+        f1 = np.nan_to_num(d1[fields].view((float, len(fields))))
+        f2 = np.nan_to_num(d2[fields].view((float, len(fields))))
+        ret = ret and np.allclose(f1, f2, rtol=0, atol=eps)
     return ret
 
 
@@ -122,6 +132,23 @@ class BaseTestCase(object):
         def setUp(self):
             if 'TEST_R_SCRIPTS' not in os.environ:
                 self.skipTest('R Script tests not enabled - TEST_R_SCRIPTS not set')
+            # make sure our reference outputs are in place
+            temp_file = None
+            try:
+                # check requested outputs version file
+                cur_ver = None
+                ver_file = os.path.join(os.path.dirname(__file__), 'outputs', 'version.txt')
+                if os.path.exists(ver_file):
+                    cur_ver = open(ver_file).readline().strip()
+                if cur_ver != OUTPUTS_VERSION:
+                    temp_file, http_msg = urllib.urlretrieve(OUTPUTS_LOCATION)
+                    tar_file = tarfile.open(temp_file, 'r:bz2')
+                    # assume the top level folder in tar file is outputs/ and extract everything
+                    # next to this module file
+                    tar_file.extractall(os.path.dirname(__file__))
+            finally:
+                if temp_file and os.path.exists(temp_file):
+                    os.remove(temp_file)
             # Create a temp directory for testing
             temp_dir = None
             try:

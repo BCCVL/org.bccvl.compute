@@ -44,7 +44,7 @@ bccvl.saveNewEvaluation <- function(out.summary, out.performance){
 bccvl.saveProjection <- function(proj.model, species) {
   basename = paste("proj", 'current', species, sep="_")
   png(file=file.path(bccvl.env$outputdir, paste(basename, 'png', sep=".")))
-  plot(proj.model)
+  plot(proj.model, on_0_1000=FALSE)
   dev.off()
 }
 
@@ -964,3 +964,69 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
 dev.save <- function(fileroot, ext=".pdf") {
   if (ext==".eps") {dev.copy2eps(file=paste(fileroot,ext,sep="."))} else {dev.copy2pdf(file=paste(fileroot,"pdf",sep="."))}
 }
+
+
+########################################################
+# Patch Biomod2 plot projection function
+#  taken from: biomod2-3.1-64 : https://github.com/cran/biomod2/blob/3.1-64/R/BiomodClass.R#L1586
+########################################################
+require('rasterVis')
+setMethod('plot', signature(x='BIOMOD.projection.out', y="missing"),
+          function(x,col=NULL, str.grep=NULL, on_0_1000=TRUE){
+            models_selected <- x@models.projected 
+            if(length(str.grep)){
+              models_selected <- grep(paste(str.grep,collapse="|"), models_selected,value=T)
+            } 
+            
+            if(!length(models_selected)) stop("invalid str.grep arg")
+            
+            
+            
+            if(class(x@proj) == "BIOMOD.stored.raster.stack"){
+              require(rasterVis)
+
+              my.scale = ifelse(on_0_1000, 1, 1000)
+              ## define the breaks of the color key
+              my.at <- seq(0,1000,by=100) / my.scale
+              ## the labels will be placed vertically centered
+              my.labs.at <- seq(0,1000,by=250) / my.scale
+              ## define the labels
+              my.lab <- seq(0,1000,by=250) / my.scale
+              ## define colors
+              #               my.col <- colorRampPalette(c("red4","orange4","yellow4","green4"))(100)
+              my.col <- colorRampPalette(c("grey90","yellow4","green4"))(100)
+              
+              ## try to use levelplot function
+              try_plot <- try(
+                levelplot(get_predictions(x, full.name=models_selected),
+                          at=my.at, margin=T, col.regions=my.col,
+                          main=paste(x@sp.name,x@proj.names,"projections"),
+                          colorkey=list(labels=list(
+                            labels=my.lab,
+                            at=my.labs.at)))
+              ) 
+              if(! inherits(try_plot,"try-error")){ ## produce plot
+                print(try_plot)
+              } else{## try classical plot
+                cat("\nrasterVis' levelplot() function failed. Try to call standard raster plotting function.",
+                    "It can lead to unooptimal representations.",
+                    "You should try to do it by yourself extracting predicions (see : get_predictions() function)", fill=options()$width)
+                try_plot <- try(
+                  plot(get_predictions(x, full.name=models_selected))
+                )
+              } 
+              
+              if(inherits(try_plot,"try-error")){ # try classical plot
+                cat("\n Plotting function failed.. You should try to do it by yourself!")
+              }
+              
+            } else if(class(x@proj) == "BIOMOD.stored.array"){
+              if(ncol(x@xy.coord) != 2){
+                cat("\n ! Impossible to plot projections because xy coordinates are not available !")
+              } else {
+                multiple.plot(Data = get_predictions(x, full.name=models_selected, as.data.frame=T), coor = x@xy.coord)
+              }
+              
+            } else {cat("\n !  Biomod Projection plotting issue !", fill=.Options$width)}
+            
+          })
