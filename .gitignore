@@ -35,3 +35,5 @@ nosetests.xml
 .pydevproject
 
 src/org/bccvl/compute/rscripts/.Rhistory
+test_rscripts/outputs
+.eggs
