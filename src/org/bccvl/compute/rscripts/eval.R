@@ -606,7 +606,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
     bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.csv")
 
     # get the model predictions and observed values. predictions is a 4 dimensional array (Predictions, Algorithm, Model run, PseudoAbsence Run)
-    predictions = getModelsPrediction(biomod.model)
+    predictions = get_predictions(biomod.model)
     total_models = length(dimnames(predictions)[[3]])
 
     # TODO: get_predictions is buggy; evaluation=FALSE works the wrong way round
