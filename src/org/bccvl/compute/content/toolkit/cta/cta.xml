@@ -16,7 +16,7 @@
     </field>
     <field name='prevalence' type='zope.schema.Decimal'>
       <required>False</required>
-      <description>allows to give more or less weight to observations of a particular class</description>
+      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value < 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
       <title>weighted response weights</title>
       <min>0</min>
       <max>1</max>
@@ -34,7 +34,7 @@
     </field>
     <field name="method" type="zope.schema.Choice">
       <default>class</default>
-       <description>method to be used; select 'class' for species' presence/absence data</description>
+       <description>method to be used; default = 'class' for presence/absence data</description>
       <title>method</title>
       <values>
         <element>anova</element>
@@ -44,27 +44,27 @@
       </values>
     </field>
     <field name="control_xval" type="zope.schema.Int">
-      <default>5</default>
-      <description>number of subsets created for training (cv - 1) and testing (1) to calculate error rates</description>
-      <title>cross-validations</title>
+      <default>10</default>
+      <description>number of cross-validation subsets created for training (cv folds - 1) and testing (1)</description>
+      <title>cross-validation folds</title>
     </field>
     <field name="control_minbucket" type="zope.schema.Int">
-      <default>5</default>
+      <default>NULL</default>
       <description>minimum number of observations in any terminal node</description>
       <title>minimum bucket</title>
     </field>
     <field name="control_minsplit" type="zope.schema.Int">
-      <default>5</default>
+      <default>20</default>
       <description>minimum number of observations that must exist in a node for a split to be attempted</description>
       <title>minimum split</title>
     </field>
     <field name="control_cp" type="zope.schema.Decimal">
-      <default>0.001</default>
+      <default>0.01</default>
       <description>the growing process will be terminated if the next best split does not reduce the tree's overall complexity by the value of the complexity parameter</description>
       <title>complexity parameter</title>
     </field>
     <field name="control_maxdepth" type="zope.schema.Int">
-      <default>25</default>
+      <default>30</default>
       <description>maximum number of splits of the tree</description>
       <title>maximum depth</title>
     </field>
@@ -77,35 +77,35 @@
     </field>    
     <field name="pa_ratio" type="zope.schema.Decimal">
       <default>1</default>
-      <description>Ratio of absence to presence points</description>
+      <description>ratio of absence to presence points</description>
       <required>False</required>
       <title>absence-presence ratio</title>
       <min>0</min>
     </field>
     <field name="pa_strategy" type="zope.schema.Choice">
       <default>random</default>      
-      <description>Pseudo Absences strategy</description>
+      <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
       <required>True</required>
-      <title>PA strategy</title>
+      <title>pseudo-absence strategy</title>
       <vocabulary>pa_strategy_vocab</vocabulary>
     </field>
     <field name="pa_sre_quant" type="zope.schema.Decimal">
-      <description>The quantile use for sre calculation in PA generation when sre PA strategy is chosen</description>
+      <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
       <required>False</required>
-      <title>PA sre quant</title>
+      <title>pseudo-absence SRE quantile</title>
       <min>0</min>
     </field>
     <field name="pa_disk_min" type="zope.schema.Decimal">
       <default>0</default>
-      <description>Pseudo Absences minimum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk min distance</title>
+      <title>pseudo-absence disk minimum distance</title>
       <min>0</min>
     </field>
     <field name="pa_disk_max" type="zope.schema.Decimal">
-      <description>Pseudo Absences maxmum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk max distance</title>
+      <title>pseudo-absence disk maximum distance</title>
       <min>0</min>
     </field>
   </schema>
