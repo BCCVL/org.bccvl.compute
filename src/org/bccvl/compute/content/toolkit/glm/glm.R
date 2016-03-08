@@ -221,7 +221,8 @@ model.proj <-
                       silent = opt.biomod.silent,
                       do.stack = opt.biomod.do.stack,
                       keep.in.memory = opt.biomod.keep.in.memory,
-                      output.format = opt.biomod.output.format)
+                      output.format = opt.biomod.output.format,
+                      on_0_1000 = FALSE)
 # convert projection output from grd to gtiff
 bccvl.grdtogtiff(file.path(getwd(),
                            biomod.species.name,

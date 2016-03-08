@@ -84,7 +84,8 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                                         silent=opt.biomod.silent,
                                         do.stack=opt.biomod.do.stack,
                                         keep.in.memory=opt.biomod.keep.in.memory,
-                                        output.format=opt.biomod.output.format)
+                                        output.format=opt.biomod.output.format,
+                                        on_0_1000=FALSE)
         # save projection to output folder
         # move proj_folder
         projinput <- file.path(getwd(),
