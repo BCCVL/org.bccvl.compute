@@ -18,7 +18,7 @@
     </field>
     <field name='prevalence' type='zope.schema.Decimal'>
       <required>False</required>
-      <description>allows to give more or less weight to observations of a particular class</description>
+      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value < 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
       <title>weighted response weights</title>
       <min>0</min>
       <max>1</max>
@@ -42,28 +42,28 @@
       <required>True</required>
     </field>
     <field name="ntree" type="zope.schema.Int">
-      <default>200</default>
-      <description>Number of trees to grow. This should not be set to too small a number, to ensure that every input row gets sampled at least a few times.</description>
+      <default>500</default>
+      <description>total number of trees to grow; this should not be set to too small a number, to ensure that every input row gets sampled at least a few times</description>
       <title>number of trees</title>
       <required>True</required>
       <min>1</min>
     </field>
     <field name="mtry" type="zope.schema.TextLine">
-      <description>Number of variables randomly sampled as candidates at each split. Default is 'sqrt(p)' for classification trees, where p is the number of variables.</description>
+      <description>number of variables randomly sampled as candidates at each split; default is the square root of the number of variables in the model</description>
       <default>default</default>
       <required>True</required>
       <title>number of variables at each split (mtry)</title>
     </field>
     <field name="nodesize" type="zope.schema.Int">
       <default>1</default>
-      <description>Minimum size of terminal nodes.  Setting this number larger causes smaller trees to be grown (and thus take less time), however for best accuracy use nodesize = 1.</description>
-      <title>node size</title>
+      <description>minimum number of observations in terminal nodes; a larger number results in smaller trees, but for best accuracy use default value of 1</description>
+      <title>terminal node size</title>
       <required>True</required>
       <min>1</min>
     </field>
     <field name="maxnodes" type="zope.schema.Int">
-      <description>Maximum number of terminal nodes trees that the forest can have. If not given, trees are grown to the maximum possible (subject to limits by node size).</description>
-      <title>maximum nodes</title>
+      <description>maximum number of terminal nodes that each tree in the forest can have; default = NULL, which means that trees are grown to the maximum possible (subject to limits by terminal node size)</description>
+      <title>maximum number of terminal nodes</title>
       <required>False</required>
       <min>1</min>
     </field>
@@ -76,35 +76,35 @@
     </field>    
     <field name="pa_ratio" type="zope.schema.Decimal">
       <default>1</default>
-      <description>Ratio of absence to presence points</description>
+      <description>ratio of absence to presence points</description>
       <required>False</required>
       <title>absence-presence ratio</title>
       <min>0</min>
     </field>
     <field name="pa_strategy" type="zope.schema.Choice">
       <default>random</default>      
-      <description>Pseudo Absences strategy</description>
+      <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
       <required>True</required>
-      <title>PA strategy</title>
+      <title>pseudo-absence strategy</title>
       <vocabulary>pa_strategy_vocab</vocabulary>
     </field>
     <field name="pa_sre_quant" type="zope.schema.Decimal">
-      <description>The quantile use for sre calculation in PA generation when sre PA strategy is chosen</description>
+      <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
       <required>False</required>
-      <title>PA sre quant</title>
+      <title>pseudo-absence SRE quantile</title>
       <min>0</min>
     </field>
     <field name="pa_disk_min" type="zope.schema.Decimal">
       <default>0</default>
-      <description>Pseudo Absences minimum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk min distance</title>
+      <title>pseudo-absence disk minimum distance</title>
       <min>0</min>
     </field>
     <field name="pa_disk_max" type="zope.schema.Decimal">
-      <description>Pseudo Absences maxmum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk max distance</title>
+      <title>pseudo-absence disk maximum distance</title>
       <min>0</min>
     </field>
   </schema>
