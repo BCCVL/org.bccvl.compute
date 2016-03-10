@@ -100,7 +100,7 @@
     <field name="cv_folds" type="zope.schema.Int">
       <default>3</default>
       <required>True</required>
-      <title>number of cross validations</title>
+      <title>number of subsets used for cross-validation</title>
       <description>number of cross validations</description>
       <min>0</min>
     </field>
