@@ -98,7 +98,7 @@
       <min>0</min>
     </field>
     <field name="cv_folds" type="zope.schema.Int">
-      <default>5</default>
+      <default>3</default>
       <required>True</required>
       <title>number of cross validations</title>
       <description>number of cross validations</description>
