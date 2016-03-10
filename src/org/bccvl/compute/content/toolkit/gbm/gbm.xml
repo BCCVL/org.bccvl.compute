@@ -57,8 +57,8 @@
     <field name="n_trees" type="zope.schema.Int">
       <default>2500</default>
       <required>True</required>
-      <title>number of trees</title>
-      <description>total number of trees to fit</description>
+      <title>maximum number of trees</title>
+      <description>maximum number of trees to fit</description>
       <min>0</min>
     </field>
     <field name="interaction_depth" type="zope.schema.Int">
