@@ -43,8 +43,8 @@
     </field>
     <field name="ntree" type="zope.schema.Int">
       <default>500</default>
-      <description>total number of trees to grow; this should not be set to too small a number, to ensure that every input row gets sampled at least a few times</description>
-      <title>number of trees</title>
+      <description>maximum number of trees to grow; this should not be set to too small a number, to ensure that every input row gets sampled at least a few times</description>
+      <title>maximum number of trees</title>
       <required>True</required>
       <min>1</min>
     </field>
