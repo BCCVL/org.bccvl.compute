@@ -8,6 +8,11 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png"
         },
+        "proj_current_*.png": {
+            "title": "Projection plot",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
+        },        
         "pseudo_absences.csv": {
             "title": "Pseudo Absence Points",
             "genre": "DataGenreSpeciesAbsence",

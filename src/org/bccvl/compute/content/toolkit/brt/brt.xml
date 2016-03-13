@@ -5,7 +5,7 @@
   <schema based-on="zope.interface.Interface">
     <field name="tree_complexity" type="zope.schema.Int">
       <default>1</default>
-      <description>The complexity of individual trees between 1 and 50 (inclusive)</description>
+      <description>number of interactions between predictor variables that need to be considered; value of 1 will fit an additive model, value = 2 will include 2-way interactions, etc.</description>
       <max>50</max>
       <min>1</min>
       <required>False</required>
@@ -13,49 +13,50 @@
     </field>
     <field name="learning_rate" type="zope.schema.Decimal">
       <default>0.01</default>
-      <description>The weight applied to individual trees.</description>
+      <description>determines the contribution of each tree to the growing model</description>
       <required>False</required>
       <title>learning rate</title>
     </field>
     <field name="bag_fraction" type="zope.schema.Decimal">
       <default>0.75</default>
-      <description>The proportion of observations used in selecting variables.</description>
+      <description>fraction of the data that is randomly selected to built the next tree in the model</description>
       <required>False</required>
       <title>bag fraction</title>
     </field>
     <field name="n_folds" type="zope.schema.Int">
       <default>10</default>
-      <description>Number of folds.</description>
+      <description>number of subsets used for cross-validation</description>
       <required>False</required>
-      <title>n folds</title>
+      <title>number of cross validations (n folds)</title>
     </field>
     <field name="prev_stratify" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
-      <description>prevalence stratify the folds - only for presence/absence data</description>
+      <description>whether subsets should be selected in such a way that the mean response value is approximately equal in all subsets</description>
       <required>False</required>
-      <title>prev stratify</title>
+      <title>prevalence stratify</title>
     </field>
     <field name="family" type="zope.schema.Choice">
       <default>bernoulli</default>
       <required>False</required>
+      <description>distribution of the response variable; default is bernoulli, which is used for binary data</description>
       <title>family</title>
       <vocabulary>brt_family_vocab</vocabulary>
     </field>
     <field name="n_trees" type="zope.schema.Int">
       <default>50</default>
-      <description>Number of initial trees to fit</description>
+      <description>number of initial trees to fit, and to add each cycle</description>
       <required>False</required>
-      <title>trees added each cycle</title>
+      <title>number of trees added each cycle</title>
     </field>
     <field name="max_trees" type="zope.schema.Int">
       <default>10000</default>
-      <description>Max number of trees to fit before stopping</description>
+      <description>maximum number of trees to fit before stopping</description>
       <required>False</required>
-      <title>max trees</title>
+      <title>maximum number of trees</title>
     </field>
     <field name="tolerance_method" type="zope.schema.Choice">
       <default>auto</default>
-      <description>Method to use in deciding to stop.</description>
+      <description>method used in deciding to stop: for ‘fixed’ the value indicated in ‘tolerance value’ is used; for ‘auto’ the value is ‘tolerance value * total mean deviance’</description>
       <required>False</required>
       <title>tolerance method</title>
       <values>
@@ -65,7 +66,7 @@
     </field>
     <field name="tolerance_value" type="zope.schema.Decimal">
       <default>0.001</default>
-      <description>Tolerance value to use - if method == fixed is absolute, if auto is multiplier * total mean deviance</description>
+      <description>value to use in 'tolerance method'</description>
       <required>False</required>
       <title>tolerance value</title>
     </field>
@@ -78,35 +79,35 @@
     </field>    
     <field name="pa_ratio" type="zope.schema.Decimal">
       <default>1</default>
-      <description>Ratio of absence to presence points</description>
+      <description>ratio of absence to presence points</description>
       <required>False</required>
       <title>absence-presence ratio</title>
       <min>0</min>
     </field>
     <field name="pa_strategy" type="zope.schema.Choice">
       <default>random</default>      
-      <description>Pseudo Absences strategy</description>
+      <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
       <required>True</required>
-      <title>PA strategy</title>
+      <title>pseudo-absence strategy</title>
       <vocabulary>pa_strategy_vocab</vocabulary>
     </field>
     <field name="pa_sre_quant" type="zope.schema.Decimal">
-      <description>The quantile use for sre calculation in PA generation when sre PA strategy is chosen</description>
+      <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
       <required>False</required>
-      <title>PA sre quant</title>
+      <title>pseudo-absence SRE quantile</title>
       <min>0</min>
     </field>
     <field name="pa_disk_min" type="zope.schema.Decimal">
       <default>0</default>
-      <description>Pseudo Absences minimum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk min distance</title>
+      <title>pseudo-absence disk minimum distance</title>
       <min>0</min>
     </field>
     <field name="pa_disk_max" type="zope.schema.Decimal">
-      <description>Pseudo Absences maxmum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk max distance</title>
+      <title>pseudo-absence disk maximum distance</title>
       <min>0</min>
     </field>
   </schema>

@@ -33,6 +33,11 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png"
         },
+        "proj_current_*.png": {
+            "title": "Projection plot",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png"
+        },        
         "*/proj_current/proj_current_ClampingMask.tif": {
             "title": "Clamping Mask",
             "genre": "DataGenreClampingMask",

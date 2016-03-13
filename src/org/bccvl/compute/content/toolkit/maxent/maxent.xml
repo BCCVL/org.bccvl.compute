@@ -16,13 +16,14 @@
     </field>
     <field name='prevalence' type='zope.schema.Decimal'>
       <required>False</required>
+      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value < 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
       <title>weighted response weights</title>
       <min>0</min>
       <max>1</max>
     </field>
     <field name="var_import" type="zope.schema.Int">
       <default>0</default>
-      <description>number of resampling of each explanatory variable to measure the relative importance of each variable for each selected model</description>
+      <description>number of permutations to estimate the importance of each variable</description>
       <title>resampling</title>
       <min>0</min>
     </field>
@@ -33,78 +34,78 @@
     </field>
     <field name="maximumiterations" type="zope.schema.Int">
       <default>200</default>
-      <description>maximum iterations done</description>
-      <title>Maximum iterations</title>
+      <description>maximum number of iterations</description>
+      <title>maximum number of iterations</title>
     </field>
     <field name="linear" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow linear features to be used</description>
-      <title>Linear</title>
+      <title>linear</title>
       <required>False</required>
     </field>
     <field name="quadratic" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow quadratic features to be used</description>
-      <title>Quadratic</title>
+      <title>quadratic</title>
       <required>False</required>
     </field>
     <field name="product" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow product features to be used</description>
-      <title>Product</title>
+      <title>product</title>
       <required>False</required>
     </field>
     <field name="threshold" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow threshold features to be used</description>
-      <title>Threshold</title>
+      <title>threshold</title>
       <required>False</required>
     </field>
     <field name="hinge" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
       <default>True</default>
       <description>allow hinge features to be used</description>
-      <title>Hinge</title>
+      <title>hinge</title>
       <required>False</required>
     </field>
     <field name="lq2lqptthreshold" type="zope.schema.Int">
       <default>80</default>
       <description>number of samples at which product and threshold features start being used</description>
-      <title>lq2lqptthreshold</title>
+      <title>product/threshold feature threshold</title>
     </field>
     <field name="lq2lqthreshold" type="zope.schema.Int">
       <default>10</default>
       <description>number of samples at which quadratic features start being used</description>
-      <title>lq2lqthreshold</title>
+      <title>quadratic feature threshold</title>
     </field>
     <field name="hingethreshold" type="zope.schema.Int">
       <default>15</default>
       <description>number of samples at which hinge features start being used</description>
-      <title>hingethreshold</title>
+      <title>hinge feature threshold</title>
     </field>
     <field name="beta_threshold" type="zope.schema.Decimal">
       <default>-1.0</default>
       <description>regularization parameter to be applied to all threshold features; negative value enables automatic setting</description>
-      <title>beta_threshold</title>
+      <title>threshold feature regularization</title>
     </field>
     <field name="beta_categorical" type="zope.schema.Decimal">
       <default>-1.0</default>
       <description>regularization parameter to be applied to all categorical features; negative value enables automatic setting</description>
-      <title>beta_categorical</title>
+      <title>categorical feature regularization</title>
     </field>
     <field name="beta_lqp" type="zope.schema.Decimal">
       <default>-1.0</default>
       <description>regularization parameter to be applied to all linear, quadratic and product features; negative value enables automatic setting</description>
-      <title>beta_lqp</title>
+      <title>linear/quadratic/product feature regularization</title>
     </field>
     <field name="beta_hinge" type="zope.schema.Decimal">
       <default>-1.0</default>
       <description>regularization parameter to be applied to all hinge features; negative value enables automatic setting</description>
-      <title>beta_hinge</title>
+      <title>hinge feature regularization</title>
     </field>
     <field name="defaultprevalence" type="zope.schema.Decimal">
       <default>0.5</default>
-      <description>default prevalence of the species: probability of presence at ordinary occurrence points</description>
-      <title>defaultprevalence</title>
+      <description>proportion of occupied locations; default is 0.5 meaning that the proportion of presences in the study area is equal to absences</description>
+      <title>prevalence</title>
     </field>
     <field name="random_seed" type="zope.schema.Int">
       <description>random seed used</description>
@@ -115,35 +116,35 @@
     </field>    
     <field name="pa_ratio" type="zope.schema.Decimal">
       <default>1</default>
-      <description>Ratio of absence to presence points</description>
+      <description>ratio of absence to presence points</description>
       <required>False</required>
       <title>absence-presence ratio</title>
       <min>0</min>
     </field>
     <field name="pa_strategy" type="zope.schema.Choice">
       <default>random</default>      
-      <description>Pseudo Absences strategy</description>
+      <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
       <required>True</required>
-      <title>PA strategy</title>
+      <title>pseudo-absence strategy</title>
       <vocabulary>pa_strategy_vocab</vocabulary>
     </field>
     <field name="pa_sre_quant" type="zope.schema.Decimal">
-      <description>The quantile use for sre calculation in PA generation when sre PA strategy is chosen</description>
+      <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
       <required>False</required>
-      <title>PA sre quant</title>
+      <title>pseudo-absence SRE quantile</title>
       <min>0</min>
     </field>
     <field name="pa_disk_min" type="zope.schema.Decimal">
       <default>0</default>
-      <description>Pseudo Absences minimum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk min distance</title>
+      <title>pseudo-absence disk minimum distance</title>
       <min>0</min>
     </field>
     <field name="pa_disk_max" type="zope.schema.Decimal">
-      <description>Pseudo Absences maxmum distance between pres and selected absences when disk PA strategy is chosen</description>
+      <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
       <required>False</required>
-      <title>PA disk max distance</title>
+      <title>pseudo-absence disk maximum distance</title>
       <min>0</min>
     </field>
   </schema>

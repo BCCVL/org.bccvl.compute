@@ -26,6 +26,8 @@ absen.data = bccvl.params$species_absence_dataset$filename
 enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
 #type in terms of continuous or categorical
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
+#layer names for the current environmental layers used
+enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
 #geographic constraints
 enviro.data.constraints = bccvl.params$modelling_region
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
@@ -92,7 +94,7 @@ model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 # TODO: these functions are used to evaluate the model ... configurable?
 
 # read current climate data
-current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, resamplingflag=enviro.data.resampling)
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
@@ -200,7 +202,8 @@ model.proj <-
                       silent              = opt.biomod.silent,
                       do.stack            = opt.biomod.do.stack,
                       keep.in.memory      = opt.biomod.keep.in.memory,
-                      output.format       = opt.biomod.output.format)
+                      output.format       = opt.biomod.output.format,
+                      on_0_1000           = FALSE)
 
 
 # convert projection output from grd to gtiff
@@ -212,3 +215,6 @@ bccvl.grdtogtiff(file.path(getwd(),
 # evaluate model
 loaded.model = BIOMOD_LoadModels(model.sdm, models="FDA") # load model
 bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)
+
+# save the projection
+bccvl.saveProjection(model.proj, biomod.species.name)

@@ -24,14 +24,28 @@ setup(
     namespace_packages=['org', 'org.bccvl'],
     include_package_data=True,
     zip_safe=False,
-    test_suite='org.bccvl.compute.tests',
+    test_suite='test_rscripts',
     install_requires=[
         'setuptools',  # distribute
         'zope.i18nmessageid',
     ],
+    tests_require = [
+        'numpy',
+        'scipy',
+        'Pillow',
+        'scikit-image',
+        'GDAL'
+    ],
     extras_require={
         'test': [
             'org.bccvl.testsetup',
+        ],
+        'test_r': [
+            'numpy',
+            'scipy',
+            'Pillow',
+            'scikit-image',
+            'GDAL'
         ]
     },
     entry_points="""
