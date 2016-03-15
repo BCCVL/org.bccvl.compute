@@ -49,7 +49,6 @@
       <title>cross-validation folds</title>
     </field>
     <field name="control_minbucket" type="zope.schema.Int">
-      <default>NULL</default>
       <description>minimum number of observations in any terminal node</description>
       <title>minimum bucket</title>
     </field>
