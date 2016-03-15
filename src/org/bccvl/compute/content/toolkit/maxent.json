@@ -1,6 +1,6 @@
 {
     "_type": "org.bccvl.content.function",
-    "title": "Maximum Entropy Modeling",
+    "title": "MaxEnt",
     "description": "Predicts species occurrences by finding the distribution that is most spread out, or closest to uniform, while taking into account the limits of the environmental variables of known locations.",
     "subjects": ["maxent"],
     "interpreter": "R",
