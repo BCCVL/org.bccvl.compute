@@ -3,7 +3,7 @@
        xmlns:form="http://namespaces.plone.org/supermodel/form"
        xmlns="http://namespaces.plone.org/supermodel/schema">
   <schema based-on="zope.interface.Interface">
-   <field name="nb_run_eval" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
+    <field name="nb_run_eval" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
       <default>10</default>
       <title>n-fold cross validation</title>
       <min>1</min>
@@ -16,7 +16,7 @@
     </field>
     <field name='prevalence' type='zope.schema.Decimal'>
       <required>False</required>
-      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value < 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
+      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
       <title>weighted response weights</title>
       <min>0</min>
       <max>1</max>
@@ -34,7 +34,7 @@
     </field>
     <field name="method" type="zope.schema.Choice">
       <default>class</default>
-       <description>method to be used; default = 'class' for presence/absence data</description>
+      <description>method to be used; default = 'class' for presence/absence data</description>
       <title>method</title>
       <values>
         <element>anova</element>
