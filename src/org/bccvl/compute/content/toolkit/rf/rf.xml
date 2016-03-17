@@ -35,7 +35,7 @@
       <title>do full models</title>
       <required>True</required>
     </field>
-    <field name="do.classif" type="zope.schema.Bool">
+    <field name="do.classif" type="zope.schema.Bool" form:mode="z3c.form.interfaces.IForm:hidden">
       <default>True</default>
       <description>true for a classification, false for a regression forest. Currently ignored in biomod2 source</description>
       <title>do.classif</title>
