@@ -51,6 +51,7 @@
     <field name="control_minbucket" type="zope.schema.Int">
       <description>minimum number of observations in any terminal node</description>
       <title>minimum bucket</title>
+      <required>False</required>
     </field>
     <field name="control_minsplit" type="zope.schema.Int">
       <default>20</default>
