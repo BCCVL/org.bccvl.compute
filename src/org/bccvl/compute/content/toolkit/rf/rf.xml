@@ -18,7 +18,7 @@
     </field>
     <field name='prevalence' type='zope.schema.Decimal'>
       <required>False</required>
-      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value < 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
+      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
       <title>weighted response weights</title>
       <min>0</min>
       <max>1</max>
@@ -35,7 +35,7 @@
       <title>do full models</title>
       <required>True</required>
     </field>
-    <field name="do.classif" type="zope.schema.Bool">
+    <field name="do.classif" type="zope.schema.Bool" form:mode="z3c.form.interfaces.IForm:hidden">
       <default>True</default>
       <description>true for a classification, false for a regression forest. Currently ignored in biomod2 source</description>
       <title>do.classif</title>
