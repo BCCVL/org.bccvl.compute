@@ -1,7 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Generalized Linear Model",
-    "description": "A regression model for data with a non-normal distribution, fitted with maximum likelihood estimation.",
+    "description": "A regression model for data with a non-normal distribution, fitted with maximum likelihood estimation. </br><a href='https://support.bccvl.org.au/support/solutions/articles/6000083213-generalised-linear-model' target='_blank'>Read More ...</a>",
     "subjects": ["glm"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

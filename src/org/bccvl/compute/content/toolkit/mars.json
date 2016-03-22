@@ -1,7 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Multiple Adaptive Regression Splines",
-    "description": "A regression model that builds multiple linear regression models across the range of predictor values, by partitioning the data and run a linear regression model on each different partition. This allows to model complex relationships between the response and predictor variables.",
+    "description": "A regression model that builds multiple linear regression models across the range of predictor values, by partitioning the data and run a linear regression model on each different partition. This allows to model complex relationships between the response and predictor variables. </br><a href='https://support.bccvl.org.au/support/solutions/articles/6000118097-multivariate-adaptive-regression-splines' target='_blank'>Read More ...</a>",
     "subjects": ["mars"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

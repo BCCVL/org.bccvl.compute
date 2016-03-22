@@ -1,7 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Generalized Additive Model",
-    "description": "A multiple regression model that uses smoothed functions of the environmental variables to model non-linear relationships.",
+    "description": "A multiple regression model that uses smoothed functions of the environmental variables to model non-linear relationships. </br><a href='https://support.bccvl.org.au/support/solutions/articles/6000083208-generalised-additive-model' target='_blank'>Read More ...</a>",
     "subjects": ["gam"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

@@ -1,7 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Circles",
-    "description": "Predicts that a species is present at sites within a certain radius around observed occurrences, and absent beyond that radius.",
+    "description": "Predicts that a species is present at sites within a certain radius around observed occurrences, and absent beyond that radius. </br><a href='https://support.bccvl.org.au/support/solutions/articles/6000083203-circles' target='_blank'>Read More ...</a>",
     "subjects": ["circles"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",

@@ -1,7 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Geographic Distance",
-    "description": "Predicts species occurrences based on the assumption that the closer to a known presence, the more likely it is to find the species.",
+    "description": "Predicts species occurrences based on the assumption that the closer to a known presence, the more likely it is to find the species. </br><a href='https://support.bccvl.org.au/support/solutions/articles/6000083214-geographic-distance' target='_blank'>Read More ...</a>",
     "subjects": ["geodist"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",
