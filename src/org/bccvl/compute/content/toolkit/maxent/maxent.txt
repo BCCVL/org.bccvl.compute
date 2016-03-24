@@ -3,82 +3,162 @@
         "Rplots.pdf": {
             "skip": true
         },
-        "*.Rout": {
-            "title": "Log file",
-            "genre": "DataGenreLog",
-            "mimetype": "text/x-r-transcript"
-        },
-        "pseudo_absences.csv": {
-            "title": "Pseudo Absence Points",
-            "genre": "DataGenreSpeciesAbsence",
-            "mimetype": "text/csv"
-        },
-        "*.csv": {
-            "title": "Model Evaluation",
-            "genre": "DataGenreSDMEval",
-            "mimetype": "text/csv"
-        },
-        "*.png": {
-            "title": "New Model plots",
-            "genre": "DataGenreSDMEval",
-            "mimetype": "image/png"
-        },
-        "*/models/bccvl/*_MAXENT_outputs/maxentResults.csv": {
-            "title": "Maxent Thresholds",
-            "genre": "DataGenreSDMEval",
-            "mimetype": "text/csv"
-        },
-        "mean_response_curves*.png": {
-            "title": "Mean Response Curves",
-            "genre": "DataGenreSDMEval",
-            "mimetype": "image/png"
-        },
-        "pROC*.png": {
-            "title": "ROC curve",
-            "genre": "DataGenreSDMEval",
-            "mimetype": "image/png"
-        },
-        "proj_current_*.png": {
-            "title": "Projection plot",
-            "genre": "DataGenreSDMEval",
-            "mimetype": "image/png"
-        },
-        "*/proj_current/proj_current_ClampingMask.tif": {
-            "title": "Clamping Mask",
-            "genre": "DataGenreClampingMask",
-            "mimetype": "image/geotiff"
+        "pROC.Full.png": {
+            "skip": true
         },
         "*/proj_current/proj_current_*.tif": {
             "title": "Projection to current",
             "genre": "DataGenreCP",
-            "mimetype": "image/geotiff"
+            "mimetype": "image/geotiff",
+            "order": 1
+        },        
+        "proj_current_*.png": {
+            "title": "Projection plot",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 2
+        },
+        "*/proj_current/proj_current_ClampingMask.tif": {
+            "title": "Clamping Mask",
+            "genre": "DataGenreClampingMask",
+            "mimetype": "image/geotiff",
+            "order": 3
+        },
+        "pseudo_absences.csv": {
+            "title": "Pseudo Absence Points",
+            "genre": "DataGenreSpeciesAbsence",
+            "mimetype": "text/csv",
+            "order": 4
+        },
+        "mean_response_curves*.png": {
+            "title": "Mean Response Curves",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 5
+        },
+        "biomod2.modelEvaluation.csv": {
+            "title": "Model Evaluation",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/csv",
+            "order": 6
+        },
+        "combined.Full.modelEvaluation.csv": {
+            "title": "Model Evaluation",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/csv",
+            "order": 7
+        },
+        "Full-ppp.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 8
+        },
+        "Full-occurrence_absence_hist.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 9
+        },
+        "Full-occurence_absence_pdf.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 10
+        },
+        "Full-true_and_false_posivite_rates.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 11
+        },
+        "Full-error.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 12
+        },
+        "Full-roc.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 13
+        },
+        "Full-tradeoffs.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 14
+        },
+        "evaluation.summary.csv": {
+            "title": "Model Evaluation",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/csv",
+            "order": 15
+        },
+        "Full-intervals.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 16
+        },
+        "evaluation.performance.csv": {
+            "title": "Model Evaluation",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/csv",
+            "order": 17
+        },        
+        "*/models/bccvl/*_MAXENT_outputs/maxentResults.csv": {
+            "title": "Maxent Thresholds",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/csv",
+            "order": 18
         },
         "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
-            "mimetype": "text/x-r"
-        }
+            "mimetype": "text/x-r",
+            "order": 20
+        },
+        "*.Rout": {
+            "title": "Log file",
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript",
+            "order": 22
+        },
+        "*.csv": {
+            "title": "Model Evaluation",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "text/csv",
+            "order": 30
+        },
+        "*.png": {
+            "title": "New Model plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 40
+        }        
     },
     "archives": {
         "model.object.RData.zip": {
             "files": ["model.object.RData",
                       "*/*.bccvl.models.out",
                       "*/.BIOMOD_DATA/bccvl/*",
-                      "*/proj_current/*.current.projection.out",
-                      "*/models/bccvl/*_MAXENT",
-                      "*/models/bccvl/*_MAXENT_outputs/*",
-                      "*/models/bccvl/*_MAXENT_outputs/plots/*"
-                     ],
+                      "*/models/bccvl/*",
+                      "*/proj_current/*.current.projection.out"
+                      ],
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
-            "mimetype": "application/zip"
+            "mimetype": "application/zip",
+            "order": 21
         },
         "maxent_outputs.zip": {
             "files": ["*/models/bccvl/*_MAXENT_outputs/*",
                       "*/models/bccvl/*_MAXENT_outputs/plots/*"],
             "title": "Maxent output",
             "genre": "DataGenreSDMEval",
-            "mimetype": "application/zip"
-        }
+            "mimetype": "application/zip",
+            "order": 22
+        }        
     }
 }
