@@ -3,45 +3,54 @@
        xmlns:form="http://namespaces.plone.org/supermodel/form"
        xmlns="http://namespaces.plone.org/supermodel/schema">
   <schema based-on="zope.interface.Interface">
-    <field name="random_seed" type="zope.schema.Int">
-      <description>random seed used</description>
-      <required>False</required>
-      <title>random seed</title>
-      <min>-2147483648</min>
-      <max>2147483647</max>      
-    </field>    
-    <field name="pa_ratio" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
-      <default>1</default>
-      <description>ratio of absence to presence points</description>
-      <required>False</required>
-      <title>absence-presence ratio</title>
-      <min>0</min>
-    </field>
-    <field name="pa_strategy" type="zope.schema.Choice" form:mode="z3c.form.interfaces.IForm:hidden">
-      <default>random</default>      
-      <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
-      <required>True</required>
-      <title>pseudo-absence strategy</title>
-      <vocabulary>pa_strategy_vocab</vocabulary>
-    </field>
-    <field name="pa_sre_quant" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
-      <description>quantile used for 'SRE' pseudo-absence generation strategy</description>
-      <required>False</required>
-      <title>pseudo-absence SRE quantile</title>
-      <min>0</min>
-    </field>
-    <field name="pa_disk_min" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
-      <default>0</default>
-      <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
-      <required>False</required>
-      <title>pseudo-absence disk minimum distance</title>
-      <min>0</min>
-    </field>
-    <field name="pa_disk_max" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
-      <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
-      <required>False</required>
-      <title>pseudo-absence disk maximum distance</title>
-      <min>0</min>
-    </field>
+    <fieldset name="Pseudo Absences"
+              label="Pseudo Absence Configuration"
+              description="Select and configure your strategy. &lt;a href='#test' target='_blank'>Read More ...&lt;/a>">
+      <field name="pa_ratio" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
+        <default>1</default>
+        <description>ratio of absence to presence points</description>
+        <required>False</required>
+        <title>absence-presence ratio</title>
+        <min>0</min>
+      </field>
+      <field name="pa_strategy" type="zope.schema.Choice" form:mode="z3c.form.interfaces.IForm:hidden">
+        <default>random</default>      
+        <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
+        <required>True</required>
+        <title>pseudo-absence strategy</title>
+        <vocabulary>pa_strategy_vocab</vocabulary>
+      </field>
+      <field name="pa_sre_quant" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
+        <description>quantile used for 'SRE' pseudo-absence generation strategy</description>
+        <required>False</required>
+        <title>pseudo-absence SRE quantile</title>
+        <min>0</min>
+      </field>
+      <field name="pa_disk_min" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
+        <default>0</default>
+        <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
+        <required>False</required>
+        <title>pseudo-absence disk minimum distance</title>
+        <min>0</min>
+      </field>
+      <field name="pa_disk_max" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
+        <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
+        <required>False</required>
+        <title>pseudo-absence disk maximum distance</title>
+        <min>0</min>
+      </field>
+    </fieldset>
+    <fieldset name="Other"
+              label="Other Configuration"
+              description="Options are set to package defaults unless otherwise modified.">
+      <field name="random_seed" type="zope.schema.Int">
+        <description>random seed used</description>
+        <required>False</required>
+        <title>random seed</title>
+        <min>-2147483648</min>
+        <max>2147483647</max>      
+      </field>    
+    </fieldset>
+    
   </schema>  	
 </model>

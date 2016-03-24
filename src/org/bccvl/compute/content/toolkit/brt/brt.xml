@@ -3,112 +3,120 @@
        xmlns:form="http://namespaces.plone.org/supermodel/form"
        xmlns="http://namespaces.plone.org/supermodel/schema">
   <schema based-on="zope.interface.Interface">
-    <field name="tree_complexity" type="zope.schema.Int">
-      <default>1</default>
-      <description>number of interactions between predictor variables that need to be considered; value of 1 will fit an additive model, value = 2 will include 2-way interactions, etc.</description>
-      <max>50</max>
-      <min>1</min>
-      <required>False</required>
-      <title>tree complexity</title>
-    </field>
-    <field name="learning_rate" type="zope.schema.Decimal">
-      <default>0.01</default>
-      <description>determines the contribution of each tree to the growing model</description>
-      <required>False</required>
-      <title>learning rate</title>
-    </field>
-    <field name="bag_fraction" type="zope.schema.Decimal">
-      <default>0.75</default>
-      <description>fraction of the data that is randomly selected to built the next tree in the model</description>
-      <required>False</required>
-      <title>bag fraction</title>
-    </field>
-    <field name="n_folds" type="zope.schema.Int">
-      <default>10</default>
-      <description>number of subsets used for cross-validation</description>
-      <required>False</required>
-      <title>number of cross validations (n folds)</title>
-    </field>
-    <field name="prev_stratify" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
-      <default>True</default>
-      <description>whether subsets should be selected in such a way that the mean response value is approximately equal in all subsets</description>
-      <required>False</required>
-      <title>prevalence stratify</title>
-    </field>
-    <field name="family" type="zope.schema.Choice">
-      <default>bernoulli</default>
-      <required>False</required>
-      <description>distribution of the response variable; default is bernoulli, which is used for binary data</description>
-      <title>family</title>
-      <vocabulary>brt_family_vocab</vocabulary>
-    </field>
-    <field name="n_trees" type="zope.schema.Int">
-      <default>50</default>
-      <description>number of initial trees to fit, and to add each cycle</description>
-      <required>False</required>
-      <title>number of trees added each cycle</title>
-    </field>
-    <field name="max_trees" type="zope.schema.Int">
-      <default>10000</default>
-      <description>maximum number of trees to fit before stopping</description>
-      <required>False</required>
-      <title>maximum number of trees</title>
-    </field>
-    <field name="tolerance_method" type="zope.schema.Choice">
-      <default>auto</default>
-      <description>method used in deciding to stop: for ‘fixed’ the value indicated in ‘tolerance value’ is used; for ‘auto’ the value is ‘tolerance value * total mean deviance’</description>
-      <required>False</required>
-      <title>tolerance method</title>
-      <values>
-        <element>auto</element>
-        <element>fixed</element>
-      </values>
-    </field>
-    <field name="tolerance_value" type="zope.schema.Decimal">
-      <default>0.001</default>
-      <description>value to use in 'tolerance method'</description>
-      <required>False</required>
-      <title>tolerance value</title>
-    </field>
-    <field name="random_seed" type="zope.schema.Int">
-      <description>random seed used</description>
-      <required>False</required>
-      <title>random seed</title>
-      <min>-2147483648</min>
-      <max>2147483647</max>      
-    </field>    
-    <field name="pa_ratio" type="zope.schema.Decimal">
-      <default>1</default>
-      <description>ratio of absence to presence points</description>
-      <required>False</required>
-      <title>absence-presence ratio</title>
-      <min>0</min>
-    </field>
-    <field name="pa_strategy" type="zope.schema.Choice">
-      <default>random</default>      
-      <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
-      <required>True</required>
-      <title>pseudo-absence strategy</title>
-      <vocabulary>pa_strategy_vocab</vocabulary>
-    </field>
-    <field name="pa_sre_quant" type="zope.schema.Decimal">
-      <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
-      <required>False</required>
-      <title>pseudo-absence SRE quantile</title>
-      <min>0</min>
-    </field>
-    <field name="pa_disk_min" type="zope.schema.Decimal">
-      <default>0</default>
-      <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
-      <required>False</required>
-      <title>pseudo-absence disk minimum distance</title>
-      <min>0</min>
-    </field>
-    <field name="pa_disk_max" type="zope.schema.Decimal">
-      <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
-      <required>False</required>
-      <title>pseudo-absence disk maximum distance</title>
-      <min>0</min>
-    </field>
+    <fieldset name="Pseudo Absences"
+              label="Pseudo Absence Configuration"
+              description="Select and configure your strategy. &lt;a href='#test' target='_blank'>Read More ...&lt;/a>">
+      <field name="pa_ratio" type="zope.schema.Decimal">
+        <default>1</default>
+        <description>ratio of absence to presence points</description>
+        <required>False</required>
+        <title>absence-presence ratio</title>
+        <min>0</min>
+      </field>
+      <field name="pa_strategy" type="zope.schema.Choice">
+        <default>random</default>      
+        <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
+        <required>True</required>
+        <title>pseudo-absence strategy</title>
+        <vocabulary>pa_strategy_vocab</vocabulary>
+      </field>
+      <field name="pa_sre_quant" type="zope.schema.Decimal">
+        <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
+        <required>False</required>
+        <title>pseudo-absence SRE quantile</title>
+        <min>0</min>
+      </field>
+      <field name="pa_disk_min" type="zope.schema.Decimal">
+        <default>0</default>
+        <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
+        <required>False</required>
+        <title>pseudo-absence disk minimum distance</title>
+        <min>0</min>
+      </field>
+      <field name="pa_disk_max" type="zope.schema.Decimal">
+        <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
+        <required>False</required>
+        <title>pseudo-absence disk maximum distance</title>
+        <min>0</min>
+      </field>
+    </fieldset>
+    <fieldset name="Other"
+              label="Other Configuration"
+              description="Options are set to package defaults unless otherwise modified.">
+      <field name="tree_complexity" type="zope.schema.Int">
+        <default>1</default>
+        <description>number of interactions between predictor variables that need to be considered; value of 1 will fit an additive model, value = 2 will include 2-way interactions, etc.</description>
+        <max>50</max>
+        <min>1</min>
+        <required>False</required>
+        <title>tree complexity</title>
+      </field>
+      <field name="learning_rate" type="zope.schema.Decimal">
+        <default>0.01</default>
+        <description>determines the contribution of each tree to the growing model</description>
+        <required>False</required>
+        <title>learning rate</title>
+      </field>
+      <field name="bag_fraction" type="zope.schema.Decimal">
+        <default>0.75</default>
+        <description>fraction of the data that is randomly selected to built the next tree in the model</description>
+        <required>False</required>
+        <title>bag fraction</title>
+      </field>
+      <field name="n_folds" type="zope.schema.Int">
+        <default>10</default>
+        <description>number of subsets used for cross-validation</description>
+        <required>False</required>
+        <title>number of cross validations (n folds)</title>
+      </field>
+      <field name="prev_stratify" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
+        <default>True</default>
+        <description>whether subsets should be selected in such a way that the mean response value is approximately equal in all subsets</description>
+        <required>False</required>
+        <title>prevalence stratify</title>
+      </field>
+      <field name="family" type="zope.schema.Choice">
+        <default>bernoulli</default>
+        <required>False</required>
+        <description>distribution of the response variable; default is bernoulli, which is used for binary data</description>
+        <title>family</title>
+        <vocabulary>brt_family_vocab</vocabulary>
+      </field>
+      <field name="n_trees" type="zope.schema.Int">
+        <default>50</default>
+        <description>number of initial trees to fit, and to add each cycle</description>
+        <required>False</required>
+        <title>number of trees added each cycle</title>
+      </field>
+      <field name="max_trees" type="zope.schema.Int">
+        <default>10000</default>
+        <description>maximum number of trees to fit before stopping</description>
+        <required>False</required>
+        <title>maximum number of trees</title>
+      </field>
+      <field name="tolerance_method" type="zope.schema.Choice">
+        <default>auto</default>
+        <description>method used in deciding to stop: for ‘fixed’ the value indicated in ‘tolerance value’ is used; for ‘auto’ the value is ‘tolerance value * total mean deviance’</description>
+        <required>False</required>
+        <title>tolerance method</title>
+        <values>
+          <element>auto</element>
+          <element>fixed</element>
+        </values>
+      </field>
+      <field name="tolerance_value" type="zope.schema.Decimal">
+        <default>0.001</default>
+        <description>value to use in 'tolerance method'</description>
+        <required>False</required>
+        <title>tolerance value</title>
+      </field>
+      <field name="random_seed" type="zope.schema.Int">
+        <description>random seed used</description>
+        <required>False</required>
+        <title>random seed</title>
+        <min>-2147483648</min>
+        <max>2147483647</max>      
+      </field>    
+    </fieldset>
   </schema>
 </model>
