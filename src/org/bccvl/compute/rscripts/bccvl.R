@@ -386,7 +386,7 @@ bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filen
       bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
       rasters = lapply(rasters, function(x) crop(x, ce$common.extent))
     }
-  
+      
     # Resample based on resample flag 
     cr = bccvl.raster.resample.resolution(rasters, resamplingflag)
     if (! cr$is.same.res) 
@@ -395,7 +395,7 @@ bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filen
     }
 
     # get raster with lowest resolution
-    master = Filter(function(x) all(res(x) == cr$commom.res), rasters)[[1]]
+    master = Filter(function(x) all(res(x) == cr$common.res), rasters)[[1]]
     
     resamp_func <- function(x)
     {
