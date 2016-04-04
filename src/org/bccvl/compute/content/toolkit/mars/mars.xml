@@ -3,100 +3,108 @@
        xmlns:form="http://namespaces.plone.org/supermodel/form"
        xmlns="http://namespaces.plone.org/supermodel/schema">
   <schema based-on="zope.interface.Interface">
-   <field name="nb_run_eval" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
-      <default>10</default>
-      <title>n-fold cross validation</title>
-      <min>1</min>
-    </field>
-    <field name="data_split" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
-      <default>100</default>
-      <title>data split</title>
-      <min>0</min>
-      <max>100</max>
-    </field>
-    <field name='prevalence' type='zope.schema.Decimal'>
-      <required>False</required>
-      <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
-      <title>weighted response weights</title>
-      <min>0</min>
-      <max>1</max>
-    </field>
-    <field name="var_import" type="zope.schema.Int">
-      <default>0</default>
-      <description>number of permutations to estimate the relative importance of each variable</description>
-      <title>resampling</title>
-      <min>0</min>
-    </field>
-    <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
-      <default>True</default>
-      <description>calibrate &amp; evaluate models with the whole dataset?</description>
-      <title>do full models</title>
-    </field>
-    <field name="degree" type="zope.schema.Int">
-      <default>1</default>
-      <description>number of interactions between predictor variables that need to be considered; value of 1 will fit an additive model, value = 2 will include interactions between variables, higher degrees are possible if needed</description>
-      <title>maximum interaction degree</title>
-    </field>
-    <field name="nk" type="zope.schema.Int">
-      <description>maximum number of terms in the model before pruning</description>
-      <title>maximum number of terms</title>
-      <required>False</required>
-    </field>
-    <field name="penalty" type="zope.schema.Decimal">
-      <default>2.0</default>
-      <description>the cost per degree of freedom change; default = 2 if maximum interaction degree = 1, if degree > 1, suggested penalty = 3</description>
-      <title>penalty</title>
-    </field>
-    <field name="thresh" type="zope.schema.Decimal">
-      <default>0.001</default>
-      <description>forward stepwise stopping threshold</description>
-      <title>threshold</title>
-    </field>
-    <field name="prune" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
-      <default>True</default>
-      <description>whether the model should be pruned in a backward stepwise fashion</description>
-      <title>prune</title>
-      <required>False</required>
-    </field>
-    <field name="random_seed" type="zope.schema.Int">
-      <description>random seed used</description>
-      <required>False</required>
-      <title>random seed</title>
-      <min>-2147483648</min>
-      <max>2147483647</max>      
-    </field>    
-    <field name="pa_ratio" type="zope.schema.Decimal">
-      <default>1</default>
-      <description>ratio of absence to presence points</description>
-      <required>False</required>
-      <title>absence-presence ratio</title>
-      <min>0</min>
-    </field>
-    <field name="pa_strategy" type="zope.schema.Choice">
-      <default>random</default>      
-      <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
-      <required>True</required>
-      <title>pseudo-absence strategy</title>
-      <vocabulary>pa_strategy_vocab</vocabulary>
-    </field>
-    <field name="pa_sre_quant" type="zope.schema.Decimal">
-      <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
-      <required>False</required>
-      <title>pseudo-absence SRE quantile</title>
-      <min>0</min>
-    </field>
-    <field name="pa_disk_min" type="zope.schema.Decimal">
-      <default>0</default>
-      <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
-      <required>False</required>
-      <title>pseudo-absence disk minimum distance</title>
-      <min>0</min>
-    </field>
-    <field name="pa_disk_max" type="zope.schema.Decimal">
-      <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
-      <required>False</required>
-      <title>pseudo-absence disk maximum distance</title>
-      <min>0</min>
-    </field>
+    <fieldset name="Pseudo Absences"
+              label="Pseudo Absence Configuration"
+              description="Select and configure your strategy. &lt;a href='#test' target='_blank'>Read More ...&lt;/a>">
+      <field name="pa_ratio" type="zope.schema.Decimal">
+        <default>1</default>
+        <description>ratio of absence to presence points</description>
+        <required>False</required>
+        <title>absence-presence ratio</title>
+        <min>0</min>
+      </field>
+      <field name="pa_strategy" type="zope.schema.Choice">
+        <default>random</default>      
+        <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
+        <required>True</required>
+        <title>pseudo-absence strategy</title>
+        <vocabulary>pa_strategy_vocab</vocabulary>
+      </field>
+      <field name="pa_sre_quant" type="zope.schema.Decimal">
+        <description>quantile used for 'SRE' pseudo-absence generation strategy; default is 0.025</description>
+        <required>False</required>
+        <title>pseudo-absence SRE quantile</title>
+        <min>0</min>
+      </field>
+      <field name="pa_disk_min" type="zope.schema.Decimal">
+        <default>0</default>
+        <description>minimum distance to presences for 'disk' pseudo-absence generation strategy</description>
+        <required>False</required>
+        <title>pseudo-absence disk minimum distance</title>
+        <min>0</min>
+      </field>
+      <field name="pa_disk_max" type="zope.schema.Decimal">
+        <description>maximum distance to presences for 'disk' pseudo-absence generation strategy</description>
+        <required>False</required>
+        <title>pseudo-absence disk maximum distance</title>
+        <min>0</min>
+      </field>
+    </fieldset>
+    <fieldset name="Other"
+              label="Other Configuration"
+              description="Options are set to package defaults unless otherwise modified.">
+      <field name="nb_run_eval" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
+        <default>10</default>
+        <title>n-fold cross validation</title>
+        <min>1</min>
+      </field>
+      <field name="data_split" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
+        <default>100</default>
+        <title>data split</title>
+        <min>0</min>
+        <max>100</max>
+      </field>
+      <field name='prevalence' type='zope.schema.Decimal'>
+        <required>False</required>
+        <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
+        <title>weighted response weights</title>
+        <min>0</min>
+        <max>1</max>
+      </field>
+      <field name="var_import" type="zope.schema.Int">
+        <default>0</default>
+        <description>number of permutations to estimate the relative importance of each variable</description>
+        <title>resampling</title>
+        <min>0</min>
+      </field>
+      <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
+        <default>True</default>
+        <description>calibrate &amp; evaluate models with the whole dataset?</description>
+        <title>do full models</title>
+      </field>
+      <field name="degree" type="zope.schema.Int">
+        <default>1</default>
+        <description>number of interactions between predictor variables that need to be considered; value of 1 will fit an additive model, value = 2 will include interactions between variables, higher degrees are possible if needed</description>
+        <title>maximum interaction degree</title>
+      </field>
+      <field name="nk" type="zope.schema.Int">
+        <description>maximum number of terms in the model before pruning</description>
+        <title>maximum number of terms</title>
+        <required>False</required>
+      </field>
+      <field name="penalty" type="zope.schema.Decimal">
+        <default>2.0</default>
+        <description>the cost per degree of freedom change; default = 2 if maximum interaction degree = 1, if degree > 1, suggested penalty = 3</description>
+        <title>penalty</title>
+      </field>
+      <field name="thresh" type="zope.schema.Decimal">
+        <default>0.001</default>
+        <description>forward stepwise stopping threshold</description>
+        <title>threshold</title>
+      </field>
+      <field name="prune" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
+        <default>True</default>
+        <description>whether the model should be pruned in a backward stepwise fashion</description>
+        <title>prune</title>
+        <required>False</required>
+      </field>
+      <field name="random_seed" type="zope.schema.Int">
+        <description>random seed used</description>
+        <required>False</required>
+        <title>random seed</title>
+        <min>-2147483648</min>
+        <max>2147483647</max>      
+      </field>    
+    </fieldset>
   </schema>
 </model>
