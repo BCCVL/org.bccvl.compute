@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.11.0.dev'
+version = '1.11.0-rc1'
 
 setup(
     name='org.bccvl.compute',
@@ -29,7 +29,7 @@ setup(
         'setuptools',  # distribute
         'zope.i18nmessageid',
     ],
-    tests_require = [
+    tests_require=[
         'numpy',
         'scipy',
         'Pillow',
