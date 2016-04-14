@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.11.0-rc1'
+version = '1.11.0-rc2'
 
 setup(
     name='org.bccvl.compute',
