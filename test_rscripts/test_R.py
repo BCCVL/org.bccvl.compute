@@ -76,7 +76,7 @@ def compare_png(img1, img2, eps=0.99):
         # multi color channel
         mssim = ssim(im1, im2, multichannel=True)
     else:
-        # We have to do our multichannel ssim ourselves
+        # We have to do multichannel ssim ourselves
         nch = im1.shape[-1]
         mssim = np.empty(nch)
         for ch in range(nch):
@@ -461,7 +461,7 @@ class Test_CIRCLES(BaseTestCase.AlgorithmTestCase):
 
 class Test_CONVHULL(BaseTestCase.AlgorithmTestCase):
 
-    algo_name = 'convHull'
+    algo_name = 'convhull'
 
 
 class Test_VORONOIHULL(BaseTestCase.AlgorithmTestCase):
