@@ -145,7 +145,9 @@
                       "*/*.bccvl.models.out",
                       "*/.BIOMOD_DATA/bccvl/*",
                       "*/models/bccvl/*",
-                      "*/proj_current/*.current.projection.out"
+                      "*/models/bccvl/*_MAXENT_outputs/*",
+                      "*/models/bccvl/*_MAXENT_outputs/plots/*",
+                      "*/proj_current/*.current.projection.out",
                       ],
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
