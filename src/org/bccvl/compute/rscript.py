@@ -44,7 +44,14 @@ def get_sdm_params(result):
         if not params.get(paramname, None):
             continue
         uuid = params[paramname]
-        params[paramname] = getdatasetparams(uuid)
+        dsinfo = getdatasetparams(uuid)
+        if dsinfo['filename'].endswith('.zip'):
+            # FIXME: too many static assumptions about how an occurrence zip file looks like
+            #        layers:key does not match anything (should it?)
+            #        assumes exactly one file here
+            # TODO: should I remove 'layers' section here?
+            dsinfo['zippath'] = dsinfo['layers'].values()[0]['filename']
+        params[paramname] =  dsinfo
         # replace all spaces and underscores to '.' (biomod does the same)
         # TODO: really necessary?
         if params[paramname]:
