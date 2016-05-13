@@ -1,24 +1,46 @@
-######################################################################################
-# model accuracy helpers
-######################################################################################
+### BCCVL SDM model evaluation script ###
 
-# ROC    Relative Operating Characteristic
-# KAPPA (HSS)  Cohen's Kappa (Heidke skill score)
-# TSS (HK, PSS)    True skill statistic (Hanssen and Kuipers discriminant, Peirce's skill score)
-# FAR    False alarm ratio
-# SR     Success ratio
-# ACCURACY Accuracy (fraction correct)
-# BIAS   Bias score (frequency bias)
-# POD    Probability of detection (hit rate)
-# CSI    Critical success index (threat score)
-# ETS    Equitable threat score (Gilbert skill score)
-# POFD   Probability of false detection (false alarm rate)
-# OR     Odds ratio
-# ORSS   Odds ratio skill score (Yule's Q)
-# unsupported?
-# http://www.cawcr.gov.au/projects/verification/#Methods_for_dichotomous_forecasts
-# BOYCE .. not implemented?
-# TS       Threat score (critical success index)
+### Includes:
+# 1: Functions to save output
+# 2: Function to evaluate SDM model (written by Sama Low-Choy)
+# 3: Functions to create model outputs
+# 4: Run the evaluation and save outputs
+
+#########################################################################
+### 1: Functions to save output
+#########################################################################
+
+#########################################################################
+### 2: Function to run the SDM evaluation 
+#########################################################################
+
+# AIM: Calculate 2D measures of predictive performance for any model that predicts 
+  # a probability of presence (or success), to be compared to binary observations of 
+  # presence/absence (or success/failure).
+  #
+  # AUTHOR: A/Prof. Sama Low-Choy, Griffith University, Jan 2016
+  # ACKNOWLEDGEMENTS: Shawn Laffan for useful discussions, 
+  # Chantal Huijbers, Sarah Richmond and Linda for testcase
+  #
+  # INPUTS
+  # obs = vector of observations of presence/absence (binary)
+  # pred = vector of predicted probabilities of presence
+  # 
+  # OUTPUTS
+  # performance measures across varying threshold probability values
+  # Plot and histogram with probability density of presences and absences
+  # Sensitivity/Specificity plot
+  # Plot with four different error rates: FNR, FPR, FOR, FDR
+  # ROC plot
+  # Plot with different loss functions
+
+#########################################################################
+### 3: Functions to create SDM outputs
+#########################################################################
+
+#########################################################################
+### 4: Run the evaluation and save outputs
+#########################################################################
 
 # function to save evaluate output
 bccvl.saveModelEvaluation <- function(out.model, out.biomod.model) {
