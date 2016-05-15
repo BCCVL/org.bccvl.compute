@@ -25,7 +25,7 @@ write.table(installed.packages()[,c("Package", "Version", "Priority")],
 
 #script to run to develop distribution models
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "pROC", "R2HTML", "png", "gstat", "biomod2") #list the libraries needed
+necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "pROC", "R2HTML", "png", "gstat", "biomod2", "gdalUtils") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -337,13 +337,24 @@ bccvl.log.warning <-function(str, prefix="BCCVL Warning: ")
     print(paste(prefix, str, sep=""))
 }
 
-# rasters: a vector of rasters
-bccvl.raster.common.extent <- function(rasters)
+bccvl.raster.load <- function(filename) {
+    # load raster and assign crs if missing
+    r = raster(filename)
+    if (is.na(crs(r))) {
+        crs(r) = CRS("+init=epsg:4326")
+    }
+    return(r)
+}
+
+# rasters: a vector of rasters, all rasters should have same resolution
+# common.crs: crs to use to calculate intersection
+bccvl.raster.common.extent <- function(rasters, common.crs)
 {
-    extent.list=lapply(rasters, extent)
-    # intersect all extents to find common extent
+    # bring all rasters into common crs
+    extent.list = lapply(rasters, function(r) { extent(projectExtent(r, common.crs)) })
+    # intersect all extents
     common.extent = Reduce(intersect, extent.list)
-                                        # compare all against commen extents to find out if all extents are the same (used to print warning)
+    # compare all against commen extents to find out if all extents are the same (used to print warning)
     equal.extents = all(sapply(extent.list, function (x) common.extent == x))
 
     return (list(equal.extents=equal.extents, common.extent=common.extent))
@@ -354,69 +365,120 @@ bccvl.raster.extent.to.str <- function(ext)
   return(sprintf("xmin=%f xmax=%f ymin=%f ymax=%f", ext@xmin, ext@xmax, ext@ymin, ext@ymax));
 }
 
-# rasters: a vector of rasters
+# rasters: a vector of rasters ... preferrably empty
 # resamplingflag: a flag to determine which resampling approach to take
-bccvl.raster.resample.resolution <- function(rasters, resamplingflag)
-{
-    res.list = lapply(rasters, res)
-    
-    if (resamplingflag == "lowest"){
-        common.res = c(max(sapply(res.list, function(x) x[[1]])),
-                     max(sapply(res.list, function(x) x[[2]])))
-    } else if (resamplingflag == "highest"){
-        common.res = c(min(sapply(res.list, function(x) x[[1]])),
-                     min(sapply(res.list, function(x) x[[2]])))
+bccvl.rasters.common.resolution <- function(rasters, resamplingflag) {
+    resolutions = lapply(rasters, res)
+    if (resamplingflag == "highest") {
+        common.res = Reduce(pmin, resolutions)
+    } else if (resamplingflag == "lowest") {
+        common.res = Reduce(pmax, resolutions)
     }
-    is.same.res = all(sapply(res.list, function (x) all(common.res == x)))
+    is.same.res = all(sapply(resolutions, function(x) all(common.res == x)))
     return (list(common.res=common.res, is.same.res=is.same.res))
+}
+
+# generate reference raster with common resolutin, crs and extent
+bccvl.rasters.common.reference <- function(rasters, resamplingflag) {
+    # create list of empty rasters to speed up alignment
+    empty.rasters = lapply(rasters, function(x) { projectExtent(x, crs(x)) })
+    # choose a common.crs if all crs in rasters are the same use that one, otherwise use EPSG:4326 (common data in bccvl)
+    common.crs = crs(empty.rasters[[1]])
+    # TODO: print warning about reprojecting if necessary (if inside next condition)
+    if (! do.call(compareRaster, c(empty.rasters, extent=FALSE, rowcol=FALSE, prj=TRUE, res=FALSE, orig=FALSE, rotation=FALSE, stopiffalse=FALSE))) {
+        # we have different CRSs, so use EPSG:4326 as common
+        # TODO: another strategy to find common CRS?
+        common.crs = CRS("+init=epsg:4326")
+        # project all rasters into common crs
+        bccvl.log.warning(sprintf("Auto projecting to common CRS %s", common.crs))
+        empty.rasters = lapply(empty.rasters, function(x) { projectExtent(x, common.crs) })
+    }
+
+    # determine commen.extent in common.crs
+    # Note: extent is in projection units, -> rasters have to be in same CRS
+    ce = bccvl.raster.common.extent(empty.rasters, common.crs)
+    if (! ce$equal.extents) {
+        bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
+    }
+    
+    # determine common resolution
+    # Note: resolution is usually in projection units. -> rasters should be in same CRS
+    cr = bccvl.rasters.common.resolution(empty.rasters, resamplingflag)
+    # TODO: print warning about resampling: common.res$is.same.res
+    if (! cr$is.same.res) {
+        bccvl.log.warning(sprintf("Auto resampling to %s resolution [%f %f]", resamplingflag, cr$common.res[[1]], cr$common.res[[2]]))
+    }
+
+    # apply common extent and resolution to empty rasters
+    empty.rasters = lapply(
+        empty.rasters,
+        function(x) {
+            extent(x) = ce$common.extent
+            res(x) = cr$common.res
+            return(x)
+        })
+    # from now an all empty.rasters should be exactly the same, pick first and return as
+    # template.
+    return(empty.rasters[[1]])
+}
+
+bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
+    rasters = mapply(
+        function(filename, filetype) {
+
+            r = bccvl.raster.load(filename)
+            # warp, crop and rescale raster file if necessary
+            dir = dirname(filename)
+            tmpf = file.path(dir, 'tmp.tif') # TODO: better filename and location?
+            te = extent(reference)
+            gdalwarp(filename, tmpf,
+                     s_srs=CRSargs(crs(r)), t_srs=CRSargs(crs(reference)),
+                     te=c(te@xmin, te@ymin, te@xmax, te@ymax),
+                     ts=c(ncol(reference), nrow(reference)),
+                     # tr=c(...), ... either this or ts
+                     r="near",
+                     of="GTiff"
+                     #co=c("TILED=YES", "COMPRESS=???")
+                     )
+            # put new file back into place
+            file.rename(tmpf, filename)
+            # load new file and convert to categorical if required
+            r = raster(filename)
+            if (filetype == "categorical") {
+                # convert to factor if categorical
+                r = as.factor(r)
+            }
+            return(r)
+        },
+        raster.filenames, raster.types)
+    return(rasters)
 }
 
 # raster.filenames : a vector of filenames that will be loaded as rasters
 # resamplingflag: a flag to determine which resampling approach to take
 bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, raster.types, resamplingflag)
 {
-    # Load rasters. For categorical raster, load it as factor
-    rasters = c(lapply(raster.filenames[which(raster.types == "continuous")], raster), 
-                lapply(lapply(raster.filenames[which(raster.types != "continuous")], raster), as.factor));
-    
-    # Crop to common extent
-    ce = bccvl.raster.common.extent(rasters)
-    if (ce$equal.extents == FALSE)
-    {
-      bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
-      rasters = lapply(rasters, function(x) crop(x, ce$common.extent))
-    }
-      
-    # Resample based on resample flag 
-    cr = bccvl.raster.resample.resolution(rasters, resamplingflag)
-    if (! cr$is.same.res) 
-    {
-      bccvl.log.warning(sprintf("Auto resampling to %s resolution [%f %f]", resamplingflag, cr$common.res[[1]], cr$common.res[[2]]))
-    }
+    # Load rasters and assign CRS if missing
+    rasters = lapply(raster.filenames, bccvl.raster.load)
 
-    # get raster with lowest resolution
-    master = Filter(function(x) all(res(x) == cr$common.res), rasters)[[1]]
+    # determine common raster shape
+    reference = bccvl.rasters.common.reference(rasters, resamplingflag)
     
-    resamp_func <- function(x)
-    {
-      rsp = if (all(res(x) == cr$common.res)) x else resample(x, master, method='ngb')
-      return(rsp)
-    }
-    
-    return(lapply(rasters, resamp_func))
+    # adjust rasters spatially and convert categorical rasters to factors
+    rasters = bccvl.rasters.warp(raster.filenames, raster.types, reference)
+
+    return(rasters)
 }
 
 # return a RasterStack of given vector of input files
 # intersecting extent
 # lowest or highest resolution depending upon flag
 bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
-
+    # adjust rasters to same projection, resolution and extent
     rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, types, resamplingflag)
+    # stack rasters
     rasterstack = stack(rasters)
-    if (is.na(crs(rasterstack))) {
-        # Default to EPSG:4326
-        crs(rasterstack) <- '+init=epsg:4326'
-    }
+    # assign predefined variable names
     names(rasterstack) = unlist(layernames)
     return(rasterstack)
 }
