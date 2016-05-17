@@ -51,55 +51,55 @@
             "mimetype": "text/csv",
             "order": 7
         },
-        "bioclim-ppp.png": {
+        "bioclim-presence-absence-plot.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 8
         },        
-        "Full-occurrence_absence_hist.png": {
+        "Full-presence-absence-hist.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 9
         },        
-        "Full-true_and_false_posivite_rates.png": {
+        "Full-TPR-TNR.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 10
         },        
-        "bioclim-error.png": {
+        "bioclim-error-rates.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 11
         },        
-        "bioclim-roc.png": {
+        "bioclim-ROC.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 12
         },        
-        "bioclim-tradeoffs.png": {
+        "bioclim-loss-functions.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 13
         },
-        "evaluation.summary.csv": {
+        "Loss function intervals table.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 14
         },        
-        "bioclim-intervals.png": {
+        "bioclim-loss-intervals.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 15
         },
-        "evaluation.performance.csv": {
+        "Evaluation data.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
