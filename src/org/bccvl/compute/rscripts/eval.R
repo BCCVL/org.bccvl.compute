@@ -325,6 +325,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     g4 <- ggplot(errs[errs$measure %in% c("fpr", "fnr", "fdr", "fors"), ], 
                  aes(x=tpv, y=value, colour=measure, linetype=measure)) + 
       geom_line(size=1.2) + 
+      ylim(0,1) +
       labs(title="Error rates plot\n", x="\nThreshold probability value", y="Error rate value\n") + 
       scale_linetype_manual(values=c("solid", "solid", "dashed", "dashed"), labels=c("False Positive Rate  ", "False Negative Rate   ", "False Discovery Rate", "False Omission Rate")) +
       scale_colour_manual(values=c("#FAB334", "#D55E00", "#FAB334", "#D55E00"), labels=c("False Positive Rate  ", "False Negative Rate   ", "False Discovery Rate", "False Omission Rate")) + 
@@ -337,6 +338,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-ROC.png", make.plot)), width=480, height=480)
     g5 <- ggplot(temp, aes(x=fpr, y=tpr)) + 
       geom_line(size=1.2) + 
+      ylim(0,1) +
       geom_abline(intercept=0, slope=1, colour="grey") + 
       labs(x="\nFalse Positive Rate (1-Specificity)", y="True Positive Rate (Sensitivity)\n") +
       ggtitle(paste("ROC plot")) +
@@ -349,6 +351,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     g6 <- ggplot(errs[errs$measure %in% rev(c("L.pos", "L.all", "L.eq.diag", "L.eq.pred")), ], 
                  aes(x=tpv, y=value, colour=measure)) + 
       geom_line(size=1.2) + 
+      ylim(0,1) +
       labs(title="Loss function plot\n", x="\nThreshold probability value", y="Loss function value\n") +
       scale_colour_manual(values=c("#48D1CC", "#9F79EE", "#EE9572", "#FF3E96"), labels=c("Maximize TPR + TNR   ", "Balance all errors   ", "FPR = FNR", "FDR = FOR")) + 
       theme(axis.text = element_text(family="Arial", size=rel(1.5)), axis.title = element_text(family="Arial", size=rel(1.5)), plot.title = element_text(family="Arial", size=rel(2)), legend.text = element_text(family="Arial", size=rel(1.5)), legend.position="top", legend.key=element_blank(), legend.key.size=unit(2.5, "lines")) + 
@@ -363,6 +366,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
       geom_pointrange(size=1.2) + 
       geom_line(size=1.2) +
       coord_flip() + 
+      ylim(0,1) +
       scale_x_discrete(limits=c("eq.pred","eq.diag","all", "pos")) +
       scale_colour_manual(values=c("#48D1CC", "#9F79EE", "#EE9572", "#FF3E96"), labels=c("Maximize TPR + TNR   ", "Balance all errors   ", "FPR = FNR", "FDR = FOR")) + 
       labs(title="Range of threshold probability value \nwithin 5% of minimum per loss\n", x="Type of loss function\n", y="\nThreshold probability value") + 
