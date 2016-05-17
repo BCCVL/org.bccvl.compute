@@ -7,7 +7,7 @@
             "skip": true
         },
         "*/proj_current/proj_current_*.tif": {
-            "title": "Projection to current",
+            "title": "Projection to current climate",
             "genre": "DataGenreCP",
             "mimetype": "image/geotiff",
             "order": 1
@@ -25,13 +25,13 @@
             "order": 3
         },
         "pseudo_absences.csv": {
-            "title": "Pseudo Absence Points",
+            "title": "Generate pseudo-absence points",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
             "order": 4
         },
         "mean_response_curves*.png": {
-            "title": "Mean Response Curves",
+            "title": "Response curves",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 5
@@ -48,14 +48,14 @@
             "mimetype": "text/csv",
             "order": 7
         },
-        "Full-ppp.png": {
-            "title": "New Model plots",
+        "Full-presence-absence-plot.png": {
+            "title": "Presence/absence density plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 8
         },
-        "Full-occurrence_absence_hist.png": {
-            "title": "New Model plots",
+        "Full-presence-absence-hist.png": {
+            "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 9
@@ -66,44 +66,44 @@
             "mimetype": "image/png",
             "order": 10
         },
-        "Full-true_and_false_posivite_rates.png": {
-            "title": "New Model plots",
+        "Full-TPR-TNR.png": {
+            "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 11
         },
-        "Full-error.png": {
-            "title": "New Model plots",
+        "Full-error-rates.png": {
+            "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 12
         },
-        "Full-roc.png": {
-            "title": "New Model plots",
+        "Full-ROC.png": {
+            "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 13
         },
-        "Full-tradeoffs.png": {
-            "title": "New Model plots",
+        "Full-loss-functions.png": {
+            "title": "Loss functions plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 14
         },
-        "evaluation.summary.csv": {
-            "title": "Model Evaluation",
+        "Loss function intervals table.csv": {
+            "title": "Loss functions table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 15
         },
-        "Full-intervals.png": {
-            "title": "New Model plots",
+        "Full-loss-intervals.png": {
+            "title": "Loss functions intervals",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 16
         },
-        "evaluation.performance.csv": {
-            "title": "Model Evaluation",
+        "Evaluation data.csv": {
+            "title": "Model evaluation data",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 17
