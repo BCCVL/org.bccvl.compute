@@ -286,7 +286,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     
     # Create Presence/absence density plot across threshold probability values
     temp2 <- data.frame(list(pred=pred, obs=obs))
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence_absence_plot.png", make.plot)), width=480, height=480)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence-absence-plot.png", make.plot)), width=480, height=480)
     g1 <- ggplot(temp2, aes(x=pred, fill=factor(obs))) + 
       geom_density(stat="density", alpha=0.5) + 
       labs(title="Presence/absence density plot \nacross threshold probability values", x="\nThreshold probability value", y="Density\n") + 
@@ -297,7 +297,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create Presence/absence histogram across threshold probability values
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence_absence_hist.png", make.plot)), width=480, height=480)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence-absence-hist.png", make.plot)), width=480, height=480)
     g2 <- ggplot(temp2, aes(x=pred, fill=factor(obs)))  + 
       geom_histogram(position="dodge", alpha = 0.5) +
       labs(title="Presence/absence histogram \nacross threshold probability values", x="\nThreshold probability value", y="Count\n") +
