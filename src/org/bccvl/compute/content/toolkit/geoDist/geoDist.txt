@@ -10,7 +10,7 @@
             "skip": true            
         },        
         "*proj_current*.tif": {
-            "title": "Projection to current",
+            "title": "Projection to current climate",
             "genre": "DataGenreCP",
             "mimetype": "image/geotiff",
             "order": 1
@@ -22,7 +22,7 @@
             "order": 2
         },        
         "pseudo_absences.csv": {
-            "title": "Pseudo Absence Points",
+            "title": "Generated pseudo-absence points",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
             "order": 3
