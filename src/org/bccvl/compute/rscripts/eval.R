@@ -26,6 +26,616 @@ bccvl.saveProjection <- function(proj.model, species) {
 ### 2: Function to evaluate the SDM model
 #########################################################################
 
+      misc <- table(Fit >= cutoff, Obs)
+      misc <- bccvl.contagency.table.check(misc)
+      true.pos <- as.numeric(misc['TRUE','1'])
+      true.neg <- as.numeric(misc['FALSE','0'])
+      specificity <- (true.neg * 100)/sum(as.numeric(misc[,'0']))
+      sensibility <- (true.pos * 100)/sum(as.numeric(misc[,'1']))
+    } else{
+#       require(pROC,quietly=T)
+      roc1 <- pROC::roc(Obs, Fit, percent=T, direction="<")
+      roc1.out <- pROC::coords(roc1, "best", ret=c("threshold", "sens", "spec"))
+      best.stat <- as.numeric(pROC::auc(roc1))/100
+      cutoff <- as.numeric(roc1.out["threshold"])
+      sensibility <- as.numeric(roc1.out["sensitivity"])
+      specificity <- as.numeric(roc1.out["specificity"])
+    }
+  #}
+  eval.out <- cbind(best.stat,cutoff,sensibility,specificity)
+  rownames(eval.out) <- Stat
+  return(eval.out)
+}
+
+bccvl.getStatOptimValue <- function(stat){
+  if(stat == 'TSS') return(1)
+  if(stat == 'KAPPA') return(1)
+  if(stat == 'ACCURACY') return(1)
+  if(stat == 'BIAS') return(1)
+  if(stat == 'POD') return(1)
+  if(stat == 'FAR') return(0)
+  if(stat == 'POFD') return(0)
+  if(stat == 'SR') return(1)
+  if(stat == 'CSI') return(1)
+  if(stat == 'ETS') return(1)
+  if(stat == 'HK') return(1)
+  if(stat == 'HSS') return(1)
+  if(stat == 'OR') return(1000000)
+  if(stat == 'ORSS') return(1)
+  
+  #dismo
+  if(stat == 'ODP') return(1)
+  # if(stat == 'CCR') return(1) # same as ACCURACY
+  # if(stat == 'TPR') return(1) # same as POD
+  if(stat == 'TNR') return(1)
+  if(stat == 'FPR') return(0)
+  if(stat == 'FNR') return(0)
+  # if(stat == 'PPP') return(1) # same as SR
+  if(stat == 'NPP') return(1)
+  if(stat == 'MCR') return(0)
+  if(stat == 'OR') return(1000000)
+  # if(stat == 'kappa') return(1) # same as KAPPA
+}
+
+bccvl.calculate.stat <-
+function(Misc, stat='TSS')
+{
+  # Contagency table checking
+  Misc <- bccvl.contagency.table.check(Misc)
+  
+  # Defining Classification index
+  hits <- as.numeric(Misc['TRUE','1'])
+  misses <- as.numeric(Misc['FALSE','1'])
+  false_alarms <- as.numeric(Misc['TRUE','0'])
+  correct_negatives <- as.numeric(Misc['FALSE','0'])
+  
+  total <- sum(as.numeric(Misc))
+  forecast_1 <- sum(as.numeric(Misc['TRUE',]))
+  forecast_0 <- sum(as.numeric(Misc['FALSE',]))
+  observed_1 <- sum(as.numeric(Misc[,'1']))
+  observed_0 <- sum(as.numeric(Misc[,'0']))
+  
+  # Calculating choosen evaluating metric
+  if(stat=='TSS'){
+    return( (hits/(hits+misses)) + (correct_negatives/(false_alarms+correct_negatives)) -1 )
+  }
+  
+  if(stat=='KAPPA'){
+    Po <- (1/total) * (hits + correct_negatives)
+    Pe <- ((1/total)^2) * ((forecast_1 * observed_1) + (forecast_0 * observed_0))
+    return( (Po - Pe) / (1-Pe) )
+  }
+  
+  if(stat=='ACCURACY'){
+    return( (hits + correct_negatives) / total)
+  }
+  
+  if(stat=='BIAS'){
+    return( (hits + false_alarms) / (hits + misses))
+  }
+  
+  if(stat=='POD'){
+    return( hits / (hits + misses))
+  }
+  
+  if(stat=='FAR'){
+    return(false_alarms/(hits+false_alarms))
+  }
+  
+  if(stat=='POFD'){
+    return(false_alarms / (correct_negatives + false_alarms))
+  }
+  
+  if(stat=='SR'){
+    return(hits / (hits + false_alarms))
+  }
+  
+  if(stat=='CSI'){
+    return(hits/(hits+misses+false_alarms))
+  }
+  
+  if(stat=='ETS'){
+    hits_rand <- ((hits+misses)*(hits+false_alarms)) / total
+    return( (hits-hits_rand) / (hits+misses+false_alarms-hits_rand))
+  }
+  
+  #if(stat=='HK'){
+  #  return((hits/(hits+misses)) - (false_alarms/(false_alarms + correct_negatives)))
+  #}
+  
+  #if(stat=='HSS'){
+  #  expected_correct_rand <- (1/total) * ( ((hits+misses)*(hits+false_alarms)) +
+  #    ((correct_negatives + misses)*(correct_negatives+false_alarms)) )
+  #  return((hits+correct_negatives-expected_correct_rand) / (total - expected_correct_rand))
+  #}
+  
+  #if(stat=='OR'){
+  #  return((hits*correct_negatives)/(misses*false_alarms))
+  #}
+  
+  #if(stat=='ORSS'){
+  #  return((hits*correct_negatives - misses*false_alarms) / (hits*correct_negatives + misses*false_alarms))
+  #}
+  
+  #if(stat=="BOYCE"){
+  #  
+  #}
+  
+  #dismo
+  if(stat=='ODP') {
+      return((false_alarms + correct_negatives) / total)
+  }
+
+  # if(stat=='CCR') {
+  # return((hits + correct_negatives) / total)
+  # }
+
+  # if(stat=='TPR') {
+  # return(hits / (hits + misses))
+  # }
+
+  if(stat=='TNR') {
+      return(correct_negatives / (false_alarms + correct_negatives))
+  }
+
+  if(stat=='FPR') {
+      return(false_alarms / (false_alarms + correct_negatives))
+  }
+
+  if(stat=='FNR') {
+      return(misses / (hits + misses))
+  }
+
+  # if(stat=='PPP') {
+  # return(hits / (hits + false_alarms))
+  # }
+
+  if(stat=='NPP') {
+      return(correct_negatives / (misses + correct_negatives))
+  }
+
+  if(stat=='MCR') {
+      return((false_alarms + misses) / total)
+  }
+
+  if(stat=='OR') {
+      return((hits * correct_negatives) / (misses * false_alarms))
+  }
+
+  # if(stat=='kappa') {
+  # return(((hits + correct_negatives) - (((hits + misses)*(hits + false_alarms) + (false_alarms + correct_negatives)*(misses + correct_negatives)) / total)) /
+  # (total -(((hits + misses)*(hits + false_alarms) + (false_alarms + correct_negatives)*(misses + correct_negatives)) / total)))
+  # }  
+  
+}
+
+bccvl.contagency.table.check <- function(Misc){
+  # Contagency table checking
+  if(dim(Misc)[1]==1){
+    if(row.names(Misc)[1]=="FALSE"){
+      Misc <- rbind(Misc, c(0,0))
+      rownames(Misc) <- c('FALSE','TRUE')
+    } else{
+      a <- Misc
+      Misc <- c(0,0)
+      Misc <- rbind(Misc, a)
+      rownames(Misc) <- c('FALSE','TRUE')
+  	}
+  }
+  
+  if(ncol(Misc) != 2 | nrow(Misc) !=2 ){
+    Misc = matrix(0, ncol=2, nrow=2, dimnames=list(c('FALSE','TRUE'), c('0','1')))
+  }
+  
+  if((sum(colnames(Misc) %in% c('FALSE','TRUE','0','1')) < 2) | (sum(rownames(Misc) %in% c('FALSE','TRUE','0','1')) < 2) ){
+    stop("Unavailable contagency table given")
+  }
+  
+  if('0' %in% rownames(Misc)) rownames(Misc)[which(rownames(Misc)=='0')] <- 'FALSE'
+  if('1' %in% rownames(Misc)) rownames(Misc)[which(rownames(Misc)=='1')] <- 'TRUE'  
+    
+  return(Misc)
+}
+
+# function to generate marginal (mean) response curves for dismo models
+# i.e., hold all but one predictor variable to its mean value and recalculate model predictions
+bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
+   # get the enviromental variables and values used to create the model
+    if (model.name == "brt") {
+        model.values = matrix(out.model$data$x, ncol=length(out.model$var.names))
+        env.vars = out.model$var.names
+    } else if (model.name %in% c("geoIDW", "voronoiHull")) {
+        model.values = rbind(out.model@presence, out.model@absence)
+        env.vars = colnames(model.values)
+    } else {
+        model.values = out.model@presence
+        env.vars = colnames(model.values)
+    }
+
+    if (!(length(model.values)==0)) {
+
+        # create a matrix to hold average values for each environmental variable
+        mean.values = matrix(data = NA, nrow = 100, ncol = length(env.vars))
+        colnames(mean.values) = env.vars
+        # for each variable, populate the column with the mean value
+        for (i in 1:ncol(mean.values)) {
+            mean.values[,i] = rep(mean(model.values[,i], na.rm=TRUE), 100)
+        }
+
+        # plot 18 response curves per page
+        curvesPerPage = 6*3       # No of rows X No of columns
+        for (i in 0:((ncol(mean.values)-1)/curvesPerPage)) {
+            png(file=file.path(bccvl.env$outputdir, paste("p", i,"_response.png", sep="")), width=700, height=900)
+            par(mfrow = c(6,3))   # No of rows X No of columns
+
+            # allow each environmental variable to vary, keeping other variable values at average, and predict suitability
+            for (j in ((i*curvesPerPage + 1):min((i+1)*curvesPerPage, ncol(mean.values)))) {
+                range.values = seq(min(model.values[,j], na.rm=TRUE), max(model.values[,j], na.rm=TRUE), length.out=100)
+                temp.data = mean.values
+                temp.data[,j] = range.values
+                if (model.name == "brt") {
+                    colnames(temp.data) = env.vars
+                    new.predictions = predict(out.model, as.data.frame(temp.data), n.trees = out.model$gbm.call$best.trees, type="response")
+                } else {
+                    new.predictions = predict(out.model, temp.data)
+                }
+
+                # create separate file for each response curve
+                save.name = env.vars[j]
+                plot(range.values, new.predictions, ylim=c(0,1), xlab="", ylab="", main=save.name, type="l")
+                rug(model.values[,j])
+            }
+            dev.off()
+        }
+    } else {
+        write(paste(species, ": Cannot create response curves from", model.name, "object", sep=" "), stdout())
+    }
+}
+
+# function to calculate variable importance values for dismo models based on biomod2's correlation between predictions
+# i.e., hold all but one predictor variable to its actual values, resample that one predictor and recalculate model predictions
+bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples) {
+    # EMG num_samples should be same as biomod.VarImport arg set in
+    # 01.init.args.model.current.R
+
+    # get the enviromental variables and values used to create the model
+    # EMG this is duplicated from above, should be able to combine
+    if (model.name == "brt") {
+        model.values = matrix(out.model$data$x, ncol=length(out.model$var.names))
+        env.vars = out.model$var.names
+        colnames(model.values) = env.vars
+    } else if (model.name %in% c("geoIDW", "voronoiHull")) {
+        model.values = rbind(out.model@presence, out.model@absence)
+        env.vars = colnames(model.values)
+    } else {
+        model.values = out.model@presence
+        env.vars = colnames(model.values)
+    }
+
+    if (!(length(model.values)==0)) {
+        # predict using actual values
+        if (model.name == "brt") {
+            actual.predictions = predict(out.model, as.data.frame(model.values), n.trees = out.model$gbm.call$best.trees, type="response")
+        } else {
+            actual.predictions = predict(out.model, model.values)
+        }
+        # create a table to hold the output
+        varimpt.out = matrix(NA, nrow=length(env.vars), ncol=num_samples+2)
+        dimnames(varimpt.out) = list(env.vars, c(paste("sample_", c(1:num_samples, "mean")), "percent"))
+        # create a copy of the env data matrix
+        sample.data = model.values
+        # for each predictor variable
+        for (p in 1:ncol(sample.data)) {
+            # for each num_sample
+            for (s in 1:num_samples) {
+                # resample from that variables' values, keeping other variable values the same, and predict suitability
+                sample.data[,p] = sample(x=sample.data[,p], replace=FALSE)
+                # predict using sampled values
+                if (model.name == "brt") {
+                    new.predictions = predict(out.model, as.data.frame(sample.data), n.trees = out.model$gbm.call$best.trees, type = "response")
+                } else {
+                    new.predictions = predict(out.model, sample.data)
+                }
+                # calculate correlation between original predictions and new predictions
+                varimpt.out[p,s] = 1-max(round(cor(x=actual.predictions, y=new.predictions, use="pairwise.complete.obs", method="pearson"), digits=3),0)
+            }
+        }
+        # calculate mean variable importance, normalize to percentages, and write results
+        varimpt.out[,num_samples+1] = round(rowMeans(varimpt.out, na.rm=TRUE), digits=3)
+        varimpt.out[,num_samples+2] = round((varimpt.out[,num_samples+1]/sum(varimpt.out[,num_samples+1]))*100, digits=0)
+        bccvl.write.csv(varimpt.out, name="biomod2_like_VariableImportance.csv")
+    } else {
+        write(paste(species, ": Cannot calculate variable importance for ", model.name, "object", sep=" "), stdout())
+    }
+}
+
+# function to calculate variable importance values for dismo models based on Maxent's decrease in AUC
+# i.e., hold all but one predictor variable to its original values, resample that one predictor and recalculate model AUC
+bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
+                                              model.name, occur, bkgd) {
+    # get the enviromental variables and values used to create the model
+    # EMG this is duplicated from above, should be able to combine or find an easier way to determine
+    if (model.name == "brt") {
+        model.values = matrix(out.model$data$x, ncol=length(out.model$var.names))
+        env.vars = out.model$var.names
+        colnames(model.values) = env.vars
+    } else if (model.name %in% c("geoIDW", "voronoiHull")) {
+        model.values = rbind(out.model@presence, out.model@absence)
+        env.vars = colnames(model.values)
+    } else {
+        model.values = out.model@presence
+        env.vars = colnames(model.values)
+    }
+
+    if (!(length(model.values)==0)) {
+        # get the occurrence and background environmental data used to evaluate the model
+        p.swd=occur
+        a.swd=bkgd
+        # get the AUC from the original model evaluation
+        init.auc = round(model.eval@auc, digits=3)
+        # create a table to hold the output
+        permvarimpt.out = matrix(NA, nrow=length(env.vars), ncol=4)
+        dimnames(permvarimpt.out) = list(env.vars, c("init.auc", "sample.auc", "change.auc", "percent"))
+        permvarimpt.out[,"init.auc"] = rep(init.auc, length(env.vars))
+        # create a copy of the occurrence and background environmental data
+        sample.p = p.swd[,env.vars, drop=FALSE]
+        sample.a = a.swd[,env.vars, drop=FALSE]
+		# check for and remove any NA's present in the data
+		no.na.sample.p = na.omit(sample.p);
+                no.na.sample.a = na.omit(sample.a)
+		if (nrow(no.na.sample.p) != nrow(sample.p)) {
+			write(paste("bccvl.calculatePermutationVarImpt(): NA's were removed from presence data!"), stdout())
+		}
+		if (nrow(no.na.sample.a) != nrow(sample.a)) {
+			write(paste("bccvl.calculatePermutationVarImpt(): NA's were removed from absence data!"), stdout())
+		}
+        # for each predictor variable
+        for (v in 1:length(env.vars)) {
+			# resample from that variables' values, keeping other variable values the same
+			no.na.sample.p[,v] = sample(x=no.na.sample.p[,v], replace=FALSE)
+			no.na.sample.a[,v] = sample(x=no.na.sample.a[,v], replace=FALSE)
+            # re-evaluate model with sampled env values
+            if (model.name == "brt") {
+                sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees, type="response")
+            } else {
+                sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model)
+            }
+            # get the new auc
+            permvarimpt.out[v,"sample.auc"] = round(sample.eval@auc, digits=3)
+        }
+        # calculate the difference in auc, normalize to percentages, and write results
+        permvarimpt.out[,"change.auc"] = permvarimpt.out[,"init.auc"] - permvarimpt.out[,"sample.auc"]
+        for (r in 1:nrow(permvarimpt.out)) {
+            if (permvarimpt.out[r,"change.auc"] < 0) {  # EMG what if AUC increases?
+                permvarimpt.out[r,"change.auc"] = 0
+            }
+        }
+        permvarimpt.out[,"percent"] = round((permvarimpt.out[,"change.auc"]/sum(permvarimpt.out[,"change.auc"]))*100, digits=0)
+        bccvl.write.csv(permvarimpt.out, name="maxent_like_VariableImportance.csv")
+    } else {
+        write(paste(species, ": Cannot calculate maxent-like variable importance for ", model.name, "object", sep=" "), stdout())
+    }
+}
+
+# function to create HTML file with accuracy measures
+# need to install and read in the following packages:
+#install.packages(c("R2HTML", "png"))
+#library(R2HTML)
+#library(png)
+bccvl.generateHTML <- function() {
+
+    # read in model outputs
+    auccurve = readPNG(file.path(bccvl.env$outputdir, "AUC.png"))
+    accuracystats <- read.csv(file.path(bccvl.env$outputdir, "combined.modelEvaluation.csv"),
+                              row.names=c(1))
+
+    # create the output file
+    target = HTMLInitFile(outdir=bccvl.env$outputdir, filename="results", BackGroundColor="#CCCCCC")
+
+    # add content
+    HTML("<center><br><H1>Model Output for ", file=target)
+
+    HTML("<br><H2>AUC:ROC curve", file=target)
+    HTMLInsertGraph("AUC.png", file=target)
+
+    HTML("<br><H2>Accuracy measures",file=target)
+    HTML(accuracystats, file=target)
+
+    # close the file
+    HTMLEndFile()
+}
+
+###############
+#
+# evaluate(p, a, model, x, tr, ...)
+#
+# p presence points (x and y coordinate or SpatialPoints* object)
+# Or, if x is missing, values at presence points (EMG: values returned by a predict())
+# Or, a matrix with values to compute predictions for
+# a absence points (x and y coordinate or SpatialPoints* object)
+# Or, if x is missing, values at absence points (EMG: values returned by a predict())
+# Or, a matrix with values to compute predictions for
+# model any fitted model, including objects inheriting from 'DistModel'; not used when x is missing
+# x Optional. Predictor values (object of class Raster*). If present, p and a are interpreted
+# as (spatial) points (EMG: lon/lat)
+# tr Optional. a vector of threshold values to use for computing the confusion matrices
+# ... Additional arguments for the predict function (EMG: evaluate() calls predict())
+#
+# 'ModelEvaluation' output based on Fielding and Bell (1997) with attributes:
+# presence - presence data used
+# absence - absence data used
+# np - number of presence points
+# na - number of absence points
+# auc - Area under the receiver operator (ROC) curve
+# pauc - p-value for the AUC (for the Wilcoxon test W statistic
+# cor - Correlation coefficient
+# pcor - p-value for correlation coefficient
+# t - vector of thresholds used to compute confusion matrices
+# confusion - confusion matrices
+# prevalence - Prevalence
+# ODP - Overall diagnostic power
+# CCR - Correct classification rate
+# TPR - True positive rate
+# TNR - True negative rate
+# FPR - False positive rate
+# FNR - False negative rate
+# PPP - Positive predictive power
+# NPP - Negative predictive power
+# MCR - Misclassification rate
+# OR - Odds-ratio
+# kappa - Cohen's kappa
+#
+###############
+
+###evaluate the models and save the outputs
+bccvl.evaluate.model <- function(model.name, model.obj, occur, bkgd) {
+    # evaluate model using dismo's evaluate
+    if (model.name == "brt") {
+        model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj, n.trees=model.obj$gbm.call$best.trees, type="response")
+    } else {
+        model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj)
+    }
+    # need predictions and observed values to create confusion matrices for accuracy statistics
+    model.fit = c(model.eval@presence, model.eval@absence)
+    model.obs = c(rep(1, length(model.eval@presence)), rep(0, length(model.eval@absence)))
+
+    # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+    # TODO: model.accuracy is another global variable
+    model.combined.eval = sapply(model.accuracy, function(x){
+        return(bccvl.Find.Optim.Stat(Stat=x, Fit=model.fit, Obs=model.obs))
+    })
+    # save output
+    bccvl.saveModelEvaluation(model.eval, model.combined.eval)
+
+    # Call the new evaluation script
+    res = performance.2D(model.obs, model.fit, make.plot=model.name, kill.plot=F)
+    bccvl.saveNewEvaluation(res$summary, res$performance)
+
+    # create response curves
+    bccvl.createMarginalResponseCurves(model.obj, model.name)
+
+    # calculate variable importance (like biomod2, using correlations between predictions)
+    bccvl.calculateVariableImpt(model.obj, model.name, 3)
+
+    # calculate variable importance (like maxent, using decrease in AUC)
+    bccvl.calculatePermutationVarImpt(model.obj, model.eval, model.name, occur, bkgd)
+
+    # create HTML file with accuracy measures
+    bccvl.generateHTML()
+} # end of evaluate.modol
+
+
+# function to save evaluate output for BIOMOD2 models
+bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
+    # get and save the model evaluation statistics
+    # EMG these must specified during model creation with the arg "models.eval.meth"
+    evaluation = get_evaluations(biomod.model)
+    bccvl.write.csv(evaluation, name="biomod2.modelEvaluation.csv")
+
+    # get the model predictions and observed values. predictions is a 4 dimensional array (Predictions, Algorithm, Model run, PseudoAbsence Run)
+    predictions = get_predictions(biomod.model)
+    total_models = length(dimnames(predictions)[[3]])
+
+    # TODO: get_predictions is buggy; evaluation=FALSE works the wrong way round
+    # predictions = get_predictions(biomod.model, evaluation=FALSE)
+    obs = get_formal_data(biomod.model, "resp.var")
+    # in case of pseudo absences we might have NA values in obs so replace them with 0
+    obs = replace(obs, is.na(obs), 0)
+
+    for ( i in 1:total_models )
+    {
+        model_name = dimnames(predictions)[[3]][i]  # will be FULL or RUN1 for eg
+        model_predictions = predictions[,,i,]
+
+        if (sum(is.na(model_predictions)) == length(model_predictions)) 
+        {
+            # somewhat adhoc method of determining that the model failed to predict anything
+            # Note that we can determine the computed and failed models by inspecting 
+            # biomod.model@models.computed and biomod.model@models.failed respectively, however
+            # dimnames (model_name) can't be used to match these in a straight forward
+            # manner (it may be possible, could go either way here. this way feels simpler)
+
+            # Warn that model n is being ignored. It most probably failed to build.
+            warning(sprintf("Warning: Model %i failed to generate. Not generating stats", i), immediate.=T)
+            next
+        }
+        # get the model accuracy statistics using a modified version of biomod2's Evaluate.models.R
+        # TODO: model.accuracy is another global variable
+        combined.eval = sapply(model.accuracy, function(x){
+            return(bccvl.Find.Optim.Stat(Stat = x, Fit = model_predictions, Obs = obs))
+        })
+        # save all the model accuracy statistics provided in both dismo and biomod2
+        rownames(combined.eval) <- c("Testing.data","Cutoff","Sensitivity", "Specificity")
+        #bccvl.write.csv(t(round(combined.eval, digits=3)), name="combined.modelEvaluation.csv")
+        bccvl.write.csv(t(round(combined.eval, digits=3)), name=paste("combined", model_name, "modelEvaluation.csv", sep="."))
+
+        res = performance.2D(obs, model_predictions / 1000, make.plot=model_name, kill.plot=F)
+        bccvl.saveNewEvaluation(res$summary, res$performance)
+
+        # save AUC curve
+        require(pROC, quietly=T)
+        roc1 <- roc(as.numeric(obs), as.numeric(model_predictions), percent=T)
+        png(file=file.path(bccvl.env$outputdir, paste("pROC", model_name, "png", sep=".")))
+        plot(roc1, main=paste("AUC=",round(auc(roc1)/100,3),sep=""), legacy.axes=TRUE)
+        dev.off()
+        # save occurence/absence pdfs
+        occur_vals=data.frame(vals=roc1$predictor[roc1$response==1])
+        absen_vals=data.frame(vals=roc1$predictor[roc1$response==0])
+        absen_vals$label="absent"
+        occur_vals$label="occur"
+        vals=rbind(occur_vals,absen_vals)
+
+        png(file=file.path(bccvl.env$outputdir, sprintf("%s-occurence_absence_pdf.png", model_name)), width=480, height=480)
+        myplot=ggplot(vals, aes(vals, fill=label)) + geom_density(alpha = 0.3)
+        myplot = myplot + ggtitle("Occurrence/absence probability density functions\nbased on model predicted value")
+        print(myplot)
+        dev.off()
+
+        png(file=file.path(bccvl.env$outputdir, sprintf("%s-occurrence_absence_hist.png", model_name)), width=480, height=480)
+        myplot=ggplot(vals, aes(vals, fill=label))  + geom_histogram(alpha = 0.5)
+        myplot = myplot + ggtitle("Occurrence/absence histograms\nbased on model predicted value")
+        print(myplot)
+        dev.off()
+
+        png(file=file.path(bccvl.env$outputdir, sprintf("%s-true_and_false_posivite_rates.png", model_name)), width=480, height=480)        
+        plot(roc1$thresholds, 100-roc1$specificities, type="l", col="blue", xlab="Classification threshold", ylab="Rate")
+        par(new=TRUE)
+        plot(roc1$thresholds, roc1$sensitivities, type="l", col="red", xlab="", ylab="")
+        legend("topright",  title='', legend=c("True positive rate", "False positive rate"), fill=c("red", "blue"), horiz=TRUE, bty = "n")
+        title("True and false positive rates according to\nclassification threshold")
+        dev.off()
+
+        # get and save the variable importance estimates
+        variableImpt = get_variables_importance(biomod.model)
+        if (!is.na(variableImpt)) {
+        #EMG Note this will throw a warning message if variables (array) are returned
+            bccvl.write.csv(variableImpt, name=paste("variableImportance", model_name, "csv", sep="."))
+        } else {
+            message("VarImport argument not specified during model creation!")
+            #EMG must create the model with the arg "VarImport" != 0
+        }
+    }
+
+    # save response curves (Elith et al 2005)
+    # TODO: check models parameter ... do I need it? shouldn't it be algo name?
+    #       -> would make BIOMOD_LoadMadels call and parameter loaded.name pointless
+    #
+    # not sure what the comment above means - but ever since we moved to generating
+    # output from all models, we could just use biomod.model@models.computed
+    for(name in loaded.names)
+    {
+
+        png(file=file.path(bccvl.env$outputdir, sprintf("mean_response_curves_%s.png", name)))
+        test <- response.plot2(models = name,
+                               Data = get_formal_data(biomod.model,"expl.var"),
+                               show.variables = get_formal_data(biomod.model,"expl.var.names"),
+                               fixed.var.metric = "mean")
+         #, data_species = getModelsInputData(biomod.model,"resp.var"))
+         # EMG need to investigate why you would want to use this option - uses presence data only
+        dev.off()
+    }
+}
+
 absmean <- function(x) abs(mean(x, na.rm=T))
 absdiff <- function(x) abs(diff(x, na.rm=T))
 

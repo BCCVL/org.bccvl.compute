@@ -32,7 +32,7 @@ enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$la
 enviro.data.constraints = bccvl.params$modelling_region
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
 enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
-                                ! as.logical(bccvl.params$scale_down),
+                                as.logical(bccvl.params$scale_down),
                                 'highest', 'lowest')
 
 ############### BIOMOD2 Models ###############
@@ -78,7 +78,7 @@ biomod.selected.models = bccvl.params$selected_models #'all' when all models hav
 biomod.binary.meth = NULL #a vector of a subset of models evaluation method computed in model creation
 biomod.filtered.meth = NULL #a vector of a subset of models evaluation method computed in model creation
 biomod.compress = bccvl.params$compress # default 'gzip'; compression format of objects stored on your hard drive. May be one of `xz', `gzip' or NULL
-biomod.build.clamping.mask = TRUE #if TRUE, a clamping mask will be saved on hard drive
+biomod.build.clamping.mask = FALSE #if TRUE, a clamping mask will be saved on hard drive
 opt.biomod.silent = FALSE #logical, if TRUE, console outputs are turned off
 opt.biomod.do.stack = TRUE #logical, if TRUE, attempt to save all projections in a unique object i.e RasterStack
 opt.biomod.keep.in.memory = TRUE #logical, if FALSE only the link pointing to a hard drive copy of projections are stored in output object
