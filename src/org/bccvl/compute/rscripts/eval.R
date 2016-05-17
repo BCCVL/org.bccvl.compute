@@ -380,6 +380,53 @@ dev.save <- function(fileroot, ext=".pdf") {
   if (ext==".eps") {dev.copy2eps(file=paste(fileroot,ext,sep="."))} else {dev.copy2pdf(file=paste(fileroot,"pdf",sep="."))}
 }
 
+bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
+  # Get the enviromental variables and values used to create the model
+  if (model.name == "brt") {
+    model.values = matrix(out.model$data$x, ncol=length(out.model$var.names))
+    env.vars = out.model$var.names
+  } else if (model.name %in% c("geoIDW", "voronoiHull")) {
+    model.values = rbind(out.model@presence, out.model@absence)
+    env.vars = colnames(model.values)
+  } else {
+    model.values = out.model@presence
+    env.vars = colnames(model.values)
+  }
+  
+  if (!(length(model.values)==0)) {
+    
+    # Create a matrix to hold average values for each environmental variable
+    mean.values = matrix(data = NA, nrow = 100, ncol = length(env.vars))
+    colnames(mean.values) = env.vars
+    # For each variable, populate the column with the mean value
+    for (i in 1:ncol(mean.values)) {
+      mean.values[,i] = rep(mean(model.values[,i], na.rm=TRUE), 100)
+    }
+    
+    # Allow each environmental variable to vary, keeping other variable values at average, and predict suitability
+    for (j in 1:ncol(mean.values)) {
+      range.values = seq(min(model.values[,j], na.rm=TRUE), max(model.values[,j], na.rm=TRUE), length.out=100)
+      temp.data = mean.values
+      temp.data[,j] = range.values
+      if (model.name == "brt") {
+        colnames(temp.data) = env.vars
+        new.predictions = predict(out.model, as.data.frame(temp.data), n.trees = out.model$gbm.call$best.trees, type="response")
+      } else {
+        new.predictions = predict(out.model, temp.data)
+      }
+      
+      # Create separate file for each response curve
+      save.name = env.vars[j]
+      png(file=file.path(bccvl.env$outputdir, paste(save.name, "_response.png", sep="")))
+      plot(range.values, new.predictions, ylim=c(0,1), xlab="", ylab="", main=save.name, type="l")
+      rug(model.values[,j])
+      dev.off()
+    }
+  } else {
+    write(paste(species, ": Cannot create response curves from", model.name, "object", sep=" "), stdout())
+  }
+}
+
 #########################################################################
 ### 4: Run the evaluation and save outputs
 #########################################################################
