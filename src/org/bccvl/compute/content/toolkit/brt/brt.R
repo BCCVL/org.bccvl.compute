@@ -197,5 +197,5 @@ bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
 model.proj = predict(current.climate.scenario, model.sdm, n.trees=model.sdm$gbm.call$best.trees, type="response")
 bccvl.saveModelProjection(model.proj, projection.name, occur.species)
 # evaluate model
-bccvl.evaluate.model('brt', model.sdm, occur, absen)
+bccvl.saveDISMOModelEvaluation('brt', model.sdm, occur, absen)
 
