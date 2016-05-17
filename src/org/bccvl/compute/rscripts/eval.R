@@ -427,6 +427,131 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
   }
 }
 
+# function to calculate variable importance values for dismo models based on biomod2's correlation between predictions
+# i.e., hold all but one predictor variable to its actual values, resample that one predictor and recalculate model predictions
+bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples) {
+  # EMG num_samples should be same as biomod.VarImport arg set in
+  # 01.init.args.model.current.R
+  
+  # get the enviromental variables and values used to create the model
+  # EMG this is duplicated from above, should be able to combine
+  if (model.name == "brt") {
+    model.values = matrix(out.model$data$x, ncol=length(out.model$var.names))
+    env.vars = out.model$var.names
+    colnames(model.values) = env.vars
+  } else if (model.name %in% c("geoIDW", "voronoiHull")) {
+    model.values = rbind(out.model@presence, out.model@absence)
+    env.vars = colnames(model.values)
+  } else {
+    model.values = out.model@presence
+    env.vars = colnames(model.values)
+  }
+  
+  if (!(length(model.values)==0)) {
+    # predict using actual values
+    if (model.name == "brt") {
+      actual.predictions = predict(out.model, as.data.frame(model.values), n.trees = out.model$gbm.call$best.trees, type="response")
+    } else {
+      actual.predictions = predict(out.model, model.values)
+    }
+    # create a table to hold the output
+    varimpt.out = matrix(NA, nrow=length(env.vars), ncol=num_samples+2)
+    dimnames(varimpt.out) = list(env.vars, c(paste("sample_", c(1:num_samples, "mean")), "percent"))
+    # create a copy of the env data matrix
+    sample.data = model.values
+    # for each predictor variable
+    for (p in 1:ncol(sample.data)) {
+      # for each num_sample
+      for (s in 1:num_samples) {
+        # resample from that variables' values, keeping other variable values the same, and predict suitability
+        sample.data[,p] = sample(x=sample.data[,p], replace=FALSE)
+        # predict using sampled values
+        if (model.name == "brt") {
+          new.predictions = predict(out.model, as.data.frame(sample.data), n.trees = out.model$gbm.call$best.trees, type = "response")
+        } else {
+          new.predictions = predict(out.model, sample.data)
+        }
+        # calculate correlation between original predictions and new predictions
+        varimpt.out[p,s] = 1-max(round(cor(x=actual.predictions, y=new.predictions, use="pairwise.complete.obs", method="pearson"), digits=3),0)
+      }
+    }
+    # calculate mean variable importance, normalize to percentages, and write results
+    varimpt.out[,num_samples+1] = round(rowMeans(varimpt.out, na.rm=TRUE), digits=3)
+    varimpt.out[,num_samples+2] = round((varimpt.out[,num_samples+1]/sum(varimpt.out[,num_samples+1]))*100, digits=0)
+    bccvl.write.csv(varimpt.out, name="biomod2_like_VariableImportance.csv")
+  } else {
+    write(paste(species, ": Cannot calculate variable importance for ", model.name, "object", sep=" "), stdout())
+  }
+}
+
+# function to calculate variable importance values for dismo models based on Maxent's decrease in AUC
+# i.e., hold all but one predictor variable to its original values, resample that one predictor and recalculate model AUC
+bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
+                                              model.name, occur, bkgd) {
+  # get the enviromental variables and values used to create the model
+  # EMG this is duplicated from above, should be able to combine or find an easier way to determine
+  if (model.name == "brt") {
+    model.values = matrix(out.model$data$x, ncol=length(out.model$var.names))
+    env.vars = out.model$var.names
+    colnames(model.values) = env.vars
+  } else if (model.name %in% c("geoIDW", "voronoiHull")) {
+    model.values = rbind(out.model@presence, out.model@absence)
+    env.vars = colnames(model.values)
+  } else {
+    model.values = out.model@presence
+    env.vars = colnames(model.values)
+  }
+  
+  if (!(length(model.values)==0)) {
+    # get the occurrence and background environmental data used to evaluate the model
+    p.swd=occur
+    a.swd=bkgd
+    # get the AUC from the original model evaluation
+    init.auc = round(model.eval@auc, digits=3)
+    # create a table to hold the output
+    permvarimpt.out = matrix(NA, nrow=length(env.vars), ncol=4)
+    dimnames(permvarimpt.out) = list(env.vars, c("init.auc", "sample.auc", "change.auc", "percent"))
+    permvarimpt.out[,"init.auc"] = rep(init.auc, length(env.vars))
+    # create a copy of the occurrence and background environmental data
+    sample.p = p.swd[,env.vars, drop=FALSE]
+    sample.a = a.swd[,env.vars, drop=FALSE]
+    # check for and remove any NA's present in the data
+    no.na.sample.p = na.omit(sample.p);
+    no.na.sample.a = na.omit(sample.a)
+    if (nrow(no.na.sample.p) != nrow(sample.p)) {
+      write(paste("bccvl.calculatePermutationVarImpt(): NA's were removed from presence data!"), stdout())
+    }
+    if (nrow(no.na.sample.a) != nrow(sample.a)) {
+      write(paste("bccvl.calculatePermutationVarImpt(): NA's were removed from absence data!"), stdout())
+    }
+    # for each predictor variable
+    for (v in 1:length(env.vars)) {
+      # resample from that variables' values, keeping other variable values the same
+      no.na.sample.p[,v] = sample(x=no.na.sample.p[,v], replace=FALSE)
+      no.na.sample.a[,v] = sample(x=no.na.sample.a[,v], replace=FALSE)
+      # re-evaluate model with sampled env values
+      if (model.name == "brt") {
+        sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model, n.trees=out.model$gbm.call$best.trees, type="response")
+      } else {
+        sample.eval = dismo::evaluate(p=no.na.sample.p, a=no.na.sample.a, model=out.model)
+      }
+      # get the new auc
+      permvarimpt.out[v,"sample.auc"] = round(sample.eval@auc, digits=3)
+    }
+    # calculate the difference in auc, normalize to percentages, and write results
+    permvarimpt.out[,"change.auc"] = permvarimpt.out[,"init.auc"] - permvarimpt.out[,"sample.auc"]
+    for (r in 1:nrow(permvarimpt.out)) {
+      if (permvarimpt.out[r,"change.auc"] < 0) {  # EMG what if AUC increases?
+        permvarimpt.out[r,"change.auc"] = 0
+      }
+    }
+    permvarimpt.out[,"percent"] = round((permvarimpt.out[,"change.auc"]/sum(permvarimpt.out[,"change.auc"]))*100, digits=0)
+    bccvl.write.csv(permvarimpt.out, name="maxent_like_VariableImportance.csv")
+  } else {
+    write(paste(species, ": Cannot calculate maxent-like variable importance for ", model.name, "object", sep=" "), stdout())
+  }
+}
+
 #########################################################################
 ### 4: Run the evaluation and save outputs
 #########################################################################
