@@ -10,7 +10,7 @@
             "skip": true            
         },        
         "*proj_current*.tif": {
-            "title": "Projection to current",
+            "title": "Projection to current climate",
             "genre": "DataGenreCP",
             "mimetype": "image/geotiff",
             "order": 1
@@ -22,7 +22,7 @@
             "order": 2
         },        
         "pseudo_absences.csv": {
-            "title": "Pseudo Absence Points",
+            "title": "Generated pseudo-absence points",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
             "order": 3
@@ -34,13 +34,13 @@
             "order": 4
         },        
         "biomod2_like_VariableImportance.csv": {
-            "title": "Model accuracy statistics",
+            "title": "Variable importance table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 5
         },
         "maxent_like_VariableImportance.csv": {
-            "title": "Model accuracy statistics",
+            "title": "Variable importance table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 6
@@ -52,62 +52,62 @@
             "order": 7
         },
         "bioclim-presence-absence-plot.png": {
-            "title": "New Model plots",
+            "title": "Presence/absence density plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 8
         },        
         "Full-presence-absence-hist.png": {
-            "title": "New Model plots",
+            "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 9
         },        
         "Full-TPR-TNR.png": {
-            "title": "New Model plots",
+            "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 10
         },        
         "bioclim-error-rates.png": {
-            "title": "New Model plots",
+            "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 11
         },        
         "bioclim-ROC.png": {
-            "title": "New Model plots",
+            "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 12
         },        
         "bioclim-loss-functions.png": {
-            "title": "New Model plots",
+            "title": "Loss functions plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 13
         },
         "Loss function intervals table.csv": {
-            "title": "Model Evaluation",
+            "title": "Loss functions table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 14
         },        
         "bioclim-loss-intervals.png": {
-            "title": "New Model plots",
+            "title": "Loss functions intervals",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 15
         },
         "Evaluation data.csv": {
-            "title": "Model Evaluation",
+            "title": "Model evaluation data",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 16
         },        
         "*.R": {
             "title": "Job Script",
-            "genre": "JobScript",
+            "genre": "Job script",
             "mimetype": "text/x-r",
             "order": 20
         },        
