@@ -286,7 +286,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     
     # Create Presence/absence density plot across threshold probability values
     temp2 <- data.frame(list(pred=pred, obs=obs))
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence_absence_plot.png", make.plot)), width=600, height=600)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence_absence_plot.png", make.plot)), width=480, height=480)
     g1 <- ggplot(temp2, aes(x=pred, fill=factor(obs))) + 
       geom_density(stat="density", alpha=0.5) + 
       labs(title="Presence/absence density plot \nacross threshold probability values", x="\nThreshold probability value", y="Density\n") + 
@@ -297,7 +297,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create Presence/absence histogram across threshold probability values
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence_absence_hist.png", make.plot)), width=600, height=600)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence_absence_hist.png", make.plot)), width=480, height=480)
     g2 <- ggplot(temp2, aes(x=pred, fill=factor(obs)))  + 
       geom_histogram(position="dodge", alpha = 0.5) +
       labs(title="Presence/absence histogram \nacross threshold probability values", x="\nThreshold probability value", y="Count\n") +
@@ -308,7 +308,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create TPR-TNR plot
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-TPR-TNR.png", make.plot)), width=600, height=600)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-TPR-TNR.png", make.plot)), width=480, height=480)
     g3 <- ggplot(errs[errs$measure %in% c("tpr", "tnr"), ], 
                  aes(x=tpv, y=value, colour=measure)) + 
       geom_line(size=1.2) + 
@@ -321,7 +321,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create Error rates plot: shows the values of four different error rates across the range of threshold probability values
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-error-rates.png", make.plot)), width=600, height=600)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-error-rates.png", make.plot)), width=480, height=480)
     g4 <- ggplot(errs[errs$measure %in% c("fpr", "fnr", "fdr", "fors"), ], 
                  aes(x=tpv, y=value, colour=measure, linetype=measure)) + 
       geom_line(size=1.2) + 
@@ -334,7 +334,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create ROC plot 
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-ROC.png", make.plot)), width=600, height=600)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-ROC.png", make.plot)), width=480, height=480)
     g5 <- ggplot(temp, aes(x=fpr, y=tpr)) + 
       geom_line(size=1.2) + 
       geom_abline(intercept=0, slope=1, colour="grey") + 
@@ -345,7 +345,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create Loss function plot: shows the values of different loss functions across the range of threshold probability values
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-functions.png", make.plot)), width=600, height=600)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-functions.png", make.plot)), width=480, height=480)
     g6 <- ggplot(errs[errs$measure %in% rev(c("L.pos", "L.all", "L.eq.diag", "L.eq.pred")), ], 
                  aes(x=tpv, y=value, colour=measure)) + 
       geom_line(size=1.2) + 
@@ -358,7 +358,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     
     # Create Loss functions-intervals plot within 5% of the best value
     rangeperf$type.of.loss <- factor(rangeperf$type.of.loss, levels=(c("eq.pred", "eq.diag", "all", "pos")))
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-intervals.png", make.plot)), width=600, height=600)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-intervals.png", make.plot)), width=480, height=480)
     g7 <- ggplot(rangeperf, aes(x=type.of.loss, y=best, ymin=lower, ymax=upper, colour=type.of.loss)) + 
       geom_pointrange(size=1.2) + 
       geom_line(size=1.2) +
