@@ -107,7 +107,7 @@
         },        
         "*.R": {
             "title": "Job Script",
-            "genre": "Job script",
+            "genre": "JobScript",
             "mimetype": "text/x-r",
             "order": 20
         },        
