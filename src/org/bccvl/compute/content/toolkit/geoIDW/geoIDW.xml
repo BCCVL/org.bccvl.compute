@@ -5,7 +5,7 @@
   <schema based-on="zope.interface.Interface">
     <fieldset name="Pseudo Absences"
               label="Pseudo Absence Configuration"
-              description="Select and configure your strategy. &lt;a href='#test' target='_blank'>Read More ...&lt;/a>">
+              description="Select and configure your strategy. &lt;a href='https://support.bccvl.org.au/support/solutions/articles/6000127043-absence-data' target='_blank'>Read More ...&lt;/a>">
       <field name="pa_ratio" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
         <default>1</default>
         <description>ratio of absence to presence points</description>
