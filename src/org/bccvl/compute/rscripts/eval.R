@@ -244,8 +244,8 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
   best <- list(
     pos = temp$tpv[which(temp$L.pos == max(temp$L.pos, na.rm=T))],
     all = temp$tpv[which(temp$L.all == min(temp$L.all, na.rm=T))],   
-    diag = temp$tpv[which(temp$L.diag == min(temp$L.diag, na.rm=T))],
-    pred = temp$tpv[which(temp$L.pred == min(temp$L.pred, na.rm=T))],
+    # diag = temp$tpv[which(temp$L.diag == min(temp$L.diag, na.rm=T))],
+    # pred = temp$tpv[which(temp$L.pred == min(temp$L.pred, na.rm=T))],
     eq.diag = temp$tpv[which(temp$L.eq.diag==min(temp$L.eq.diag, na.rm=T))],
     eq.pred = temp$tpv[which(temp$L.eq.pred==min(temp$L.eq.pred, na.rm=T))]
   )
