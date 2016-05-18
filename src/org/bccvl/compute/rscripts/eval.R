@@ -270,6 +270,10 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
   rangeperf$type.of.loss <- names(best)
   rangeperf$best <- unlist(best)
   
+  loss.table <- subset(rangeperf, select = c("lower", "upper", "best"))
+  row.names(loss.table) = c("Maximize (TPR+TNR)", "Balance all errors", "FPR = FNR", "FDR = FOR")
+  loss.table <- as.data.frame(loss.table)
+  
   # Rescale
   temp$L.eq.diag <- temp$L.eq.diag/max(temp$L.eq.diag, na.rm=T) 
   temp$L.eq.pred <- temp$L.eq.pred/max(temp$L.eq.pred, na.rm=T) 
@@ -377,7 +381,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     
   }
   
-  return(list(summary=rangeperf, performance=temp)) 
+  return(list(summary=loss.table, performance=temp)) 
 }
 
 dev.save <- function(fileroot, ext=".pdf") {
