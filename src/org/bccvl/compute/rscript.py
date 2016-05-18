@@ -44,11 +44,18 @@ def get_sdm_params(result):
         if not params.get(paramname, None):
             continue
         uuid = params[paramname]
-        params[paramname] = getdatasetparams(uuid)
+        dsinfo = getdatasetparams(uuid)
+        if dsinfo['filename'].endswith('.zip'):
+            # FIXME: too many static assumptions about how an occurrence zip file looks like
+            #        layers:key does not match anything (should it?)
+            #        assumes exactly one file here
+            # TODO: should I remove 'layers' section here?
+            dsinfo['zippath'] = dsinfo['layers'].values()[0]['filename']
+        params[paramname] =  dsinfo
         # replace all spaces and underscores to '.' (biomod does the same)
         # TODO: really necessary?
         if params[paramname]:
-            params[paramname]['species'] = re.sub(u"[ _'\"/\(\)\{\}\[\]]", u".", params[paramname].get('species', u'Unknown'))
+            params[paramname]['species'] = re.sub(u"[ _,'\"/\(\)\{\}\[\]]", u".", params[paramname].get('species', u'Unknown'))
     # TODO: This assumes we only zip file based layers
     envlist = []
     for uuid, layers in params['environmental_datasets'].items():

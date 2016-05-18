@@ -5,9 +5,9 @@
     "subjects": ["convex hull"],    
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",
-    "script": {"filename": "convHull.R"},
-    "schema": {"filename": "convHull.xml"},
-    "output": {"filename": "convHull.txt"},
+    "script": {"filename": "convhull.R"},
+    "schema": {"filename": "convhull.xml"},
+    "output": {"filename": "convhull.txt"},
     "_fileattributes": ["script", "schema", "output"],
     "_transitions": "publish",
     "algorithm_category": "geographic"

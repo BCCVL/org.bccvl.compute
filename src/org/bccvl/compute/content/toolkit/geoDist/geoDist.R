@@ -32,7 +32,7 @@ enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$la
 enviro.data.constraints = bccvl.params$modelling_region
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
 enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
-                                ! as.logical(bccvl.params$scale_down),
+                                as.logical(bccvl.params$scale_down),
                                 'highest', 'lowest')
 
 #additional parameters for projecting circles
