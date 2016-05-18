@@ -251,7 +251,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
   )
   
   # Calculate the range of threshold probability values for which each of the losses fall within 5% of the best value
-  rangeperf <- matrix(NA, nrow=6, ncol=2, dimnames=list(names(best), c("lower","upper")))
+  rangeperf <- matrix(NA, nrow=4, ncol=2, dimnames=list(names(best), c("lower","upper")))
   for (v in names(best)) { # v<-"eq.pred"
     the.v <- paste("L.", v, sep="")
     min.v <- min(temp[,the.v], na.rm=T)
