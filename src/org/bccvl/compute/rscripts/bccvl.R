@@ -437,7 +437,8 @@ bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
                      ts=c(ncol(reference), nrow(reference)),
                      # tr=c(...), ... either this or ts
                      r="near",
-                     of="GTiff"
+                     of="GTiff",
+                     dstnodata=r@file@nodatavalue
                      #co=c("TILED=YES", "COMPRESS=???")
                      )
             # put new file back into place
