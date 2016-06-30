@@ -453,7 +453,7 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
         new.predictions = predict(out.model, temp.data)
       }
       
-      # Create separate file for each response curve
+      # Save file
       save.name = env.vars[j]
       png(file=file.path(bccvl.env$outputdir, paste(save.name, "_response.png", sep="")))
       plot(range.values, new.predictions, ylim=c(0,1), xlab="", ylab="", main=save.name, type="l")
