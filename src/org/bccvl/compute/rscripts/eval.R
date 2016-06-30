@@ -438,27 +438,28 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
     # plot 18 response curves per page
     curvesPerPage = 6*3       # No of rows X No of columns
     for (i in 0:((ncol(mean.values)-1)/curvesPerPage)) {
-      png(file=file.path(bccvl.env$outputdir, paste("p", i,"_response.png", sep="")), width=700, height=900)
-      par(mfrow = c(6,3)) # No of rows X No of columns
-    
-    # Allow each environmental variable to vary, keeping other variable values at average, and predict suitability
-    for (j in 1:ncol(mean.values)) {
-      range.values = seq(min(model.values[,j], na.rm=TRUE), max(model.values[,j], na.rm=TRUE), length.out=100)
-      temp.data = mean.values
-      temp.data[,j] = range.values
-      if (model.name == "brt") {
-        colnames(temp.data) = env.vars
-        new.predictions = predict(out.model, as.data.frame(temp.data), n.trees = out.model$gbm.call$best.trees, type="response")
-      } else {
-        new.predictions = predict(out.model, temp.data)
-      }
-      
-      # Save file
-      save.name = env.vars[j]
-      png(file=file.path(bccvl.env$outputdir, paste(save.name, "_response.png", sep="")))
-      plot(range.values, new.predictions, ylim=c(0,1), xlab="", ylab="", main=save.name, type="l")
-      rug(model.values[,j])
-      dev.off()
+        png(file=file.path(bccvl.env$outputdir, paste("p", i,"_response.png", sep="")), width=700, height=900)
+        par(mfrow = c(6,3)) # No of rows X No of columns
+
+        # Allow each environmental variable to vary, keeping other variable values at average, and predict suitability
+        for (j in ((i*curvesPerPage + 1):min((i+1)*curvesPerPage, ncol(mean.values)))) {
+            range.values = seq(min(model.values[,j], na.rm=TRUE), max(model.values[,j], na.rm=TRUE), length.out=100)
+            temp.data = mean.values
+            temp.data[,j] = range.values
+            if (model.name == "brt") {
+                colnames(temp.data) = env.vars
+                new.predictions = predict(out.model, as.data.frame(temp.data), n.trees = out.model$gbm.call$best.trees, type="response")
+            } else {
+                new.predictions = predict(out.model, temp.data)
+            }
+
+            # create separate file for each response curve
+            save.name = env.vars[j]
+            plot(range.values, new.predictions, ylim=c(0,1), xlab="", ylab="", main=save.name, type="l")
+            rug(model.values[,j])
+
+        }
+        dev.off()
     }
   } else {
     write(paste(species, ": Cannot create response curves from", model.name, "object", sep=" "), stdout())
