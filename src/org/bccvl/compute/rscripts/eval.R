@@ -435,6 +435,12 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
       mean.values[,i] = rep(mean(model.values[,i], na.rm=TRUE), 100)
     }
     
+    # plot 18 response curves per page
+    curvesPerPage = 6*3       # No of rows X No of columns
+    for (i in 0:((ncol(mean.values)-1)/curvesPerPage)) {
+      png(file=file.path(bccvl.env$outputdir, paste("p", i,"_response.png", sep="")), width=700, height=900)
+      par(mfrow = c(6,3)) # No of rows X No of columns
+    
     # Allow each environmental variable to vary, keeping other variable values at average, and predict suitability
     for (j in 1:ncol(mean.values)) {
       range.values = seq(min(model.values[,j], na.rm=TRUE), max(model.values[,j], na.rm=TRUE), length.out=100)
