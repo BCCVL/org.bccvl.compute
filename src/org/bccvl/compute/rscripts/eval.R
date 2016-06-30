@@ -10,10 +10,11 @@
 ### 1: Functions to save SDM outputs
 #########################################################################
 
-bccvl.saveModelEvaluation <- function(out.lossfunction, out.evaluation){
-  bccvl.write.csv(data.frame(out.lossfunction), name = "Loss function intervals table.csv")
+bccvl.saveModelEvaluation <- function(out.evaluation, out.stats, out.lossfunction){
   bccvl.write.csv(data.frame(out.evaluation), name = "Evaluation data.csv")
-}
+  bccvl.write.csv(data.frame(out.stats), name = "Evaluation statistics.csv")
+  bccvl.write.csv(data.frame(out.lossfunction), name = "Loss function intervals table.csv")
+  }
 
 bccvl.saveProjection <- function(proj.model, species) {
   basename = paste("proj", 'current', species, sep="_")
@@ -140,8 +141,9 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
   tp <- fp <- tn <- fn <- rep(NA, length(list.tpv))
   tpr <- fpr <- tnr <- fnr <- rep(NA, length(list.tpv))
   ppv <- npv <- fdr <- fors <- rep(NA, length(list.tpv))
-  acc <- mcr <- tss <- bs <- csi <- rep(NA, length(list.tpv))
-  tp.rand <- ets <- or <- rep(NA, length(list.tpv))
+  acc <- mcr <- tss <- bs <- rep(NA, length(list.tpv))
+  tp.rand <- ets <- or <- csi <- rep(NA, length(list.tpv))
+  Po <- Pe <- kappa <- roc <- auc <- rep(NA, length(list.tpv))
   
   # CALCULATE 1D MEASURES OF PREDICTIVE PERFORMANCE
   
@@ -189,7 +191,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     # fors = False Omission Rate = for all predicted absences, how many were false absences (observed presences)?
     fors[ell] <- fn[ell]/(tn[ell]+fn[ell])
     
-    # Note: ppv + fdr = 1, npv + for = 1
+    # Note: ppv + fdr = 1, npv + fors = 1
     
     # acc = Accuracy = proportion of correctly predicted cases.
     acc[ell] <- (tp[ell]+tn[ell])/(tp[ell]+fp[ell]+tn[ell]+fn[ell])
@@ -215,10 +217,21 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     # or = Odds Ratio = ratio of a correct prediction to an incorrect prediction. 
     or[ell] <- (tp[ell]*tn[ell])/(fp[ell]*fn[ell])
     
+    # kappa = Cohen's Kappa = Accuracy of the prediction relative to that of random chance.
+    Po[ell] <- acc[ell] # observed accuracy
+    Pe[ell] <- ((((tp[ell]+fp[ell])/(tp[ell]+fp[ell]+tn[ell]+fn[ell]))*((tp[ell]+fn[ell])/(tp[ell]+fp[ell]+tn[ell]+fn[ell]))) + (((fn[ell]+tn[ell])/(tp[ell]+fp[ell]+tn[ell]+fn[ell]))*((fp[ell]+tn[ell])/(tp[ell]+fp[ell]+tn[ell]+fn[ell])))) # expected accuracy by random chance
+    kappa[ell] <- ((Po[ell]-Pe[ell])/(1-Pe[ell]))
+    
+    # auc = Area Under the (ROC) Curve
+    roc <- roc(obs, pred)
+    auc <- auc(roc)
+    
   }
   
-  # Compile the information into a dataframe
-  temp <- data.frame(list(tpv=list.tpv, tpr=tpr, fpr=fpr,  tnr=tnr, fnr=fnr, ppv=ppv, fdr=fdr, npv=npv, fors=fors))   
+  # Compile the information into dataframes
+  temp <- data.frame(list(tpv=list.tpv, tpr=tpr, fpr=fpr,  tnr=tnr, fnr=fnr, ppv=ppv, fdr=fdr, npv=npv, fors=fors))
+  auc.d <- data.frame(auc)
+  auc.d <- round(auc.d, digits = 2)
   
   # CALCULATE 2D MEASURES OF PREDICTIVE PERFORMANCE
   
@@ -228,15 +241,11 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
   # Loss functions:
   # L.pos = maximizing the sum of the True Positive Rate (Sensitivity) and the True Negative Rate (Specificity)
   # L.all = balancing all error rates: 1/4(FPR + FNR + FDR + FORS)
-  # L.diag = balancing the diagnostic/producer errors: 1/2(FPR + FNR) 
-  # L.pred = balancing the predictive/user errors: 1/2(FDR + FORS)
   # L.eq.diag = equalising diagnostic errors: FPR = FNR
   # L.eq.pred = equalising predictive errors: FDR = FORS
   
   temp$L.pos <- apply(temp[, c("tpr", "ppv")], 1, absmean)
   temp$L.all <- apply(temp[, list.errors],1, absmean)
-  temp$L.diag <- apply(temp[, c("fpr","fnr")],1, absmean)
-  temp$L.pred <- apply(temp[, c("fors","fdr")],1, absmean)
   temp$L.eq.diag <- apply(temp[, c("tpr", "tnr")], 1, absdiff)
   temp$L.eq.pred <- apply(temp[, c("ppv", "npv")], 1, absdiff)
   
@@ -244,8 +253,6 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
   best <- list(
     pos = temp$tpv[which(temp$L.pos == max(temp$L.pos, na.rm=T))],
     all = temp$tpv[which(temp$L.all == min(temp$L.all, na.rm=T))],   
-    # diag = temp$tpv[which(temp$L.diag == min(temp$L.diag, na.rm=T))],
-    # pred = temp$tpv[which(temp$L.pred == min(temp$L.pred, na.rm=T))],
     eq.diag = temp$tpv[which(temp$L.eq.diag==min(temp$L.eq.diag, na.rm=T))],
     eq.pred = temp$tpv[which(temp$L.eq.pred==min(temp$L.eq.pred, na.rm=T))]
   )
@@ -285,7 +292,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
   if (make.plot!="") {
     library(reshape2)
     # reshape the data so that it is in long rather than wide format (= each row represents one item, labels are specified by 'measure' column; used by ggplot2)
-    errs <- melt(temp, id.var="tpv", measure.var=c("tpr", "tnr", "fpr", "fnr", "fdr", "fors", "L.pos", "L.all", "L.diag", "L.pred", "L.eq.diag", "L.eq.pred"))
+    errs <- melt(temp, id.var="tpv", measure.var=c("tpr", "tnr", "fpr", "fnr", "fdr", "fors", "L.pos", "L.all", "L.eq.diag", "L.eq.pred"))
     names(errs)[2] <- c("measure")
     
     # Create Presence/absence density plot across threshold probability values
@@ -346,9 +353,26 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
       geom_abline(intercept=0, slope=1, colour="grey") + 
       labs(x="\nFalse Positive Rate (1-Specificity)", y="True Positive Rate (Sensitivity)\n") +
       ggtitle(paste("ROC plot")) +
+      annotate(geom = "text", x = 0.8, y = 0.1, label = paste("AUC = ", auc.d$auc), size = 6) +
       theme(axis.text = element_text(family="Arial", size=rel(1.5)), axis.title = element_text(family="Arial", size=rel(1.5)), plot.title = element_text(family="Arial", size=rel(2)), legend.text = element_text(family="Arial", size=rel(1.5)))
     print(g5)
     dev.off()
+    
+    # Create evaluation stats table with values for three different threshold selection methods (maximize TPR + TNR, TPR = TNR, maximize Kappa)
+    all.stats <- data.frame(list(tpv=list.tpv, L.pos=temp$L.pos, tpr=tpr, tnr=tnr, fpr=fpr, fnr=fnr, fdr=fdr, fors=fors, ppv=ppv, npv=npv, kappa=kappa, tss=tss, bs=bs, csi=csi, ets=ets, or=or, acc=acc, mcr=mcr))   
+    all.stats <- round(all.stats, digits = 3)
+    max.TPR.TNR <- all.stats[which.max(all.stats$L.pos), ] # select row with all stats for maximum value of L.pos
+    TPR.eq.TNR <- all.stats[which(all.stats$tpr == all.stats$tnr), ] # select row with all stats for TPR = TNR
+    max.Kappa <- all.stats[which.max(all.stats$kappa), ] # select row with all stats for maximum value of Kappa
+    
+    stats.table <- rbind(max.TPR.TNR, TPR.eq.TNR, max.Kappa) 
+    stats.table$L.pos <- NULL
+    rownames(stats.table) <- c("maximize TPR + TNR", "TPR = TNR", "maximize Kappa")
+    names(stats.table) <- c("Optimum treshold value:", "True Positive Rate (TPR)", "True Negative Rate (TNR)", "False Positive Rate (FPR)", "False Negative Rate (FNR)", 
+                            "False Discovery Rate (FDR)", "False Omission Rate (FOR)", "Positive Predictive Value (PPV)", "Negative Predictive Value (NPV)", 
+                            "Cohen's Kappa", "True Skill Statistic (TSS)", "Bias Score (BS)", "Critical Success Index (CSI)", "Equitable Threat Score (ETS)",
+                            "Odds-Ratio (OR)","Accuracy", "Misclassification Rate")
+    eval.stats <- t(stats.table) # transpose table
     
     # Create Loss function plot: shows the values of different loss functions across the range of threshold probability values
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-functions.png", make.plot)), width=480, height=480)
@@ -381,7 +405,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     
   }
   
-  return(list(summary=loss.table, performance=temp)) 
+  return(list(performance=temp, stats=eval.stats, loss.summary=loss.table)) 
 }
 
 dev.save <- function(fileroot, ext=".pdf") {
@@ -579,7 +603,7 @@ bccvl.saveDISMOModelEvaluation <- function(model.name, model.obj, occur, bkgd) {
   
   # Call the evaluation script
   res = performance.2D(model.obs, model.fit, make.plot=model.name, kill.plot=F)
-  bccvl.saveModelEvaluation(res$summary, res$performance)
+  bccvl.saveModelEvaluation(res$performance, res$stats, res$loss.summary)
   
   # Create response curves
   bccvl.createMarginalResponseCurves(model.obj, model.name)
@@ -621,7 +645,7 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
     }
 
     res = performance.2D(obs, model_predictions / 1000, make.plot=model_name, kill.plot=F)
-    bccvl.saveModelEvaluation(res$summary, res$performance)
+    bccvl.saveModelEvaluation(res$performance, res$stats, res$loss.summary)
     
     # get and save the variable importance estimates
     variableImpt = get_variables_importance(biomod.model)
