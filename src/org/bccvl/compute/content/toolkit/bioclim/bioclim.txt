@@ -45,7 +45,7 @@
             "mimetype": "text/csv",
             "order": 6
         },
-        "combined.modelEvaluation.csv": {
+        "Evaluation statistics.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
@@ -57,13 +57,13 @@
             "mimetype": "image/png",
             "order": 8
         },        
-        "Full-presence-absence-hist.png": {
+        "bioclim-presence-absence-hist.png": {
             "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 9
         },        
-        "Full-TPR-TNR.png": {
+        "bioclim-TPR-TNR.png": {
             "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
