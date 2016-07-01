@@ -362,10 +362,12 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     all.stats <- data.frame(list(tpv=list.tpv, L.pos=temp$L.pos, tpr=tpr, tnr=tnr, fpr=fpr, fnr=fnr, fdr=fdr, fors=fors, ppv=ppv, npv=npv, kappa=kappa, tss=tss, bs=bs, csi=csi, ets=ets, or=or, acc=acc, mcr=mcr))   
     all.stats <- round(all.stats, digits = 3)
     max.TPR.TNR <- all.stats[which.max(all.stats$L.pos), ] # select row with all stats for maximum value of L.pos
-    TPR.eq.TNR <- all.stats[which(all.stats$tpr == all.stats$tnr), ] # select row with all stats for TPR = TNR
-    max.Kappa <- all.stats[which.max(all.stats$kappa), ] # select row with all stats for maximum value of Kappa
+    rownames(max.TPR.TNR) <- ("maximize TPR + TNR")
+    # TPR.eq.TNR <- all.stats[which(all.stats$tpr == all.stats$tnr), ] # select row with all stats for TPR = TNR
+    # max.Kappa <- all.stats[which.max(all.stats$kappa), ] # select row with all stats for maximum value of Kappa
     
-    stats.table <- rbind(max.TPR.TNR, TPR.eq.TNR, max.Kappa) 
+    # stats.table <- rbind(max.TPR.TNR, TPR.eq.TNR, max.Kappa) 
+    stats.table <- max.TPR.TNR
     stats.table$L.pos <- NULL
     # rownames(stats.table) <- c("maximize TPR + TNR", "TPR = TNR", "maximize Kappa")
     names(stats.table) <- c("Optimum treshold value:", "True Positive Rate (TPR)", "True Negative Rate (TNR)", "False Positive Rate (FPR)", "False Negative Rate (FNR)", 
