@@ -367,7 +367,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     
     stats.table <- rbind(max.TPR.TNR, TPR.eq.TNR, max.Kappa) 
     stats.table$L.pos <- NULL
-    rownames(stats.table) <- c("maximize TPR + TNR", "TPR = TNR", "maximize Kappa")
+    # rownames(stats.table) <- c("maximize TPR + TNR", "TPR = TNR", "maximize Kappa")
     names(stats.table) <- c("Optimum treshold value:", "True Positive Rate (TPR)", "True Negative Rate (TNR)", "False Positive Rate (FPR)", "False Negative Rate (FNR)", 
                             "False Discovery Rate (FDR)", "False Omission Rate (FOR)", "Positive Predictive Value (PPV)", "Negative Predictive Value (NPV)", 
                             "Cohen's Kappa", "True Skill Statistic (TSS)", "Bias Score (BS)", "Critical Success Index (CSI)", "Equitable Threat Score (ETS)",
