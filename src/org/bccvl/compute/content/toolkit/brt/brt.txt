@@ -45,43 +45,43 @@
             "mimetype": "text/csv",
             "order": 6
         },
-        "combined.modelEvaluation.csv": {
+        "Evaluation statistics.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 7
         },
-        "bioclim-presence-absence-plot.png": {
+        "brt-presence-absence-plot.png": {
             "title": "Presence/absence density plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 8
         },        
-        "Full-presence-absence-hist.png": {
+        "brt-presence-absence-hist.png": {
             "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 9
         },        
-        "Full-TPR-TNR.png": {
+        "brt-TPR-TNR.png": {
             "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 10
         },        
-        "bioclim-error-rates.png": {
+        "brt-error-rates.png": {
             "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 11
         },        
-        "bioclim-ROC.png": {
+        "brt-ROC.png": {
             "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 12
         },        
-        "bioclim-loss-functions.png": {
+        "brt-loss-functions.png": {
             "title": "Loss functions plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
@@ -93,7 +93,7 @@
             "mimetype": "text/csv",
             "order": 14
         },        
-        "bioclim-loss-intervals.png": {
+        "brt-loss-intervals.png": {
             "title": "Loss function intervals",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
