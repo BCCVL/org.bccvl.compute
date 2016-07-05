@@ -239,51 +239,46 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
   list.errors <- c("fpr","fnr","fors","fdr")
   
   # Loss functions:
-  # L.pos = maximizing the sum of the True Positive Rate (Sensitivity) and the True Negative Rate (Specificity)
-  # L.all = balancing all error rates: 1/4(FPR + FNR + FDR + FORS)
-  # L.eq.diag = equalising diagnostic errors: FPR = FNR
-  # L.eq.pred = equalising predictive errors: FDR = FORS
+  # L.diag = minimizing the sum of the diagnostic errors (FPR, FNR)
+  #        = maximizing the sum of the True Positive Rate (Sensitivity) and the True Negative Rate (Specificity)
+  # L.pred = minimizing the sum of the predictive errors (FDR, FORS)
+  #        = maximizing the sum of the Positive Predictive Value and the Negative Predictive Value
+  # L.all = balancing all error rates: FPR, FNR, FDR, FORS
+  # L.eq.diag = equalising diagnostic errors: FPR = FNR = cross-over of TPR and TNR
   
-  temp$L.pos <- apply(temp[, c("tpr", "ppv")], 1, absmean)
+  temp$L.diag <- apply(temp[, c("fpr","fnr")],1, absmean)
+  temp$L.pred <- apply(temp[, c("fors","fdr")],1, absmean)
   temp$L.all <- apply(temp[, list.errors],1, absmean)
   temp$L.eq.diag <- apply(temp[, c("tpr", "tnr")], 1, absdiff)
-  temp$L.eq.pred <- apply(temp[, c("ppv", "npv")], 1, absdiff)
-  
-  # Calculate the best threshold probability value: maximum for L.pos, minimum value of other loss types
+
+  # Calculate the best threshold probability value
   best <- list(
-    pos = temp$tpv[which(temp$L.pos == max(temp$L.pos, na.rm=T))],
+    diag = temp$tpv[which(temp$L.diag == min(temp$L.diag, na.rm=T))],
+    pred = temp$tpv[which(temp$L.pred == min(temp$L.pred, na.rm=T))],
     all = temp$tpv[which(temp$L.all == min(temp$L.all, na.rm=T))],   
-    eq.diag = temp$tpv[which(temp$L.eq.diag==min(temp$L.eq.diag, na.rm=T))],
-    eq.pred = temp$tpv[which(temp$L.eq.pred==min(temp$L.eq.pred, na.rm=T))]
+    eq.diag = temp$tpv[which(temp$L.eq.diag==min(temp$L.eq.diag, na.rm=T))]
   )
   
   # Calculate the range of threshold probability values for which each of the losses fall within 5% of the best value
   rangeperf <- matrix(NA, nrow=4, ncol=2, dimnames=list(names(best), c("lower","upper")))
-  for (v in names(best)) { # v<-"eq.pred"
+  for (v in names(best)) { # v<-"eq.diag"
     the.v <- paste("L.", v, sep="")
     min.v <- min(temp[,the.v], na.rm=T)
     d.minv <- (abs(temp[,the.v] - min.v) / min.v) 
     the.range <- temp$tpv[ d.minv < 0.05 ]
     rangeperf[dimnames(rangeperf)[[1]]==v, 1:2] <- c(min(the.range, na.rm=T), max(the.range, na.rm=T))
   }
-  for (v in c("pos")) { # v<-"pos"
-    the.v <- paste("L.", v, sep="")
-    max.v <- max(temp[,the.v], na.rm=T)
-    d.maxv <- (abs(temp[,the.v] - max.v) / max.v) 
-    the.range <- temp$tpv[ d.maxv < 0.05 ]
-    rangeperf[dimnames(rangeperf)[[1]]==v, ] <- c(min(the.range, na.rm=T), max(the.range, na.rm=T))     
-  }
+  
   rangeperf <- as.data.frame(rangeperf)
   rangeperf$type.of.loss <- names(best)
   rangeperf$best <- unlist(best)
   
   loss.table <- subset(rangeperf, select = c("lower", "upper", "best"))
-  row.names(loss.table) = c("Maximize (TPR+TNR)", "Balance all errors", "FPR = FNR", "FDR = FOR")
+  row.names(loss.table) = c("Maximize TPR+TNR", "Maximize PPV+NPV", "Balance all errors", "TPR = TNR")
   loss.table <- as.data.frame(loss.table)
   
   # Rescale
   temp$L.eq.diag <- temp$L.eq.diag/max(temp$L.eq.diag, na.rm=T) 
-  temp$L.eq.pred <- temp$L.eq.pred/max(temp$L.eq.pred, na.rm=T) 
   
   #########################################################################
   ### 3: Functions to create SDM outputs
@@ -292,7 +287,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
   if (make.plot!="") {
     library(reshape2)
     # reshape the data so that it is in long rather than wide format (= each row represents one item, labels are specified by 'measure' column; used by ggplot2)
-    errs <- melt(temp, id.var="tpv", measure.var=c("tpr", "tnr", "fpr", "fnr", "fdr", "fors", "L.pos", "L.all", "L.eq.diag", "L.eq.pred"))
+    errs <- melt(temp, id.var="tpv", measure.var=c("tpr", "tnr", "fpr", "fnr", "fdr", "fors", "L.diag", "L.pred", "L.all", "L.eq.diag"))
     names(errs)[2] <- c("measure")
     
     # Create Presence/absence density plot across threshold probability values
@@ -358,53 +353,49 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     print(g5)
     dev.off()
     
-    # Create evaluation stats table with values for three different threshold selection methods (maximize TPR + TNR, TPR = TNR, maximize Kappa)
-    all.stats <- data.frame(list(tpv=list.tpv, L.pos=temp$L.pos, tpr=tpr, tnr=tnr, fpr=fpr, fnr=fnr, fdr=fdr, fors=fors, ppv=ppv, npv=npv, kappa=kappa, tss=tss, bs=bs, csi=csi, ets=ets, or=or, acc=acc, mcr=mcr))   
+    # Create evaluation stats table with values for optimum tpv value for L.diag (= maximize sum of TPR + TNR). 
+    all.stats <- data.frame(list(tpv=list.tpv, L.diag=temp$L.diag, tpr=tpr, tnr=tnr, fpr=fpr, fnr=fnr, fdr=fdr, fors=fors, ppv=ppv, npv=npv, kappa=kappa, tss=tss, bs=bs, csi=csi, ets=ets, or=or, acc=acc, mcr=mcr))   
     all.stats <- round(all.stats, digits = 3)
-    max.TPR.TNR <- all.stats[which.max(all.stats$L.pos), ] # select row with all stats for maximum value of L.pos
-    rownames(max.TPR.TNR) <- ("maximize sum TPR and TNR")
-    # TPR.eq.TNR <- all.stats[which(all.stats$tpr == all.stats$tnr), ] # select row with all stats for TPR = TNR
-    # max.Kappa <- all.stats[which.max(all.stats$kappa), ] # select row with all stats for maximum value of Kappa
+    max.TPR.TNR <- all.stats[which.max(all.stats$L.diag), ] # select row with all stats for maximum value of L.diag
+    rownames(max.TPR.TNR) <- c("maximize sum TPR and TNR")
     
     # stats.table <- rbind(max.TPR.TNR, TPR.eq.TNR, max.Kappa) 
     stats.table <- max.TPR.TNR
-    stats.table$L.pos <- NULL
-    # rownames(stats.table) <- c("maximize TPR + TNR", "TPR = TNR", "maximize Kappa")
+    stats.table$L.diag <- NULL
     names(stats.table) <- c("Optimum treshold value:", "True Positive Rate (TPR)", "True Negative Rate (TNR)", "False Positive Rate (FPR)", "False Negative Rate (FNR)", 
                             "False Discovery Rate (FDR)", "False Omission Rate (FOR)", "Positive Predictive Value (PPV)", "Negative Predictive Value (NPV)", 
                             "Cohen's Kappa", "True Skill Statistic (TSS)", "Bias Score (BS)", "Critical Success Index (CSI)", "Equitable Threat Score (ETS)",
                             "Odds-Ratio (OR)","Accuracy", "Misclassification Rate")
     eval.stats <- t(stats.table) # transpose table
     
-    # Create Loss function plot: shows the values of different loss functions across the range of threshold probability values
+     # Create Loss function plot: shows the values of different loss functions across the range of threshold probability values
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-functions.png", make.plot)), width=480, height=480)
-    g6 <- ggplot(errs[errs$measure %in% rev(c("L.pos", "L.all", "L.eq.diag", "L.eq.pred")), ], 
+    g6 <- ggplot(errs[errs$measure %in% rev(c("L.diag", "L.pred", "L.all", "L.eq.diag")), ], 
                  aes(x=tpv, y=value, colour=measure)) + 
       geom_line(size=1.2) + 
       ylim(0,1) +
       labs(title="Loss function plot\n", x="\nThreshold probability value", y="Loss function value\n") +
-      scale_colour_manual(values=c("#48D1CC", "#9F79EE", "#EE9572", "#FF3E96"), labels=c("Maximize TPR + TNR   ", "Balance all errors   ", "FPR = FNR", "FDR = FOR")) + 
+      scale_colour_manual(values=c("#48D1CC", "#9F79EE", "#EE9572", "#FF3E96"), labels=c("Maximize TPR + TNR   ", "Maximize PPV + NPV   ", "Balance all errors", "TPR = TNR")) + 
       theme(axis.text = element_text(family="Arial", size=rel(1.5)), axis.title = element_text(family="Arial", size=rel(1.5)), plot.title = element_text(family="Arial", size=rel(2)), legend.text = element_text(family="Arial", size=rel(1.5)), legend.position="top", legend.key=element_blank(), legend.key.size=unit(2.5, "lines")) + 
       guides(colour=guide_legend(nrow=2, title = NULL))
     print(g6)
     dev.off()
     
     # Create Loss functions-intervals plot within 5% of the best value
-    rangeperf$type.of.loss <- factor(rangeperf$type.of.loss, levels=(c("eq.pred", "eq.diag", "all", "pos")))
+    rangeperf$type.of.loss <- factor(rangeperf$type.of.loss, levels=(c("diag", "pred", "all", "eq.diag")))
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-intervals.png", make.plot)), width=480, height=480)
     g7 <- ggplot(rangeperf, aes(x=type.of.loss, y=best, ymin=lower, ymax=upper, colour=type.of.loss)) + 
       geom_pointrange(size=1.2) + 
       geom_line(size=1.2) +
       coord_flip() + 
       ylim(0,1) +
-      scale_x_discrete(limits=c("eq.pred","eq.diag","all", "pos")) +
-      scale_colour_manual(values=c("#48D1CC", "#9F79EE", "#EE9572", "#FF3E96"), labels=c("Maximize TPR + TNR   ", "Balance all errors   ", "FPR = FNR", "FDR = FOR")) + 
+      scale_x_discrete(limits=c("diag","pred", "all", "eq.diag")) +
+      scale_colour_manual(values=c("#48D1CC", "#9F79EE", "#EE9572", "#FF3E96"), labels=c("Maximize TPR + TNR   ", "Maximize PPV + NPV   ", "Balance all errors   ", "TPR = TNR")) + 
       labs(title="Range of threshold probability value \nwithin 5% of minimum per loss\n", x="Type of loss function\n", y="\nThreshold probability value") + 
       theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), axis.text.x = element_text(family="Arial", size=rel(1.5)), axis.title = element_text(family="Arial", size=rel(1.5)), plot.title = element_text(family="Arial", size=rel(2)), legend.text = element_text(family="Arial", size=rel(1.5)), legend.position="top", legend.key=element_blank(), legend.key.size=unit(2.5, "lines")) + 
       guides(colour=guide_legend(nrow=2, title = NULL))
     print(g7)
     dev.off()
-    
   }
   
   return(list(performance=temp, stats=eval.stats, loss.summary=loss.table)) 
