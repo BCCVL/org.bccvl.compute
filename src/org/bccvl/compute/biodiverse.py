@@ -10,7 +10,7 @@ from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod
 from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.compute import perl_task
-from org.bccvl.tasks.plone import after_commit_task
+from org.bccvl.tasks.plone.utils import after_commit_task, create_task_context
 
 
 LOG = logging.getLogger(__name__)
@@ -155,16 +155,10 @@ def execute(result, toolkit):
     #     OUTPUTS = {}
     params = get_biodiverse_params(result)
     script = generate_biodiverse_script()
-    member = api.user.get_current()
-    context = {
-        'context': '/'.join(result.getPhysicalPath()),
-        'user': {'id': member.getUserName(),
-                 'email': member.getProperty('email'),
-                 'fullname': member.getProperty('fullname')
-                 },
-        'experiment': {'title': result.__parent__.title,
-                       'url': result.__parent__.absolute_url()
-                       }
+    context = create_task_context(result)
+    context['experiment'] = {
+        'title': result.__parent__.title,
+        'url': result.__parent__.absolute_url()
     }
     params['result'] = {
         'results_dir': get_results_dir(result, result.REQUEST),

@@ -12,7 +12,7 @@ from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod, IBCCVLMetadata
 from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.compute import r_task
-from org.bccvl.tasks.plone import after_commit_task
+from org.bccvl.tasks.plone.utils import after_commit_task, create_task_context
 
 
 def get_project_params(result):
@@ -128,16 +128,10 @@ def execute(result, func):
     params = get_project_params(result)
     script = generate_project_script()
     ### plone context for this job
-    member = api.user.get_current()
-    context = {
-        'context': '/'.join(result.getPhysicalPath()),
-        'user': {'id': member.getUserName(),
-                 'email': member.getProperty('email'),
-                 'fullname': member.getProperty('fullname')
-                 },
-        'experiment': {'title': result.__parent__.title,
-                       'url': result.__parent__.absolute_url()
-                       }
+    context = create_task_context(result)
+    context['experiment'] = {
+        'title': result.__parent__.title,
+        'url': result.__parent__.absolute_url()
     }
     ### add result infos
     params['result'] = {
