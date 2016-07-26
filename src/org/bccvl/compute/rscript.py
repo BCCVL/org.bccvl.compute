@@ -1,4 +1,5 @@
 from copy import deepcopy
+from decimal import Decimal
 import json
 import logging
 from pkg_resources import resource_string
@@ -76,6 +77,12 @@ def get_sdm_params(result):
             envlist.append(dsdata)
     # replace original dict
     params['environmental_datasets'] = envlist
+
+    # TODO: quick fix Decimal json encoding through celery (where is my custom json encoder gone?)
+    for key, item in params.items():
+        if isinstance(item, Decimal):
+            params[key] = float(item)
+
     # add hints for worker to download files
     workerhints = {
         # only those parameters that are actually in params dict
