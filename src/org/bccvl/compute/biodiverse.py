@@ -1,4 +1,5 @@
 from copy import deepcopy
+from decimal import Decimal
 import logging
 from pkg_resources import resource_string
 
@@ -31,6 +32,11 @@ def get_biodiverse_params(result):
         dslist.append(dsinfo)
     # replace projections param
     params['projections'] = dslist
+
+    # TODO: quick fix Decimal json encoding through celery (where is my custom json encoder gone?)
+    for key, item in params.items():
+        if isinstance(item, Decimal):
+            params[key] = float(item)
 
     workerhints = {
         'files': ('projections', )
