@@ -14,6 +14,8 @@ use JSON ;
 use File::Basename ;
 use File::Spec ;
 
+use Tie::File;
+
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
 
@@ -141,11 +143,15 @@ sub apply_threshold {
 
 ##########################################
 # project input files and apply threshold
+my %species;
 my @files = () ;
 foreach (@{$bccvl_params{'projections'}}) {
     my $destfile = gdalwarp($_->{'filename'}, $outdir, "epsg:3577");
     apply_threshold($destfile, $_->{'threshold'}->{'value'});
     push(@files, $destfile);
+    
+    # save the filename and its corresponding species name
+    $species{basename($destfile)} = $_->{'species'};
 }
 
 ###################################
@@ -211,6 +217,50 @@ $sp->export (
     file   => $out_pfx,
     list   => 'SPATIAL_RESULTS',
 );
+
+# export data as csv as well
+$sp->export (
+    format => 'Delimited text',
+    file   => 'biodiverse_SPATIAL_RESULTS.csv',
+    list   => 'SPATIAL_RESULTS',
+);
+
+# export all labels as csv
+# TODO: use better file naming?
+#       do we always ever get one file here? (depends on types of analysis?)
+# TODO: This is the same spatial file as above. Can be removed.
+my @outputs = $bd->get_spatial_output_refs;
+    
+foreach my $output (@outputs) {
+    my $output_name = 'test';
+    my @lists = $output->get_lists_across_elements;
+    foreach my $list (@lists) {
+        say $list;
+        my $list_fname = $list;
+        $list_fname =~ s/>>/--/;  #  systems don't like >> in file names
+        my $csv_file = sprintf "%s%s_%s_%s.csv", 'b_', '_listbase_', $output_name, $list_fname;
+        $output->export (
+            file   =>  $csv_file,
+            format => 'Delimited text',
+            list   => $list,
+        );
+    }
+};
+
+# This output file maps element to input file (i.e. species)
+my $csv_file = sprintf "%s_%s.csv", 'b_', "groups";
+$bd->get_groups_ref->export (
+    file   =>  $csv_file,
+    format => 'Delimited text',
+    list => 'SUBELEMENTS',
+);
+
+# Replace the header of the csv file with the corresponding species name
+tie my @lines, 'Tie::File', $csv_file or die "Unable to tie $csv_file: $!";
+while (my ($fname, $speciesName) = each %species) {
+    $lines[0] =~ s/$fname/$speciesName/g;
+}
+untie @lines;
 
 my $ascglob = File::Spec->catfile($outdir, "*.asc");
 foreach(glob($ascglob)) {
