@@ -184,7 +184,7 @@ model.sdm <-
                     do.full.models = biomod.do.full.models,
                     modeling.id = biomod.modeling.id
                     )
-	# model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
+# model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
 #save out the model object
 bccvl.save(model.sdm, name="model.object.RData")
 # predict for current climate scenario
@@ -215,3 +215,102 @@ bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm) 	# save output
 
 # save the projection
 bccvl.saveProjection(model.proj, biomod.species.name)
+
+
+#============================================================================================
+# project the sdm model. This is from predict.R with modification to input parameters.
+#============================================================================================
+# Get the species name and sdm model from above
+sdm.species = biomod.species.name
+model.obj = model.sdm
+
+projection.name = bccvl.params$cc_projection_name
+#geographic constraints
+enviro.data.constraints = bccvl.params$projection_region
+
+# resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
+enviro.data.resampling = 'highest'
+
+future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x) x$filename)
+future.climate.data.type = lapply(bccvl.params$future_climate_datasets, function(x) x$type)
+#layer names for the current environmental layers used
+future.climate.data.layer = lapply(bccvl.params$future_climate_datasets, function(x) x$layer)
+
+
+projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species) {
+    future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, datalayername, resamplingflag=enviro.data.resampling)
+    # filter out unused layers from future.climate.scenario
+    predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario, futuredata)
+    # geographically constrained modelling
+    if (!is.null(enviro.data.constraints)) {
+      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, enviro.data.constraints);
+      predictors <- constrainedResults$raster
+    }
+    
+    # do projection
+    if (inherits(model.obj, "DistModel")) {
+        # dismo package
+        opt.tails <- bccvl.params$tails
+        opt.ext <- NULL
+        model.proj <- predict(model.obj,
+                              predictors,
+                              tails=opt.tails,
+                              ext=opt.ext)
+        bccvl.saveModelProjection(model.proj, projection.name, species)
+    } else if (inherits(model.obj, "gbm")) {
+        # brt package)
+        model.proj <- predict(predictors,
+                              model.obj,
+                              n.trees=model.obj$gbm.call$best.trees,
+                              type="response")
+        bccvl.saveModelProjection(model.proj, projection.name, species)
+    } else if (inherits(model.obj, "BIOMOD.models.out")) {
+        # expect additional model data in input folder.
+        # for biomod to find it we'll have to change wd
+
+        biomod.xy.new.env <- NULL
+        biomod.selected.models <- bccvl.params$selected_models
+        biomod.binary.meth <- NULL
+        biomod.filtered.meth <- NULL
+        biomod.compress <- NULL # bccvl.params$compress
+        biomod.build.clamping.mask <- TRUE
+        biomod.species.name <-  species
+        opt.biomod.silent <- FALSE
+        opt.biomod.do.stack <- TRUE
+        opt.biomod.keep.in.memory <- TRUE
+        opt.biomod.output.format <- NULL
+
+        model.proj <- BIOMOD_Projection(modeling.output=model.obj,
+                                        new.env=predictors,
+                                        proj.name=projection.name,
+                                        xy.new.env=biomod.xy.new.env,
+                                        selected.models=biomod.selected.models,
+                                        binary.meth=biomod.binary.meth,
+                                        filtered.meth=biomod.filtered.meth,
+                                        # compress=biomod.compress, # .. Null not accepted
+                                        build.clamping.mask=biomod.build.clamping.mask,
+                                        silent=opt.biomod.silent,
+                                        do.stack=opt.biomod.do.stack,
+                                        keep.in.memory=opt.biomod.keep.in.memory,
+                                        output.format=opt.biomod.output.format,
+                                        on_0_1000=FALSE)
+        # save projection to output folder
+        # move proj_folder
+        projinput <- file.path(getwd(),
+                               biomod.species.name,
+                               paste("proj", projection.name, sep="_"))
+        projoutput <- file.path(bccvl.env$outputdir,
+                                biomod.species.name,
+                                paste("proj", projection.name, sep="_"))
+        # create top level dir
+        dir.create(file.path(bccvl.env$outputdir, biomod.species.name))
+        # move proj_future folder to output folder
+        file.rename(projinput, projoutput)
+        # convert grd files to tif
+        bccvl.grdtogtiff(projoutput)
+    }
+}
+
+
+# use folder name of first dataset to generate name for projection output
+projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species)
