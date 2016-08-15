@@ -3,9 +3,6 @@
        xmlns:form="http://namespaces.plone.org/supermodel/form"
        xmlns="http://namespaces.plone.org/supermodel/schema">
   <schema based-on="zope.interface.Interface">
-    <fieldset name="Pseudo Absences"
-              label="Pseudo Absence Configuration"
-              description="Select and configure your strategy. &lt;a href='https://support.bccvl.org.au/support/solutions/articles/6000127043-absence-data' target='_blank'>Read More ...&lt;/a>">
       <field name="pa_ratio" type="zope.schema.Decimal" form:mode="z3c.form.interfaces.IForm:hidden">
         <default>1</default>
         <description>ratio of absence to presence points</description>
@@ -39,7 +36,7 @@
         <title>pseudo-absence disk maximum distance</title>
         <min>0</min>
       </field>
-    </fieldset>
+
     <fieldset name="Other"
               label="Other Configuration"
               description="Options are set to package defaults unless otherwise modified.">
