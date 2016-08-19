@@ -1,4 +1,5 @@
 from copy import deepcopy
+from decimal import Decimal
 import logging
 from pkg_resources import resource_string
 
@@ -31,6 +32,22 @@ def get_biodiverse_params(result):
         dslist.append(dsinfo)
     # replace projections param
     params['projections'] = dslist
+
+    # TODO: quick fix Decimal json encoding through celery (where is my custom
+    # json encoder gone?)
+    # -> problem is oslo jsonutils, whihch patches anyjson with it's own
+    #    loads/dumps methods.
+    # we would normally use simplejson, which supports decimal, but oslo
+    # patches it in a way so that decimal no longer works
+    for key, item in params.items():
+        if isinstance(item, Decimal):
+            params[key] = float(item)
+    # ptach threshold vasue as well
+    for pds in params['projections']:
+        thresholds = pds['threshold']
+        for key, item in thresholds.items():
+            if isinstance(item, Decimal):
+                thresholds[key] = float(item)
 
     workerhints = {
         'files': ('projections', )
@@ -170,5 +187,5 @@ def execute(result, toolkit):
     }
     # set debug flag
     params['worker']['zipworkenv'] = api.env.debug_mode()
-    ### send job to queue
+    # send job to queue
     after_commit_task(perl_task, params, context)

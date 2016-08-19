@@ -322,7 +322,7 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                              PA.sre.quant = pseudo.absen.sre.quant)
 
     # Save the pseudo absence points generated to file
-    if (save.pseudo.absen) {
+    if (save.pseudo.absen & pseudo.absen.rep != 0) {
         pseudoAbsen = myBiomodData@coord[c(which(is.na(myBiomodData@data.species))), c('lon', 'lat')]
         if (nrow(pseudoAbsen) > 0) {
             bccvl.write.csv(pseudoAbsen, 'pseudo_absences.csv', rownames = FALSE)

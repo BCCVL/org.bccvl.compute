@@ -1,4 +1,5 @@
 from copy import deepcopy
+from decimal import Decimal
 import os.path
 from pkg_resources import resource_string
 import re
@@ -52,6 +53,12 @@ def get_project_params(result):
     # projection.name from dsinfo
     # FIXME: workaround to get future projection name back, but this works only for file naming scheme with current available data
     params['projection_name'], _ = os.path.splitext(dsinfo['filename'])
+
+    # TODO: quick fix Decimal json encoding through celery (where is my custom json encoder gone?)
+    for key, item in params.items():
+        if isinstance(item, Decimal):
+            params[key] = float(item)
+
     # add hints for worker
     workerhints = {
         'files': ('species_distribution_models', 'future_climate_datasets')

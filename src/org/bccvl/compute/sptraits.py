@@ -1,4 +1,5 @@
 from copy import deepcopy
+from decimal import Decimal
 import json
 import logging
 from pkg_resources import resource_string
@@ -68,6 +69,12 @@ def execute(result, toolkit):
         'title': result.__parent__.title,
         'url': result.__parent__.absolute_url()
     }
+
+    # TODO: quick fix Decimal json encoding through celery (where is my custom json encoder gone?)
+    for key, item in params.items():
+        if isinstance(item, Decimal):
+            params[key] = float(item)
+
     ### add result infos
     params['result'] = {
         'results_dir': get_results_dir(result, result.REQUEST),
