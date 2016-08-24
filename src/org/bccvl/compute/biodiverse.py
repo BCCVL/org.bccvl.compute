@@ -35,7 +35,8 @@ def get_biodiverse_params(result):
 
     # TODO: quick fix Decimal json encoding through celery (where is my custom
     # json encoder gone?)
-    # -> problem is oslo jsonutils, whihch patches anyjson with it's own loads/dumps methods.
+    # -> problem is oslo jsonutils, whihch patches anyjson with it's own
+    #    loads/dumps methods.
     # we would normally use simplejson, which supports decimal, but oslo
     # patches it in a way so that decimal no longer works
     for key, item in params.items():

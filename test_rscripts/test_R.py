@@ -25,16 +25,21 @@ import urllib
 
 import numpy as np
 from osgeo import gdal
+
 from skimage.io import imread
 try:
-    from skimage.measure import compare_ssim as ssim
+    from skimage.measure import compare_ssim
     HAVE_MULTICHANNEL_SSIM = True
 except ImportError:
-    from skimage.measure import structural_similarity as ssim
+    from skimage.measure import structural_similarity as compare_ssim
     HAVE_MULTICHANNEL_SSIM = False
 
 logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
+
+if not HAVE_MULTICHANNEL_SSIM:
+    LOG.warning('Using outdated skimage structural_similarity')
+
 
 OUTPUTS_VERSION = "1.13"
 OUTPUTS_BASE = "https://swift.rc.nectar.org.au:8888/v1/AUTH_0bc40c2c2ff94a0b9404e6f960ae5677/test_r_outputs"  # noqa
@@ -118,17 +123,18 @@ def compare_png(img1, img2, eps=0.99):
     im2 = imread(img2)
     if len(im1.shape) == 2 or im1.shape[-1] == 1:
         # only one color channel
-        mssim = ssim(im1, im2)
+        mssim = compare_ssim(im1, im2)
     elif HAVE_MULTICHANNEL_SSIM:
         # multi color channel
-        mssim = ssim(im1, im2, multichannel=True)
+        mssim = compare_ssim(im1, im2, multichannel=True)
     else:
         # We have to do multichannel ssim ourselves
         nch = im1.shape[-1]
         mssim = np.empty(nch)
         for chan in range(nch):
             # use copy to generate contiguous array and avoid warning
-            ch_result = ssim(im1[..., chan].copy(), im2[..., chan].copy())
+            ch_result = compare_ssim(
+                im1[..., chan].copy(), im2[..., chan].copy())
             mssim[..., chan] = ch_result
         mssim = mssim.mean()
     return mssim > eps
