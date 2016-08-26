@@ -14,7 +14,7 @@ use JSON ;
 use File::Basename ;
 use File::Spec ;
 
-use Tie::File;
+use Text::CSV_XS;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
@@ -142,6 +142,36 @@ sub apply_threshold {
 }
 
 ##########################################
+# Read from a group csv file and return a dictionary of element to list of species.
+sub get_species
+{
+    my %species;
+    my $filename = shift;
+
+    # open the file for reading
+    my $csv = Text::CSV_XS->new ({ binary => 1, auto_diag => 1, eol => $/ });
+    open(my $ifh, "<", $filename) or
+        die("Could not open $filename file. $!\n");
+
+    # skip the header
+    my $line = $csv->getline($ifh);
+
+    while($line = $csv->getline($ifh)) {
+        my @fields =  @$line;
+
+        # First column is the element, 4th column is the species
+        if (!exists($species{$fields[0]})) {
+            $species{$fields[0]} = [$fields[3]];
+        }
+        else {
+            push @{$species{$fields[0]}}, $fields[3];
+        }
+    }
+    close $ifh;
+    return %species;
+}
+
+##########################################
 # project input files and apply threshold
 my %species;
 my @files = () ;
@@ -183,6 +213,15 @@ my $success = eval {
 };
 croak $EVAL_ERROR if $EVAL_ERROR;
 
+# rename the label to species name
+my $remap = Biodiverse::ElementProperties->new ();
+while (my ($fname, $speciesName) = each %species) {
+    $remap->add_element (element => $fname);
+    my $remap_hash = {REMAP => $speciesName};
+    $remap->add_lists (element => $fname, PROPERTIES => $remap_hash);
+}
+$bd->rename_labels (remap => $remap);
+
 #####################################
 #  analyse the data
 
@@ -219,48 +258,54 @@ $sp->export (
 );
 
 # export data as csv as well
+my $spatial_result_file = 'biodiverse_SPATIAL_RESULTS.csv';
 $sp->export (
     format => 'Delimited text',
-    file   => 'biodiverse_SPATIAL_RESULTS.csv',
+    file   => $spatial_result_file,
     list   => 'SPATIAL_RESULTS',
 );
 
-# export all labels as csv
-# TODO: use better file naming?
-#       do we always ever get one file here? (depends on types of analysis?)
-# TODO: This is the same spatial file as above. Can be removed.
-my @outputs = $bd->get_spatial_output_refs;
-    
-foreach my $output (@outputs) {
-    my $output_name = 'test';
-    my @lists = $output->get_lists_across_elements;
-    foreach my $list (@lists) {
-        say $list;
-        my $list_fname = $list;
-        $list_fname =~ s/>>/--/;  #  systems don't like >> in file names
-        my $csv_file = sprintf "%s%s_%s_%s.csv", 'b_', '_listbase_', $output_name, $list_fname;
-        $output->export (
-            file   =>  $csv_file,
-            format => 'Delimited text',
-            list   => $list,
-        );
-    }
-};
-
 # This output file maps element to input file (i.e. species)
-my $csv_file = sprintf "%s_%s.csv", 'b_', "groups";
+my $grp_csv_file = sprintf "%s_%s.csv", 'biodiverse', "groups";
 $bd->get_groups_ref->export (
-    file   =>  $csv_file,
+    file   =>  $grp_csv_file,
     format => 'Delimited text',
     list => 'SUBELEMENTS',
+    one_value_per_line => 1,
 );
 
-# Replace the header of the csv file with the corresponding species name
-tie my @lines, 'Tie::File', $csv_file or die "Unable to tie $csv_file: $!";
-while (my ($fname, $speciesName) = each %species) {
-    $lines[0] =~ s/$fname/$speciesName/g;
+# Extract the mapping of element/species from the group csv file.
+# Insert the species info into the "spatial_result" file to generate
+# a new csv file.
+my %elem_species = get_species($grp_csv_file);
+
+my $csv = Text::CSV_XS->new ({ binary => 1, auto_diag => 1, eol => $/ });
+
+# The original input csv file.
+open(my $input_fh, "<", $spatial_result_file) or 
+    die("Could not open $spatial_result_file file. $!\n");
+
+# This is the new csv file with species column
+open (my $output_fh, '>', 'biodiverse_spatial_results_merged.csv') or
+    die("Could not open biodiverse_spatial_results_merged.csv file for writing");
+
+# Add extra column for new output csv file.
+my $line = $csv->getline($input_fh);
+push $line, "SPECIES";
+$csv->print($output_fh, $line);
+
+# The 1st column is the element.
+while ($line = $csv->getline($input_fh)) {
+    my @cols = @$line;
+    my $spNames = join(',', @{ $elem_species{$cols[0]} });
+    push $line, $spNames;
+    $csv->print($output_fh, $line);
 }
-untie @lines;
+close $input_fh;
+close $output_fh;
+
+# Remove the original files
+unlink $spatial_result_file;
 
 my $ascglob = File::Spec->catfile($outdir, "*.asc");
 foreach(glob($ascglob)) {
