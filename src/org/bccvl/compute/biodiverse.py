@@ -124,6 +124,11 @@ OUTPUTS = {
             "genre": "DataGenreRAREW_WE",
             "mimetype": "image/geotiff",
         },
+        '*.csv': {
+            "title": "Biodiverse species spatial analysis result",
+            "genre": "DataGenreBiodiverseOutput",
+            "mimetype": "text/csv",
+        },
         '*.bds':  {
             # Perl Storable package
             'title': 'Biodiverse output',

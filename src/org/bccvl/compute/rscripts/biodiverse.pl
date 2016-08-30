@@ -306,6 +306,7 @@ close $output_fh;
 
 # Remove the original files
 unlink $spatial_result_file;
+unlink $grp_csv_file;
 
 my $ascglob = File::Spec->catfile($outdir, "*.asc");
 foreach(glob($ascglob)) {
