@@ -159,12 +159,19 @@ sub get_species
     while($line = $csv->getline($ifh)) {
         my @fields =  @$line;
 
-        # First column is the element, 4th column is the species
-        if (!exists($species{$fields[0]})) {
-            $species{$fields[0]} = [$fields[3]];
-        }
-        else {
-            push @{$species{$fields[0]}}, $fields[3];
+        # First column is the element, 4th column is the species.
+        # Skip if the 5th column (i.e. occurrence count) is 0 or undefined
+        if (defined($fields[4]) && $fields[4] > 0) {
+            # Strip the enclosing apostrophes if any from element, as 
+            # this can occur with multiple species.
+            my $element = $fields[0];
+            $element =~ s/'//g;
+            if (!exists($species{$element})) {
+                $species{$element} = [$fields[3]];
+            }
+            else {
+                push @{$species{$element}}, $fields[3];
+            }
         }
     }
     close $ifh;
@@ -297,7 +304,10 @@ $csv->print($output_fh, $line);
 # The 1st column is the element.
 while ($line = $csv->getline($input_fh)) {
     my @cols = @$line;
-    my $spNames = join(',', @{ $elem_species{$cols[0]} });
+    my $spNames = '';
+    if (exists($elem_species{$cols[0]})) {
+        $spNames = join(',', @{ $elem_species{$cols[0]} });
+    }
     push $line, $spNames;
     $csv->print($output_fh, $line);
 }
