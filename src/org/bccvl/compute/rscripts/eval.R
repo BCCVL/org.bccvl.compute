@@ -16,8 +16,13 @@ bccvl.saveModelEvaluation <- function(out.evaluation, out.stats, out.lossfunctio
   bccvl.write.csv(data.frame(out.lossfunction), name = "Loss function intervals table.csv")
   }
 
-bccvl.saveProjection <- function(proj.model, species) {
-  basename = paste("proj", 'current', species, sep="_")
+bccvl.saveProjection <- function(proj.model, species, filename_ext=NULL) {
+  if (!is.null(filename_ext)) {
+    basename = paste("proj", 'current', species, filename_ext, sep="_")
+  }
+  else {
+    basename = paste("proj", 'current', species, sep="_")
+  }
   png(file=file.path(bccvl.env$outputdir, paste(basename, 'png', sep=".")))
   plot(proj.model, on_0_1000=FALSE)
   dev.off()

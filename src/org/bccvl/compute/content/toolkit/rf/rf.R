@@ -108,7 +108,9 @@ occur = occur[c("lon","lat")]
 # geographically constrained modelling
 if (!is.null(enviro.data.constraints)) {
   constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints);
-  
+
+  # Save a copy of the climate dataset
+  current.climate.scenario.orig <- current.climate.scenario
   current.climate.scenario <- constrainedResults$raster
   occur <- constrainedResults$occur
 }
@@ -220,3 +222,30 @@ bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm) 	# save output
 
 # save the projection
 bccvl.saveProjection(model.proj, biomod.species.name)
+
+# Do projection over current climate scenario without constraint
+if (!is.null(enviro.data.constraints)) {
+    model.proj <-
+        BIOMOD_Projection(modeling.output     = model.sdm,
+                          new.env             = current.climate.scenario.orig,
+                          proj.name           = projection.name,
+                          xy.new.env          = biomod.xy.new.env,
+                          selected.models     = biomod.selected.models,
+                          binary.meth         = biomod.binary.meth,
+                          filtered.meth       = biomod.filtered.meth,
+                          #compress            = biomod.compress,
+                          build.clamping.mask = biomod.build.clamping.mask,
+                          silent              = opt.biomod.silent,
+                          do.stack            = opt.biomod.do.stack,
+                          keep.in.memory      = opt.biomod.keep.in.memory,
+                          output.format       = opt.biomod.output.format,
+                          on_0_1000           = FALSE)
+    # convert projection output from grd to gtiff
+    bccvl.grdtogtiff(file.path(getwd(),
+                               biomod.species.name,
+                               paste("proj", projection.name, sep="_")), 
+                     filename_ext="unconstraint")
+
+    # save the projection
+    bccvl.saveProjection(model.proj, biomod.species.name, filename_ext="unconstraint")
+}

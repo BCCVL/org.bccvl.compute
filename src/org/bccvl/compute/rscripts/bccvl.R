@@ -526,11 +526,17 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
 }
 
 # function to save projection output raster
-bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir) {
+bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
     ## save projections under biomod2 compatible name:
     ##  proj_name_species.tif
     ##  only useful for dismo outputs
-    basename = paste("proj", projection.name, species, sep="_")
+
+    if (is.null(filename_ext)) {
+        basename = paste("proj", projection.name, species, sep="_")        
+    }
+    else {
+        basename = paste("proj", projection.name, species, filename_ext, sep="_")   
+    }
     filename = file.path(outputdir, paste(basename, 'tif', sep="."))
     writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
 
@@ -561,7 +567,7 @@ bccvl.getModelObject <- function(model.file=bccvl.env$inputmodel) {
 
 # convert all .gri/.grd found in folder to gtiff
 # TODO: extend to handle other grid file formats, e.g. .asc
-bccvl.grdtogtiff <- function(folder) {
+bccvl.grdtogtiff <- function(folder, filename_ext=NULL) {
     grdfiles <- list.files(path=folder,
                            pattern="^.*\\.gri")
     for (grdfile in grdfiles) {
@@ -577,7 +583,11 @@ bccvl.grdtogtiff <- function(folder) {
         }
 
         # write raster as geotiff
-        filename = file.path(folder, paste(grdname, 'tif', sep="."))
+        basename = grdname
+        if (!is.null(filename_ext)) {
+            basename = paste(grdname, filename_ext, sep="_")
+        }
+        filename = file.path(folder, paste(basename, 'tif', sep="."))
         writeRaster(grd, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
         # remove grd files
         file.remove(file.path(folder, paste(grdname, c("grd","gri"), sep=".")))

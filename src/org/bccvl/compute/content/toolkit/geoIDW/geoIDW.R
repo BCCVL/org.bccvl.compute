@@ -61,7 +61,9 @@ occur = occur[c("lon","lat")]
 # geographically constrained modelling
 if (!is.null(enviro.data.constraints)) {
   constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints);
-  
+
+  # Save a copy of the climate dataset
+  current.climate.scenario.orig <- current.climate.scenario    
   current.climate.scenario <- constrainedResults$raster
   occur <- constrainedResults$occur
 }
@@ -109,4 +111,9 @@ model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
 # save output
 bccvl.saveModelProjection(model.proj, projection.name, occur.species)
 
-
+# Do projection over current climate scenario without constraint
+if (!is.null(enviro.data.constraints)) {
+    model.proj = predict(model.sdm, current.climate.scenario.orig, tails=opt.tails)
+    # save output
+    bccvl.saveModelProjection(model.proj, projection.name, occur.species, filename_ext="unconstraint")
+}    
