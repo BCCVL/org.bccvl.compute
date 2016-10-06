@@ -322,13 +322,31 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                              PA.sre.quant = pseudo.absen.sre.quant)
 
     # Save the pseudo absence points generated to file
-    if (save.pseudo.absen & pseudo.absen.rep != 0) {
+    if (pseudo.absen.rep != 0) {
         pseudoAbsen = myBiomodData@coord[c(which(is.na(myBiomodData@data.species))), c('lon', 'lat')]
-        if (nrow(pseudoAbsen) > 0) {
+        if (save.pseudo.absen & nrow(pseudoAbsen) > 0) {
             bccvl.write.csv(pseudoAbsen, 'pseudo_absences.csv', rownames = FALSE)
         }
+
+        # save the pseudo absence points with environmental variables
+        bccvl.merge.save(climate.data, pseudoAbsen, species.name, "absence_environmental.csv")        
     }
+    else if (nrow(absen) > 0) {
+        # save the true absence points with environmental variables
+        bccvl.merge.save(climate.data, absen, species.name, "absence_environmental.csv")
+    }
+
+    # save the occurrence datasets with environmental variables
+    bccvl.merge.save(climate.data, occur, species.name, "occurrence_environmental.csv")
+
     return(myBiomodData)
+}
+
+bccvl.merge.save <- function(env, csvdata, spname, ofname)
+{
+  data = cbind(csvdata, species=spname, extract(env, csvdata))
+  
+  bccvl.write.csv(data, ofname, rownames=FALSE)
 }
 
 # warning was doing odd things. I just want to print the deng thing.
