@@ -23,7 +23,18 @@ occur.species = bccvl.params$species_occurrence_dataset$species
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
 absen.data = bccvl.params$species_absence_dataset$filename
 #define the current enviro data to use
-enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
+# rename file if filename contains 'asc' due to bug in Biomod2 function.
+# TODO: Don't need to rename when Biomod2 bug is fixed.
+enviro.data.current = lapply(bccvl.params$environmental_datasets, 
+                             function(x) {
+                                fname = x$filename
+                                if (file_ext(fname) != 'asc') {
+                                   fname = file.path(dirname(fname), sub('asc', 'asd', basename(fname)))
+                                   file.rename(x$filename, fname)
+                                }
+                                return(fname)
+                             }
+) 
 #type in terms of continuous or categorical
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 #layer names for the current environmental layers used
