@@ -1,3 +1,4 @@
+## CH: Yong, please check comments below (lines 2-15) and check if action is needed
 # FIXME: R env setup should be done on compute host
 #        - lib dir: get rid of it
 #        - don't do install.packages?
@@ -23,7 +24,7 @@ options(warn=1)
 write.table(installed.packages()[,c("Package", "Version", "Priority")],
             row.names=FALSE)
 
-#script to run to develop distribution models
+## CH: Yong, should we change this list below to include only packages used in STM?
 ###check if libraries are installed, install if necessary and then load them
 necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "pROC", "R2HTML", "png", "gstat", "biomod2", "gdalUtils") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
@@ -35,6 +36,7 @@ for (lib in necessary) {
 }
 
 # load parameters
+## CH: Yong, maybe we change this to be traits.params - so it uses a different name than SDM params?
 params = rjson::fromJSON(file="params.json")
 bccvl.params <- params$params
 bccvl.env <- params$env
@@ -64,6 +66,7 @@ bccvl.params["random_seed"] = seed
 #
 ############################################################
 
+## CH: Yong, can we take out the parameters that are used for SDM algorithms, and not STM algorithms?
 parameter.as.string <- function (param, value) {
     pname <- gsub("_", " ", param)
     if (param == "prevalence") {
@@ -156,6 +159,8 @@ parameter.as.string <- function (param, value) {
     return(paste(pname, " = ", value, "\n", sep="", collapse=""))
 }
 
+## CH: Yong, in function below, can we only include STM algorithms? These will be speciestrait_glm, speciestrait_gam, speciestrait_cta
+
 parameter.print <- function(params) {
     func = params[["function"]]
     if (is.null(func))
@@ -225,136 +230,12 @@ parameter.print(bccvl.params)
 ############################################################
 
 ## Needed for tryCatch'ing:
+## CH: Yong, is the line below needed for STM?            
 bccvl.err.null <- function (e) return(NULL)
 
-# read species presence/absence data
-#    return NULL if filename is not  given
-# TODO: shall we set projection here as well? use SpatialPoints?
-bccvl.species.read <- function(filename) {
-    if (!is.null(filename)) {
-        # We might loose precision of lon/lat when ronverting to double,
-        # However, given the nature of the numbers, and the resolution of raster files
-        # we deal with, this shouldn't be a problem.
-        return (read.csv(filename, colClasses=c("lon"="numeric", "lat"="numeric")))
-    }
-}
-
-# BIOMOD_FormatingData(resp.var, expl.var, resp.xy = NULL, resp.name = NULL, eval.resp.var = NULL,
-#   eval.expl.var = NULL, eval.resp.xy = NULL, PA.nb.rep = 0, PA.nb.absences = 1000, PA.strategy = 'random',
-#   PA.dist.min = 0, PA.dist.max = NULL, PA.sre.quant = 0.025, PA.table = NULL, na.rm = TRUE)
-#
-# resp.var a vector, SpatialPointsDataFrame (or SpatialPoints if you work with `only presences' data) containing species data (a single species) in binary format (ones for presences, zeros for true absences and NA for indeterminated ) that will be used to build the species distribution models.
-# expl.var a matrix, data.frame, SpatialPointsDataFrame or RasterStack containing your explanatory variables that will be used to build your models.
-# resp.xy optional 2 columns matrix containing the X and Y coordinates of resp.var (only consider if resp.var is a vector) that will be used to build your models.
-# eval.resp.var a vector, SpatialPointsDataFrame your species data (a single species) in binary format (ones for presences, zeros for true absences and NA for indeterminated ) that will be used to evaluate the models with independant data (or past data for instance).
-# eval.expl.var a matrix, data.frame, SpatialPointsDataFrame or RasterStack containing your explanatory variables that will be used to evaluate the models with independant data (or past data for instance).
-# eval.resp.xy opional 2 columns matrix containing the X and Y coordinates of resp.var (only consider if resp.var is a vector) that will be used to evaluate the modelswith independant data (or past data for instance).
-# resp.name response variable name (character). The species name.
-# PA.nb.rep number of required Pseudo Absences selection (if needed). 0 by Default.
-# PA.nb.absences number of pseudo-absence selected for each repetition (when PA.nb.rep > 0) of the selection (true absences included)
-# PA.strategy strategy for selecting the Pseudo Absences (must be `random', `sre', `disk' or `user.defined')
-# PA.dist.min minimal distance to presences for `disk' Pseudo Absences selection (in meters if the explanatory is a not projected raster (+proj=longlat) and in map units (typically also meters) when it is projected or when explanatory variables are stored within table )
-# PA.dist.max maximal distance to presences for `disk' Pseudo Absences selection(in meters if the explanatory is a not projected raster (+proj=longlat) and in map units (typically also meters) when it is projected or when explanatory variables are stored within table )
-# PA.sre.quant quantile used for `sre' Pseudo Absences selection
-# PA.table a matrix (or a data.frame) having as many rows than resp.var values. Each column correspund to a Pseudo-absences selection. It contains TRUE or FALSE indicating which values of resp.var will be considered to build models. It must be used with `user.defined' PA.strategy.
-# na.rm logical, if TRUE, all points having one or several missing value for environmental data will be removed from analysis
-
-
-# This uses the biomods function BIOMOD_FormatingData to format user input data. 
-# It generates pseudo absence points if true absence data are not available or 
-# adds pseudo absence data to an existing absence dataset.
-bccvl.biomod2.formatData <- function(absen.filename=NULL,
-                                  pseudo.absen.points=0,
-                                  pseudo.absen.strategy='random',
-                                  pseudo.absen.disk.min=0,
-                                  pseudo.absen.disk.max=NULL,
-                                  pseudo.absen.sre.quant = 0.025,
-                                  climate.data=NULL,
-                                  occur=NULL,
-                                  species.name=NULL,
-                                  save.pseudo.absen=TRUE) {
-
-    # Read true absence point if available.
-    if (is.null(absen.filename)) {        
-        # create an empty data frame for bkgd points
-        absen = data.frame(lon=numeric(0), lat=numeric(0))
-    }
-    else {
-        # read absence points from file
-        absen = bccvl.species.read(absen.filename)
-        # keep only lon and lat columns
-        absen = absen[c("lon","lat")]
-    }
-
-    # Initialise parameters to default value if not specified
-    if (is.null(pseudo.absen.strategy)) {
-        pseudo.absen.strategy = 'random'
-    }
-    if (is.null(pseudo.absen.disk.min)) {
-        pseudo.absen.disk.min = 0
-    }
-    if (is.null(pseudo.absen.sre.quant)) {
-        pseudo.absen.sre.quant = 0.025
-    }
-
-    # Check if we need to generate pseudo absence point here.
-    # as BIOMOD_FormatingData() cannot handle it properly if
-    # number of true absence points is more than absence
-    # point required.
-    pseudo.absen.rep = 1
-    if (pseudo.absen.strategy == 'none' | nrow(absen) >=  pseudo.absen.points) {
-        pseudo.absen.rep = 0
-        cat("No pseudo absence point is generated.")
-    }    
-
-    biomod.data <- rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
-    biomod.data.pa <- c(rep(1, nrow(occur)), rep(0, nrow(absen)))
-    myBiomodData <-
-        BIOMOD_FormatingData(resp.var  = biomod.data.pa,
-                             expl.var  = climate.data,
-                             resp.xy   = biomod.data,
-                             resp.name = species.name,
-                             PA.nb.rep = pseudo.absen.rep,
-                             PA.nb.absences = pseudo.absen.points,
-                             PA.strategy = pseudo.absen.strategy,
-                             PA.dist.min = pseudo.absen.disk.min,
-                             PA.dist.max = pseudo.absen.disk.max,
-                             PA.sre.quant = pseudo.absen.sre.quant)
-
-    # Save the pseudo absence points generated to file
-    if (pseudo.absen.rep != 0) {
-        pseudoAbsen = myBiomodData@coord[c(which(is.na(myBiomodData@data.species))), c('lon', 'lat')]
-        if (save.pseudo.absen & nrow(pseudoAbsen) > 0) {
-            bccvl.write.csv(pseudoAbsen, 'pseudo_absences.csv', rownames = FALSE)
-        }
-
-        # save the pseudo absence points with environmental variables
-        bccvl.merge.save(climate.data, pseudoAbsen, species.name, "absence_environmental.csv")        
-    }
-    else if (nrow(absen) > 0) {
-        # save the true absence points with environmental variables
-        bccvl.merge.save(climate.data, absen, species.name, "absence_environmental.csv")
-    }
-
-    # save the occurrence datasets with environmental variables
-    bccvl.merge.save(climate.data, occur, species.name, "occurrence_environmental.csv")
-
-    return(myBiomodData)
-}
-
-bccvl.merge.save <- function(env, csvdata, spname, ofname)
-{
-  data = cbind(csvdata, species=spname, extract(env, csvdata))
-  
-  bccvl.write.csv(data, ofname, rownames=FALSE)
-}
-
-# warning was doing odd things. I just want to print the deng thing.
-bccvl.log.warning <-function(str, prefix="BCCVL Warning: ")
-{
-    print(paste(prefix, str, sep=""))
-}
-
+## CH: Yong, I am not sure if we need the following lines (237-382) about rasters. Do you know for which part of the model this is used?
+## Maybe it is needed if we want to use constraints?
+            
 bccvl.raster.load <- function(filename) {
     # load raster and assign crs if missing
     r = raster(filename)
@@ -502,6 +383,9 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
     return(rasterstack)
 }
 
+## CH: we want to keep constraints: in this case only the data in the user-defined constraint will be used (might need a bit of tweaking from
+## how we currently use constraints in SDM - let's discuss.
+                             
 # geographically constrained modelling
 # bccvl.sdm.geoconstrained
 bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
@@ -558,6 +442,7 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
     filename = file.path(outputdir, paste(basename, 'tif', sep="."))
     writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
 
+ # CH: Yong, is the TODO comment below still valid?           
     # TODO: can we merge this bit with bccvl.saveProjection in eval.R ?
     # Save as image as well
     png(file.path(outputdir, paste(basename, 'png', sep=".")))
@@ -618,6 +503,8 @@ bccvl.grdtogtiff <- function(folder, filename_ext=NULL) {
 #
 ############################################################
 
+## CH: not sure if these are needed, as the STM won't include any projections. Yong, what do you think?
+                             
 # function to check that the environmental layers used to project the
 # model are the same as the ones used to create the model object
 #    model.obj     ... model to project
@@ -669,7 +556,7 @@ bccvl.checkModelLayers <- function(model.obj, climatelayers, climate_filenames) 
     }
 }
 
-
+# CH: Yong, can you explain how/where the function below is used?
 family_from_string <- function(s)
 {
     # get family from a string (character) in a safe way
