@@ -1,0 +1,29 @@
+{
+    "files": {
+        "Rplots.pdf": {
+            "skip": true
+        },
+        "*.Rout": {
+            "title": "Log file",
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript"
+        },
+        "*.txt": {
+            "title": "Summary",
+            "genre": "DataGenreSTResult",
+            "mimetype": "text/plain"
+        },
+        "*.RData": {
+            "title": "R Species Traits Model object",
+            "genre": "DataGenreSTModel",
+            "mimetype": "application/x-r-data"
+        },
+        "*.R": {
+            "title": "Job Script",
+            "genre": "JobScript",
+            "mimetype": "text/x-r"
+        }
+    },
+    "archives": {
+    }
+}
