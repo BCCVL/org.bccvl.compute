@@ -85,9 +85,6 @@ parameter.as.string <- function (param, value) {
     else if (param == "y") {
         pname = "y returned"
     }
-    else if (param == "pa_ratio") {
-        pname = "absence-presence ratio"
-    }
     else if (param == "nb_run_eval") {
         pname = "n-fold cross validation"
     } 
@@ -108,7 +105,11 @@ parameter.print <- function(params) {
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "method", "model", "x", "y", "random_seed")
     }
     else if (func == "speciestrait_cta") {
-        pnames = c("pa_ratio", "pa_strategy", "pa_sre_quant", "pa_disk_min", "pa_disk_max", "nb_run_eval", "data_split", "prevalence", "var_import", "do_full_models", "method", "control_xval", "control_minbucket", "control_minsplit", "control_cp", "control_maxdepth", "random_seed")
+        pnames = c("nb_run_eval", "data_split", "prevalence", "var_import", "do_full_models", "method", "control_xval", "control_minbucket", "control_minsplit", "control_cp", "control_maxdepth", "random_seed")
+    }
+    else if (func == "traitdiff_glm") {
+        # Todo: Need to update these parameters
+        pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
     }
 
     for (p in pnames) {
