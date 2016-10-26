@@ -21,18 +21,54 @@ LOG = logging.getLogger(__name__)
 def get_traits_params(result):
     params = deepcopy(result.job_params)
     # get metadata for species_distribution_models
-    uuid = params['data_table']
-    params['data_table'] = getdatasetparams(uuid)
+    for paramname in ('traits_dataset',):
+        if not params.get(paramname, None):
+            continue
+        uuid = params[paramname]
+        dsinfo = getdatasetparams(uuid)
+        if dsinfo['filename'].endswith('.zip'):
+            # FIXME: too many static assumptions about how an occurrence zip file looks like
+            #        layers:key does not match anything (should it?)
+            #        assumes exactly one file here
+            # TODO: should I remove 'layers' section here?
+            dsinfo['zippath'] = dsinfo['layers'].values()[0]['filename']
+        params[paramname] = dsinfo
+        # replace all spaces, underscores and special characters to '.'
+        # TODO: really necessary?
+        if params[paramname]:
+            params[paramname]['species'] = re.sub(
+                u"[ _,'\"/\(\)\{\}\[\]]", u".", params[paramname].get('species', u'Unknown'))
+    # TODO: This assumes we only zip file based layers
+    envlist = []
+    for uuid, layers in params['environmental_datasets'].items():
+        dsinfo = getdatasetparams(uuid)
+        for layer in layers:
+            dsdata = {
+                'uuid': dsinfo['uuid'],
+                'filename': dsinfo['filename'],
+                'downloadurl': dsinfo['downloadurl'],
+                # TODO: should we use layer title or URI?
+                'layer': layer,
+                'type': dsinfo['layers'][layer]['datatype']
+            }
+            # if this is a zip file we'll have to set zippath as well
+            # FIXME: poor check whether this is a zip file
+            if dsinfo['filename'].endswith('.zip'):
+                dsdata['zippath'] = dsinfo['layers'][layer]['filename']
+            envlist.append(dsdata)
+    # replace original dict
+    params['environmental_datasets'] = envlist
+
     # add hints for worker
     workerhints = {
-        'files': ('data_table', )
+        'files': [x for x in ('traits_dataset', 'environmental_datasets', ) if x in params]
     }
     return {'env': {}, 'params': params, 'worker': workerhints}
 
 
 def generate_traits_script(rscript):
     script = '\n'.join([
-        resource_string('org.bccvl.compute', 'rscripts/bccvl.R'),
+        resource_string('org.bccvl.compute', 'rscripts/traits.R'),
         rscript,
     ])
     return script
@@ -63,25 +99,28 @@ def execute(result, toolkit):
         OUTPUTS = {}
     params = get_traits_params(result)
     script = generate_traits_script(toolkit.script)
-    ### plone context for this job
+    # plone context for this job
     member = api.user.get_current()
     context = {
         'context': '/'.join(result.getPhysicalPath()),
-        'user': {'id': member.getUserName(),
-                 'email': member.getProperty('email'),
-                 'fullname': member.getProperty('fullname')
-                 },
-        'experiment': {'title': result.__parent__.title,
-                       'url': result.__parent__.absolute_url()
-                       }
+        'user': {
+            'id': member.getUserName(),
+            'email': member.getProperty('email'),
+            'fullname': member.getProperty('fullname')
+        },
+        'experiment': {
+            'title': result.__parent__.title,
+            'url': result.__parent__.absolute_url()
+        }
     }
 
-    # TODO: quick fix Decimal json encoding through celery (where is my custom json encoder gone?)
+    # TODO: quick fix Decimal json encoding through celery (where is my custom
+    # json encoder gone?)
     for key, item in params.items():
         if isinstance(item, Decimal):
             params[key] = float(item)
 
-    ### add result infos
+    # add result infos
     params['result'] = {
         'results_dir': get_results_dir(result, result.REQUEST),
         'outputs': OUTPUTS
