@@ -52,7 +52,13 @@ def getdatasetparams(uuid):
     # if we have species info add it
 
     dsmdr = IBCCVLMetadata(dsobj)
-    species = dsmdr.get('species', {}).get('scientificName')
+    species = dsmdr.get('species', {})
+    if isinstance(species, (list, tuple)):
+        # We have a list of species dicts....
+        species = [s['scientificName']
+                   for s in species if s.get('scientificName')]
+    else:
+        species = species.get('scientificName')
     if species:
         dsinfo['species'] = species
     # if we can get layermetadata, let's add it

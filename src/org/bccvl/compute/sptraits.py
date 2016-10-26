@@ -33,11 +33,6 @@ def get_traits_params(result):
             # TODO: should I remove 'layers' section here?
             dsinfo['zippath'] = dsinfo['layers'].values()[0]['filename']
         params[paramname] = dsinfo
-        # replace all spaces, underscores and special characters to '.'
-        # TODO: really necessary?
-        if params[paramname]:
-            params[paramname]['species'] = re.sub(
-                u"[ _,'\"/\(\)\{\}\[\]]", u".", params[paramname].get('species', u'Unknown'))
     # TODO: This assumes we only zip file based layers
     envlist = []
     for uuid, layers in params['environmental_datasets'].items():
