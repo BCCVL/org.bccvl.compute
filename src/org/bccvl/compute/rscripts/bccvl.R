@@ -25,7 +25,7 @@ write.table(installed.packages()[,c("Package", "Version", "Priority")],
 
 #script to run to develop distribution models
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "pROC", "R2HTML", "png", "gstat", "biomod2", "gdalUtils") #list the libraries needed
+necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "rgeos", "pROC", "R2HTML", "png", "gstat", "biomod2", "gdalUtils") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -502,10 +502,31 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
     return(rasterstack)
 }
 
+# Return the intersection of 2 polygons
+bccvl.intersect <- function(spPolygon1, polygon2) {
+    # gIntersection need closed polygon
+    coords <- spPolygon1@polygons[[1]]@Polygons[[1]]@coords
+    spPolygon1@polygons[[1]]@Polygons[[1]]@coords <- rbind(coords, coords[1,])
+
+    # make a sp polygoin of polygon2
+    spPolygon2 <- spPolygon1
+    spPolygon2@polygons[[1]]@Polygons[[1]]@coords <- rbind(polygon2, polygon2[1,])
+
+    return(gIntersection(spPolygon1, spPolygon2))
+}
+
 # geographically constrained modelling
-# bccvl.sdm.geoconstrained
-bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
-  
+bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHull) {
+
+    if (is.null(rawgeojson) && !generateCHull) {
+        return(list("raster" = rasterstack, "occur" = occur))
+    }
+
+    # create a dummy geojson for convex-hull polygon
+    if (is.null(rawgeojson)) {
+        rawgeojson = "{\"type\":\"Feature\",\"id\":\"geo_constraints\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[16055610.0,-2682890.0],[15612558.0,-3007340.0]]]},\"properties\":{},\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::3857\"}}}"
+    }
+
     # Parse the geojson from text to SpatialPointsDataFrame
     parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
   
@@ -515,10 +536,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
         parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
     }
 
-    # Mask the rasterstack (and make sure it is a RasterStack)    
-    geoconstrained <- stack(mask(rasterstack, parsedgeojson))
-
-    # If there are occurrence points, constrain them
+    # If there are occurrence points, constraint them
     if (!is.null(occur)) {
         # Constrain the occurrence points
         occurSP <- SpatialPoints(occur)
@@ -526,9 +544,24 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
         if (is.na(crs(occurSP))) {
             crs(occurSP) <- '+init=epsg:4326'
         }
+
         if (!compareCRS(occurSP, parsedgeojson, verbatim=TRUE)) {
             occurSP <- spTransform(occurSP, crs(parsedgeojson))
         }
+
+        # actual constraint is the intersection between the occurrence's convex-hull polygon and the constraint.
+        # Otherwise, actual constraint is the convex-hull polygon.
+        if (generateCHull) {
+            chullPolygon <- occurSP@coords[chull(occurSP@coords),]
+            if (!is.null(rawgeojson)) {
+                intersectPolygon <- bccvl.intersect(parsedgeojson, chullPolygon)
+                parsedgeojson = intersectPolygon
+            }
+            else {
+                parsedgeojson@polygons[[1]]@Polygons[[1]]@coords <- chullPolygon
+            }
+        }
+
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
         occurconstrained <- as.data.frame(occurSPconstrained)
         # rest of scripts expects names "lon", "lat" and not "x", "y"
@@ -537,6 +570,9 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
     else {
         occurconstrained = NULL
     }
+
+    # Mask the rasterstack (and make sure it is a RasterStack)    
+    geoconstrained <- stack(mask(rasterstack, parsedgeojson))
     
     # Return the masked raster stack and constrained occurrence points
     mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)

@@ -18,6 +18,8 @@ sdm.model.file = bccvl.params$species_distribution_models$filename
 projection.name = bccvl.params$projection_name
 #geographic constraints
 enviro.data.constraints = bccvl.params$projection_region
+#Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
+enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
 enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 ! as.logical(bccvl.params$scale_down),
@@ -34,8 +36,8 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario, futuredata)
     # geographically constrained modelling
-    if (!is.null(enviro.data.constraints)) {
-      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, enviro.data.constraints);
+    if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
+      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, enviro.data.constraints, enviro.data.generateCHall);
       predictors <- constrainedResults$raster
     }
     

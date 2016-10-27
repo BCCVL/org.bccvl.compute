@@ -28,6 +28,11 @@ enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 #layer names for the current environmental layers used
 enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
+#geographic constraints
+enviro.data.constraints = bccvl.params$projection_region
+#Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint; 
+# for demosdm, set to true as we want to use convex-hall polygon as the modelling region.
+enviro.data.generateCHall = TRUE
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
 enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 as.logical(bccvl.params$scale_down),
@@ -112,6 +117,13 @@ current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.t
 occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
 # keep only lon and lat columns
 occur = occur[c("lon","lat")]
+
+# geographically constrained modelling
+if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
+  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints, enviro.data.generateCHall);
+  current.climate.scenario <- constrainedResults$raster
+  occur <- constrainedResults$occur
+}
 
 # Determine the number of pseudo absence points from pa_ratio
 pa_ratio = bccvl.params$pa_ratio
@@ -242,8 +254,8 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario, futuredata)
     # geographically constrained modelling
-    if (!is.null(enviro.data.constraints)) {
-      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, enviro.data.constraints);
+    if (!is.null(enviro.data.constraints || enviro.data.generateCHall)) {
+      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, enviro.data.constraints, enviro.data.generateCHall);
       predictors <- constrainedResults$raster
     }
     

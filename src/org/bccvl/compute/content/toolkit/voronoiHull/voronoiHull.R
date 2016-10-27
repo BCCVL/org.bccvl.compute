@@ -30,6 +30,8 @@ enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$typ
 enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
 #geographic constraints
 enviro.data.constraints = bccvl.params$modelling_region
+#Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
+enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
 enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 as.logical(bccvl.params$scale_down),
@@ -59,8 +61,8 @@ occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
 occur = occur[c("lon","lat")]
 
 # geographically constrained modelling
-if (!is.null(enviro.data.constraints)) {
-  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints);
+if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
+  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints, enviro.data.generateCHall);
   
   # Save a copy of the climate dataset
   current.climate.scenario.orig <- current.climate.scenario      
@@ -112,7 +114,7 @@ model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
 bccvl.saveModelProjection(model.proj, projection.name, occur.species)
 
 # Do projection over current climate scenario without constraint
-if (!is.null(enviro.data.constraints)) {
+if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
     model.proj = predict(model.sdm, current.climate.scenario.orig, tails=opt.tails)
     # save output
     bccvl.saveModelProjection(model.proj, projection.name, occur.species, filename_ext="unconstraint")
