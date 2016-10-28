@@ -502,19 +502,6 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
     return(rasterstack)
 }
 
-# Return the intersection of 2 polygons
-bccvl.intersect <- function(spPolygon1, polygon2) {
-    # gIntersection need closed polygon
-    coords <- spPolygon1@polygons[[1]]@Polygons[[1]]@coords
-    spPolygon1@polygons[[1]]@Polygons[[1]]@coords <- rbind(coords, coords[1,])
-
-    # make a sp polygoin of polygon2
-    spPolygon2 <- spPolygon1
-    spPolygon2@polygons[[1]]@Polygons[[1]]@coords <- rbind(polygon2, polygon2[1,])
-
-    return(gIntersection(spPolygon1, spPolygon2))
-}
-
 # geographically constrained modelling
 bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHull) {
 
@@ -522,13 +509,13 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
         return(list("raster" = rasterstack, "occur" = occur))
     }
 
-    # create a dummy geojson for convex-hull polygon
+    # create a dummy geojson for convex-hull polygon if no geojson
     if (is.null(rawgeojson)) {
-        rawgeojson = "{\"type\":\"Feature\",\"id\":\"geo_constraints\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[16055610.0,-2682890.0],[15612558.0,-3007340.0]]]},\"properties\":{},\"crs\":{\"type\":\"name\",\"properties\":{\"name\":\"urn:ogc:def:crs:EPSG::3857\"}}}"
+        parsedgeojson <- SpatialPolygons(list(Polygons(list(Polygon(rbind(c(1,1)))), ID=1)), proj4string=crs(rasterstack))
+    } else {
+        # Parse the geojson from text to SpatialPointsDataFrame
+        parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
     }
-
-    # Parse the geojson from text to SpatialPointsDataFrame
-    parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
   
     # Assign the same projection to the raster 
     if (!compareCRS(rasterstack, parsedgeojson, verbatim=TRUE)) {
@@ -552,13 +539,13 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
         # actual constraint is the intersection between the occurrence's convex-hull polygon and the constraint.
         # Otherwise, actual constraint is the convex-hull polygon.
         if (generateCHull) {
-            chullPolygon <- occurSP@coords[chull(occurSP@coords),]
+            chcoords <- occurSP@coords[chull(occurSP@coords),]
+            chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords)), ID=1)), proj4string=crs(parsedgeojson))
             if (!is.null(rawgeojson)) {
-                intersectPolygon <- bccvl.intersect(parsedgeojson, chullPolygon)
-                parsedgeojson = intersectPolygon
+                parsedgeojson <- intersect(parsedgeojson, chullPolygon)
             }
             else {
-                parsedgeojson@polygons[[1]]@Polygons[[1]]@coords <- chullPolygon
+                parsedgeojson <- chullPolygon
             }
         }
 
