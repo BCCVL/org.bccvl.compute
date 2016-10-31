@@ -2,10 +2,19 @@
 ###        speciestrait_cta.R         ###
 #########################################
 
-### Runs a Classification Tree Analysis (for categorical trait data) or a Regression Tree Analysis (for continuous trait data)
+### Runs a Classification Tree Analysis (for categorical trait data) or a Regression Tree Analysis (for continuous trait data) 
 ### to test the effect of selected environmental variables on species traits
 
+## Link to data
+
+trait.data <- bccvl.params$traits_dataset_params$? # CH: how do we define each different trait selected here as we don't know beforehand how many traits there will be?
+env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how do we make sure we select all env variables selected here?
+
 ## Set parameters (need to be adjusted to link to back end bccvl.params file)
+
+# CH: do we preset the formula in the params file, or do we need to write a loop here so the model will be run for each trait?
+# CH: as in comments below the method is the only configuration option that is different for categorical vs continuous traits - this
+# should be fixed by us and not changeable by user
 
 trait.cta.options <- list(formula = bccvl.params$formula, # formula should be: trait ~ env1 + env2 + env3 etc 
                           method = bccvl.params$method, # should be "class" for categorical trait data, and "anova" for continuous trait data
