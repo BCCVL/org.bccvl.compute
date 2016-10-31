@@ -76,6 +76,7 @@ sub gdalwarp {
 # subroutine assumes there is only one band in the file
 sub apply_threshold {
     # TODO: should this create a BinaryMap ? 0 for below threshold and 1 for above?
+    my $errmsg = '';
     my ($filename, $threshold) = @_;
     say "APPLY: $filename, $threshold";
     # Open file for update
@@ -109,7 +110,7 @@ sub apply_threshold {
                         $allsame = -1;
                         next;
                     }
-                    my $newval = $val < $threshold ? 0 : 1;
+                    my $newval = $val >= $threshold ? 1 : 0;
                     $row->[$col_i] = $newval;
                     if (not defined($allsame)) {
                         $allsame = $newval ;
@@ -135,10 +136,9 @@ sub apply_threshold {
         # we have a problem here. after thresholding all data values are the same
         # (0 or 1). We can't run the algorithm, but we can give the user meaningful
         # message
-        say "Thresholding turned every single value in the raster to $allsame.";
-        say "Can't run algorithms.";
-        die "Please choose a better threshold.";
+        $errmsg = "Thresholding (with '$threshold') turned every single value in the raster to $allsame.";
     }
+    return $errmsg;
 }
 
 ##########################################
@@ -184,11 +184,22 @@ my %species;
 my @files = () ;
 foreach (@{$bccvl_params{'projections'}}) {
     my $destfile = gdalwarp($_->{'filename'}, $outdir, "epsg:3577");
-    apply_threshold($destfile, $_->{'threshold'}->{'value'});
-    push(@files, $destfile);
-    
-    # save the filename and its corresponding species name
-    $species{basename($destfile)} = $_->{'species'};
+    my $errmsg = apply_threshold($destfile, $_->{'threshold'}->{'value'});
+
+    # Add only these have threshold applied successsfully.
+    if (!$errmsg) {
+        push(@files, $destfile);
+
+        # save the filename and its corresponding species name
+        $species{basename($destfile)} = $_->{'species'};
+    }
+    else {
+        # Exlude the species 
+        say "Excluding species $_->{'species'}: $errmsg";        
+
+        # Delete the file
+        unlink $destfile;
+    }
 }
 
 ###################################
