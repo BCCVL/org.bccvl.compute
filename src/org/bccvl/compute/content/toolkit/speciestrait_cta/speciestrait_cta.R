@@ -5,9 +5,16 @@
 ### Runs a Classification Tree Analysis (for categorical trait data) or a Regression Tree Analysis (for continuous trait data) 
 ### to test the effect of selected environmental variables on species traits
 
-## Link to data
+## trait dataset csv file
+trait.data.filename = bccvl.params$traits_dataset$filename
+# mapping of variable names of trait dataset
+trait.data.varnames = bccvl.params$traits_dataset_params
 
-trait.data <- bccvl.params$traits_dataset_params$? # CH: how do we define each different trait selected here as we don't know beforehand how many traits there will be?
+# read in the trait data
+trait.data = read.csv(trait.data.filename)
+# Loop through the trait data variables name to extract trait and env data
+
+
 env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how do we make sure we select all env variables selected here?
 
 ## Set parameters (need to be adjusted to link to back end bccvl.params file)
