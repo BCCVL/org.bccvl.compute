@@ -13,7 +13,11 @@ trait.data.varnames = bccvl.params$traits_dataset_params
 # read in the trait data
 trait.data = read.csv(trait.data.filename)
 # Loop through the trait data variables name to extract trait and env data
-
+for (varname in ls(trait.data.varnames)) {
+    if (varname %in% colnames(trait.data)) {
+      assign(paste(varname), trait.data[,varname])
+    }
+}
 
 env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how do we make sure we select all env variables selected here?
 
