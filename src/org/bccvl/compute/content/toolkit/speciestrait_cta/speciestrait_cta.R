@@ -23,6 +23,35 @@ env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how 
 
 ## Set parameters (need to be adjusted to link to back end bccvl.params file)
 
+gen_formulae <- function(dataset_params) {
+    cols = list(species=list(),
+                lat=list(),
+                lon=list(),
+                env=list(),
+                trait=list())
+    for(colname in names(dataset_params)) {
+        colval = dataset_params[[colname]]
+        if (colval == 'species' || colval == 'lon' || colval == 'lat') {
+            cols[[colval]][colname] = colval
+        } else if (colval == 'env_var_cat') {
+            cols[['env']][colname] = 'categorical'
+        } else if (colval == 'env_var_con') {
+            cols[['env']][colname] = 'continuous'
+        } else if (colval == 'trait_cat') {
+            cols[['trait']][colname] = 'categorical'
+        } else if (colval == 'trait_con') {
+            cols[['trait']][colname] = 'continuous'
+        }
+    }
+    formulae = list()
+    envvars = paste(names(cols[['env']]), collapse=' + ')
+    for (trait in names(cols[['trait']])) {
+        formulae = append(formulae, list(list(formula=paste(trait, '~', envvars),
+                                         method=ifelse(cols[['trait']][trait] == 'categorical', 'class', 'anova'))))
+    }
+    # return a list of lists, where each sublist has $formula and $method elements
+    return (formulae)
+}
 # CH: do we preset the formula in the params file, or do we need to write a loop here so the model will be run for each trait?
 # CH: as in comments below the method is the only configuration option that is different for categorical vs continuous traits - this
 # should be fixed by us and not changeable by user
