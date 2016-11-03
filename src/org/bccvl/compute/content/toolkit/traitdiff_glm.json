@@ -10,5 +10,5 @@
     "output": {"filename": "traitdiff_glm.txt"},
     "_fileattributes": ["script", "schema", "output"],
     "_transitions": "publish",
-    "algorithm_category": "statistical"
+    "algorithm_category": null
 }

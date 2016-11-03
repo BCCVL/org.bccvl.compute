@@ -1,6 +1,6 @@
 {
     "_type": "org.bccvl.content.function",
-    "title": "CTA Model",
+    "title": "Classification/Regression Tree Analysis",
     "description": "A CTA model that uses smoothed functions of the environmental variables to model non-linear relationships.",
     "subjects": ["cta"],
     "interpreter": "R",
@@ -10,5 +10,5 @@
     "output": {"filename": "speciestrait_cta.txt"},
     "_fileattributes": ["script", "schema", "output"],
     "_transitions": "publish",
-    "algorithm_category": "statistical"
+    "algorithm_category": null
 }
