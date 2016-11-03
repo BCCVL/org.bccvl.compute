@@ -1,12 +1,28 @@
 
-### gam.R ###
+#########################################
+###        speciestrait_gam.R         ###
+#########################################
 
-# TODO: verify with Gerhard that this is the appropriate place to load this
-library("gam")
+### Runs a Generalized Additive Model to test the effect of selected environmental variables on species traits
 
-## Get the data
+## trait dataset csv file
+trait.data.filename = bccvl.params$traits_dataset$filename
+# mapping of variable names of trait dataset
+trait.data.varnames = bccvl.params$traits_dataset_params
 
-gam.data = read.table(bccvl.params$data_table$filename, header=T, sep=",")
+# read in the trait data
+trait.data = read.csv(trait.data.filename)
+# Loop through the trait data variables name to extract trait and env data
+for (varname in ls(trait.data.varnames)) {
+    if (varname %in% colnames(trait.data)) {
+      assign(paste(varname), trait.data[,varname])
+    }
+}
+
+env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how do we make sure we select all env variables selected here?
+
+# Library
+library("gam") # CH: should we add this in the package list in traits.R, if it is not in there already....
 
 ## Set up the function call expression
 gam.params = list(data=gam.data)
