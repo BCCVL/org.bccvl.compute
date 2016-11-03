@@ -1,0 +1,14 @@
+{
+    "_type": "org.bccvl.content.function",
+    "title": "Generalized Linear Model",
+    "description": "A regression model for data with a non-normal distribution, fitted with maximum likelihood estimation.",
+    "subjects": ["glm"],
+    "interpreter": "R",
+    "experiment_type": "org.bccvl.content.speciestraitsexperiment",
+    "script": {"filename": "traitdiff_glm.R"},
+    "schema": {"filename": "traitdiff_glm.xml"},
+    "output": {"filename": "traitdiff_glm.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish",
+    "algorithm_category": "statistical"
+}
