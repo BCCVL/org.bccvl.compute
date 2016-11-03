@@ -1,12 +1,29 @@
 
-### glm.R ###
+#########################################
+###        speciestrait_glm.R         ###
+#########################################
 
+### Runs a Generalized Linear Model to test the effect of selected environmental variables on species traits
 
-## Get the data
+## trait dataset csv file
+trait.data.filename = bccvl.params$traits_dataset$filename
+# mapping of variable names of trait dataset
+trait.data.varnames = bccvl.params$traits_dataset_params
 
-glm.data = read.table(bccvl.params$data_table$filename, header=T, sep=",")
+# read in the trait data
+trait.data = read.csv(trait.data.filename)
+# Loop through the trait data variables name to extract trait and env data
+for (varname in ls(trait.data.varnames)) {
+    if (varname %in% colnames(trait.data)) {
+      assign(paste(varname), trait.data[,varname])
+    }
+}
 
-## Set up the function call expression
+env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how do we make sure we select all env variables selected here?
+
+## CH: below is old script
+
+## Set up the function call expression # CH: Yong, Gerhard is this still correct?
 glm.params = list(data=glm.data)
 
 ## set defaults for missing parameters according to R docs:
@@ -55,7 +72,7 @@ glm.params$family=family_from_string(glm.params$family)
 
 
 ## Run the regression
-glm.result = glm(formula=glm.params$formula,
+glm.result = glm(formula=glm.params$formula, ## formula should be: trait ~ env1 + env2 + env3 etc 
                  family=glm.params$family,
                  data=glm.params$data,
                  weights=glm.params$weights,
