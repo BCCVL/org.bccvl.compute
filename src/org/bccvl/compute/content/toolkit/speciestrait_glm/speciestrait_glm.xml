@@ -76,7 +76,7 @@
       </field>
       <field name="na_action" type="zope.schema.Choice">
         <title>NA action</title>
-        <description>controls how to handle missing data; default = na.fail, model will only run if data contains no missing values; na.omit: records with missing values are removed; na.exluce: missing values are not used in model but maintained for residuals and fitted values</description>
+        <description>controls how to handle missing data; default = na.fail, model will only run if data contains no missing values; na.omit: records with missing values are removed; na.exlude: missing values are not used in model but maintained for residuals and fitted values</description>
         <required>True</required>
         <default>na.fail</default>
         <vocabulary>lm_na_action_vocab</vocabulary>
