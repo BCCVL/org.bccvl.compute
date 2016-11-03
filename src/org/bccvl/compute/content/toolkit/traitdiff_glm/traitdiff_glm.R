@@ -1,10 +1,25 @@
 
-### glm.R ###
+#########################################
+###        traitdiff_glm.R         ###
+#########################################
 
+### Runs a Generalized Linear Model to test how traits differ among species
 
-## Get the data
+## trait dataset csv file
+trait.data.filename = bccvl.params$traits_dataset$filename
+# mapping of variable names of trait dataset
+trait.data.varnames = bccvl.params$traits_dataset_params
 
-glm.data = read.table(bccvl.params$data_table$filename, header=T, sep=",")
+# read in the trait data
+trait.data = read.csv(trait.data.filename)
+# Loop through the trait data variables name to extract trait and env data
+for (varname in ls(trait.data.varnames)) {
+    if (varname %in% colnames(trait.data)) {
+      assign(paste(varname), trait.data[,varname])
+    }
+}
+
+env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how do we make sure we select all env variables selected here?
 
 ## Set up the function call expression
 glm.params = list(data=glm.data)
