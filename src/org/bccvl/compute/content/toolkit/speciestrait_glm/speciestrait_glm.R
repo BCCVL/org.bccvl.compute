@@ -42,6 +42,7 @@ glm.defaults = list(family="gaussian(link=identity)",
                    y=FALSE,
                    contrasts=NULL)
 
+## CH: Yong, do we still need lines below (46-73) if we refer to params file in the function that runs the model???
 # plain old parameters
 for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y')) {
     if (! is.null(bccvl.params[[paramname]])) {
@@ -51,7 +52,8 @@ for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y
     }
 }
 
-# parameters that sholud refer to a column in glm.data
+# parameters that sholud refer to a column in glm.data ## CH: these parameters are now hidden for user to change, so we can probably 
+# get rid of lines below:
 for (paramname in c('start', 'eta_start', 'mu_start', 'subset', 'weights', 'contrasts','offset')) {
     if (! is.null(bccvl.params[[paramname]])) {
         glm.params[paramname] = glm.data[bccvl.params[[paramname]]]
