@@ -21,6 +21,38 @@ for (varname in ls(trait.data.varnames)) {
 
 env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how do we make sure we select all env variables selected here?
 
+# Generate formula to test differences in traits between species
+## CH: we don't need environmental variables in this formula, so maybe we can delete lines 37-40 ?
+
+gen_formulae <- function(dataset_params) {
+    cols = list(species=list(),
+                lat=list(),
+                lon=list(),
+                env=list(),
+                trait=list())
+    for(colname in names(dataset_params)) {
+        colval = dataset_params[[colname]]
+        if (colval == 'species' || colval == 'lon' || colval == 'lat') {
+            cols[[colval]][colname] = colval
+        } else if (colval == 'env_var_cat') {
+            cols[['env']][colname] = 'categorical'
+        } else if (colval == 'env_var_con') {
+            cols[['env']][colname] = 'continuous'
+        } else if (colval == 'trait_cat') {
+            cols[['trait']][colname] = 'categorical'
+        } else if (colval == 'trait_con') {
+            cols[['trait']][colname] = 'continuous'
+        }
+    }
+    formulae = list()
+    envvars = paste(names(cols[['env']]), collapse=' + ') # CH: do we need this line if no env variables are used in this?
+    for (trait in names(cols[['trait']])) {
+        formulae = append(formulae, list(list(formula=paste(trait, '~', species)
+    }
+    # return a list of lists, where each sublist has $formula #CH: method not used here so deleted.
+    return (formulae)
+}
+
 ## Set up the function call expression
 glm.params = list(data=glm.data)
 
@@ -40,6 +72,7 @@ glm.defaults = list(family="gaussian(link=identity)",
                    y=FALSE,
                    contrasts=NULL)
 
+# CH: do we need lines below (76-99) if params are defined in params.json file??
 # plain old parameters
 for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y')) {
     if (! is.null(bccvl.params[[paramname]])) {
@@ -49,7 +82,8 @@ for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y
     }
 }
 
-# parameters that sholud refer to a column in glm.data
+# parameters that sholud refer to a column in glm.data # CH: these are now not visible to the user any more, thus not changeable, so can
+# we get rid of lines below?
 for (paramname in c('start', 'eta_start', 'mu_start', 'subset', 'weights', 'contrasts','offset')) {
     if (! is.null(bccvl.params[[paramname]])) {
         glm.params[paramname] = glm.data[bccvl.params[[paramname]]]
