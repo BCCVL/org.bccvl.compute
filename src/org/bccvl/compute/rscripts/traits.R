@@ -14,7 +14,7 @@ write.table(installed.packages()[,c("Package", "Version", "Priority")],
             row.names=FALSE)
 
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "rgdal", "rpart", "R2HTML", "png", "gstat", "gdalUtils") #list the libraries needed
+necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "raster", "rgdal", "rpart", "R2HTML", "png", "gstat", "gdalUtils") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -345,10 +345,23 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
     dev.off()
 }
 
+
 # function to save RData in outputdir
 bccvl.save <- function(robj, name, outputdir=bccvl.env$outputdir) {
     filename = file.path(outputdir, name)
     save(robj, file=filename)
+}
+
+bccvl.write.image <- function(robj, name, plotfn, outputdir=bccvl.env$outputdir) {
+    png(file.path(outputdir, paste(name, 'png', sep=".")))
+    plot.function = paste0(plotfn, "(robj)")
+    eval(parse(text=plot.function))
+    dev.off()
+}
+
+bccvl.write.text <- function(robj, name, outputdir=bccvl.env$outputdir, append=FALSE) {
+    filename = file.path(outputdir, name)
+    capture.output(robj, file=filename, append=append)
 }
 
 # function to save CSV Data in outputdir
