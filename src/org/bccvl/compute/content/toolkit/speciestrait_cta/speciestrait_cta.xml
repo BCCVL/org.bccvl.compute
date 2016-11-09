@@ -17,7 +17,7 @@
         <min>0</min>
         <max>100</max>
       </field>
-      <field name='weights' type='zope.schema.Decimal'>
+      <field name='weights' type='zope.schema.Decimal' form:mode="z3c.form.interfaces.IForm:hidden">
         <required>False</required>
         <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
         <title>weights</title>
