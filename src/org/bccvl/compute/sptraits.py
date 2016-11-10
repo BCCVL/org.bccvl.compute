@@ -35,7 +35,8 @@ def get_traits_params(result):
         params[paramname] = dsinfo
     # TODO: This assumes we only zip file based layers
     envlist = []
-    for uuid, layers in params['environmental_datasets'].items():
+    envds = params.get('environmental_datasets') or {}
+    for uuid, layers in envds.items():
         dsinfo = getdatasetparams(uuid)
         for layer in layers:
             dsdata = {
