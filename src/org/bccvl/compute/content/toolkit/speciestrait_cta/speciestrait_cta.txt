@@ -30,6 +30,8 @@
             "mimetype": "application/x-r-data",
             "order": 5
         }
+    },
+    "archives": {
     }
 }
 
