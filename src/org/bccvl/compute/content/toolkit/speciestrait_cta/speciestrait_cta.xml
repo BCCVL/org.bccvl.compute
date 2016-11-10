@@ -19,7 +19,7 @@
       </field>
       <field name='weights' type='zope.schema.Decimal' form:mode="z3c.form.interfaces.IForm:hidden">
         <required>False</required>
-        <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
+        <description>allows to give more or less weight to particular observations</description>
         <title>weights</title>
         <min>0</min>
         <max>1</max>
@@ -39,7 +39,7 @@
         <title>cross-validation folds</title>
       </field>
       <field name="control_minbucket" type="zope.schema.Int">
-        <default>1</default> 
+        <default>NULL</default> 
         <description>minimum number of observations in any terminal node</description>
         <title>minimum bucket</title>
       </field>
