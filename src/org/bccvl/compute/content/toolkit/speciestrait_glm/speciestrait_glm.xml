@@ -12,7 +12,7 @@
         <values>
           <element>binomial</element>
           <element>gaussian</element>
-          <element>Gamma</element>
+          <element>gamma</element>
           <element>poisson</element>
           <element>binomial(link="logit")</element>
           <element>binomial(link="probit")</element>
