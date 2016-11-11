@@ -1,7 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Surface Range Envelope",
-    "description": "Equivalent to Bioclim: defines a multi-dimensional environmental space bounded by the minimum and maximum values of environmental variables for all occurrences as the potential range where a species can occur. </br><a href='https://support.bccvl.org.au/support/solutions/articles/6000083218-surface-range-envelope' target='_blank'>Read More ...</a>",
+    "description": "Similar to Bioclim: defines a multi-dimensional environmental space bounded by the minimum and maximum values of environmental variables for all occurrences as the potential range where a species can occur. </br><a href='https://support.bccvl.org.au/support/solutions/articles/6000083218-surface-range-envelope' target='_blank'>Read More ...</a>",
     "subjects": ["sre"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",
