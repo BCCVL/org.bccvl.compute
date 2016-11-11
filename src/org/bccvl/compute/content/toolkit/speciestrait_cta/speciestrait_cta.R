@@ -21,7 +21,8 @@ for (varname in ls(trait.data.varnames)) {
     }
 }
 
-# TODO: Read in other env variables - CH: lines below copied from SDM, not complete yet
+# TODO: Read in other env variables - CH: lines below copied from SDM, I hope this works here as well to read in env data.
+## Still needs to link to input dataset and extract environmental data for locations in input dataset and then be added in the formula.
 
 # Define the current environmental data to use
 enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
@@ -32,6 +33,10 @@ enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$la
 # Geographic constraints
 enviro.data.constraints = bccvl.params$modelling_region
 
+# Read current climate data
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
+    
+    
 ## MODEL
 
 # Generate formulae for models that test the response of each trait (1 per model) to all environmental variables selected
