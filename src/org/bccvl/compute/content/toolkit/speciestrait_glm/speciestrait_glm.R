@@ -21,7 +21,16 @@ for (varname in ls(trait.data.varnames)) {
     }
 }
 
-# TODO: Read in other env variables
+# TODO: Read in other env variables - below is copied from SDM
+
+# Define the current environmental data to use
+enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
+# Type in terms of continuous or categorical
+enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
+# Layer names for the current environmental layers used
+enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
+# Geographic constraints
+enviro.data.constraints = bccvl.params$modelling_region
 
 ## MODEL
 
@@ -53,21 +62,34 @@ gen_formulae <- function(dataset_params) {
   envvars = paste(names(cols[['env']]), collapse=' + ')
   for (trait in names(cols[['trait']])) {
     formulae = append(formulae, list(list(formula=paste(trait, '~', envvars),
+                                          type=cols[['trait']]['trait']))
   }
-  # return a list of lists, where each sublist has $formula and $trait
+  # return a list of lists, where each sublist has $formula, $trait and $type
   return (formulae)
 }
 
 # Run model
 
-formulae = gen_formulae(trait.data.params)
 for (formula in formulae) {
-  trait_name = formula$trait
-
-# TODO: include script/loop to run different function for different categories:
-
-# for continuous traits:
-trait.glm = glm(formula=formula(formula$formula),
+    form = formula$formula
+        if (formula$type == 'ordinal') 
+            {trait.polr = polr(formula=formula(formula$formula),
+                  data= # TODO: do we need another link to the data here?
+                  weights=NULL,
+                  na.action=bccvl.params$na.action,
+                  contrasts=NULL,
+                  model=, #CH check whether this should be true or false
+                  method="logistic")              
+        } else if (formula$method == 'nominal') 
+            {trait.multinom = multinom(formula=formula(formula$formula),
+                  data= # TODO: do we need another link to the data here?
+                  weights=NULL,
+                  na.action=bccvl.params$na.action,
+                  contrasts=NULL,
+                  summ=0,        
+                  model=,) #CH check whether this should be true or false            
+        } else # for continuous traits:
+            {trait.glm = glm(formula=formula(formula$formula),
                 family=bccvl.params$family,
                 data= # TODO: do we need another link to the data here?
                 weights=NULL,
@@ -80,27 +102,10 @@ trait.glm = glm(formula=formula(formula$formula),
                 method=bccvl.params$method,
                 x=FALSE,
                 y=FALSE,
-                contrasts=NULL)    
+                contrasts=NULL)
+            } }                             
 
-# for ordinal traits:    
-trait.polr = polr(formula=formula(formula$formula),
-                  data= # TODO: do we need another link to the data here?
-                  weights=NULL,
-                  na.action=bccvl.params$na.action,
-                  contrasts=NULL,
-                  model=, #CH check whether this should be true or false
-                  method="logistic")   
-
-# for nominal traits:    
-trait.multinom = multinom(formula=formula(formula$formula),
-                  data= # TODO: do we need another link to the data here?
-                  weights=NULL,
-                  na.action=bccvl.params$na.action,
-                  contrasts=NULL,
-                  summ=0,        
-                  model=,) #CH check whether this should be true or false
-    
-                                                  
+                      
 # TODO:                              
 ## Save the result to file
 
