@@ -105,14 +105,14 @@ for (formula in formulae) {
                 contrasts=NULL)
             } }                             
 
-                      
-# TODO:                              
+## Save the results as text to file for each trait
+con <- summary(trait.glm) 
+ord <- summary(trait.polr)
+nom <- summary(trait.multinom)
+bccvl.write.text(glm, paste0(trait_name, ".glm.results.txt"))
+bccvl.write.text(ord, paste0(trait_name, ".polr.results.txt"))
+bccvl.write.text(nom, paste0(trait_name, ".nom.results.txt"))
+
+                                                 
 ## Save the result to file
-
 bccvl.save(glm.result, "glm.model.object.RData")
-
-## Save result summary to a text file
-
-sink(file="glm_result_summary.txt")
-summary(glm.result)
-sink()
