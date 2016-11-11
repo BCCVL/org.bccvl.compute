@@ -5,18 +5,37 @@
 ### Runs a Classification Tree Analysis (for categorical trait data) or a Regression Tree Analysis (for continuous trait data) 
 ### to test the effect of selected environmental variables on species traits
 
-## trait dataset csv file
+## DATA
+
+# Link to input dataset csv file
 trait.data.filename = bccvl.params$traits_dataset$filename
-# mapping of variable names of trait dataset
+# Link to variable names of input dataset
 trait.data.params = bccvl.params$traits_dataset_params
 
-# read in the trait data as data frame
+# Read in the trait data
 trait.data = read.csv(trait.data.filename)
+# Loop through the trait data variables names to extract trait and environmental data
+for (varname in ls(trait.data.varnames)) {
+    if (varname %in% colnames(trait.data)) {
+      assign(paste(varname), trait.data[,varname])
+    }
+}
 
-# TODO: Read in other env variables
+# TODO: Read in other env variables - CH: lines below copied from SDM, not complete yet
 
-## Set parameters (need to be adjusted to link to back end bccvl.params file)
+# Define the current environmental data to use
+enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
+# Type in terms of continuous or categorical
+enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
+# Layer names for the current environmental layers used
+enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
+# Geographic constraints
+enviro.data.constraints = bccvl.params$modelling_region
 
+## MODEL
+
+# Generate formulae for models that test the response of each trait (1 per model) to all environmental variables selected
+# e.g. trait ~ env1 + env2 + env3 etc.
 gen_formulae <- function(dataset_params) {
     cols = list(species=list(),
                 lat=list(),
@@ -47,11 +66,12 @@ gen_formulae <- function(dataset_params) {
                                                 # CH: Yong, can you check if this way of assignging method 'anova' to continuous traits,
                                                 # and method 'class' to the other two (ordinal and nominal) is correct?
     }
-    # return a list of lists, where each sublist has $formula, $method elements, and $trait
+    # return a list of lists, where each sublist has $formula, $method, and $trait
     return (formulae)
 }
 
-# Genrate formula for each trait, and run each formula
+# Run models
+    
 formulae = gen_formulae(trait.data.params)
 for (formula in formulae) {
     trait_name = formula$trait
@@ -73,27 +93,25 @@ for (formula in formulae) {
                                              )
                               )
 
+trait.cta = rpart(formula = trait.cta.options$formula,
+                  data = trait.data, # data frame containing trait and env data
+                  method = trait.cta.options$method,
+                  na.action = trait.cta.options$na.action,
+                  model = trait.cta.options$model,
+                  x = trait.cta.options$x,
+                  y = trait.cta.options$y,
+                  control = trait.cta.options$control)
 
-    ## Run rpart model
-    trait.cta = rpart(formula = trait.cta.options$formula,
-                      data = trait.data, # data frame containing trait and env data
-                      method = trait.cta.options$method,
-                      na.action = trait.cta.options$na.action,
-                      model = trait.cta.options$model,
-                      x = trait.cta.options$x,
-                      y = trait.cta.options$y,
-                      control = trait.cta.options$control)
+### Save the results as text to file for each trait
+s <- summary(trait.cta) # saved and displayed as text
+bccvl.write.text(s, paste0(trait_name, ".cta.results.txt"))
+p <- printcp(trait.cta) # saved and displayed as text
+bccvl.write.text(p, paste0(trait_name, ".cta.results.txt"), append=TRUE)
 
-    ### Save the results as text to file for each trait
-    s <- summary(trait.cta) # saved and displayed as text
-    bccvl.write.text(s, paste0(trait_name, ".cta.results.txt"))
-    p <- printcp(trait.cta) # saved and displayed as text
-    bccvl.write.text(p, paste0(trait_name, ".cta.results.txt"), append=TRUE)
+# save the plot as png image
+ofilename = paste0(trait_name, ".cta.plotcp")
+bccvl.write.image(trait.cta, ofilename, "plotcp")
 
-    # save the plot as png image
-    ofilename = paste0(trait_name, ".cta.plotcp")
-    bccvl.write.image(trait.cta, ofilename, "plotcp")
-
-    # Save the model
-    bccvl.save(trait.cta, paste0(trait_name, ".cta.object.RData"))
+# Save the model
+bccvl.save(trait.cta, paste0(trait_name, ".cta.object.RData"))
 }
