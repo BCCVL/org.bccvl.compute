@@ -24,24 +24,28 @@ gen_formulae <- function(dataset_params) {
                 env=list(),
                 trait=list())
     for(colname in names(dataset_params)) {
-        colval = dataset_params[[colname]]
+    colval = dataset_params[[colname]]
         if (colval == 'species' || colval == 'lon' || colval == 'lat') {
             cols[[colval]][colname] = colval
         } else if (colval == 'env_var_cat') {
             cols[['env']][colname] = 'categorical'
         } else if (colval == 'env_var_con') {
             cols[['env']][colname] = 'continuous'
-        } else if (colval == 'trait_cat') {
-            cols[['trait']][colname] = 'categorical'
+        } else if (colval == 'trait_ord') {
+            cols[['trait']][colname] = 'ordinal'
+        } else if (colval == 'trait_nom') {
+            cols[['trait']][colname] = 'nominal'
         } else if (colval == 'trait_con') {
             cols[['trait']][colname] = 'continuous'
         }
-    }
+  }
     formulae = list()
     envvars = paste(names(cols[['env']]), collapse=' + ')
     for (trait in names(cols[['trait']])) {
         formulae = append(formulae, list(list(formula=paste(trait, '~', envvars),
-                                         method=ifelse(cols[['trait']][trait] == 'categorical', 'class', 'anova'), trait=trait)))
+                                              method=ifelse(cols[['trait']][trait] == 'continuous', 'anova', 'class'), trait=trait)))
+                                                # CH: Yong, can you check if this way of assignging method 'anova' to continuous traits,
+                                                # and method 'class' to the other two (ordinal and nominal) is correct?
     }
     # return a list of lists, where each sublist has $formula, $method elements, and $trait
     return (formulae)
@@ -69,16 +73,6 @@ for (formula in formulae) {
                                              )
                               )
 
-    # Default values for control parameters:
-    # minsplit = 20
-    # minbucket = round(minsplit/3)
-    # cp = 0.01
-    # maxcompete = 4
-    # maxsurrogate = 5
-    # usesurrogate = 2
-    # surrogatestyle = 0
-    # xval = 10
-    # maxdepth = 30
 
     ## Run rpart model
     trait.cta = rpart(formula = trait.cta.options$formula,
