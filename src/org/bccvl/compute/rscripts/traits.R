@@ -14,7 +14,7 @@ write.table(installed.packages()[,c("Package", "Version", "Priority")],
             row.names=FALSE)
 
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "raster", "rgdal", "rpart", "R2HTML", "png", "gstat", "gdalUtils") #list the libraries needed
+necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "raster", "rgdal", "R2HTML", "png", "gstat", "gdalUtils") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -143,6 +143,43 @@ parameter.print(bccvl.params)
 
 ## Needed for tryCatch'ing:
 bccvl.err.null <- function (e) return(NULL)
+
+
+# Generate formulae for models that test the response of each trait (1 per model) to all environmental variables selected
+# e.g. trait ~ env1 + env2 + env3 etc.
+bccvl.trait.gen_formulae <- function(dataset_params) {
+    cols = list(species=list(),
+                lat=list(),
+                lon=list(),
+                env=list(),
+                trait=list()) 
+    for(colname in names(dataset_params)) {
+    colval = dataset_params[[colname]]
+        if (colval == 'species' || colval == 'lon' || colval == 'lat') {
+            cols[[colval]][colname] = colval
+        } else if (colval == 'env_var_cat') {
+            cols[['env']][colname] = 'categorical'
+        } else if (colval == 'env_var_con') {
+            cols[['env']][colname] = 'continuous'
+        } else if (colval == 'trait_ord') {
+            cols[['trait']][colname] = 'ordinal'
+        } else if (colval == 'trait_nom') {
+            cols[['trait']][colname] = 'nominal'
+        } else if (colval == 'trait_con') {
+            cols[['trait']][colname] = 'continuous'
+        }
+  }
+    formulae = list()
+    envvars = paste(names(cols[['env']]), collapse=' + ')
+    for (trait in names(cols[['trait']])) {
+        formulae = append(formulae, list(list(formula=paste(trait, '~', envvars),
+                                              method=ifelse(cols[['trait']][trait] == 'continuous', 'anova', 'class'), trait=trait)))
+                                                # CH: Yong, can you check if this way of assignging method 'anova' to continuous traits,
+                                                # and method 'class' to the other two (ordinal and nominal) is correct?
+    }
+    # return a list of lists, where each sublist has $formula, $method, and $trait
+    return (formulae)
+}
            
 bccvl.raster.load <- function(filename) {
     # load raster and assign crs if missing
