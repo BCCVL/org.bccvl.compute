@@ -88,6 +88,18 @@ parameter.as.string <- function (param, value) {
     else if (param == "nb_run_eval") {
         pname = "n-fold cross validation"
     } 
+    else if (param == "control_maxcompete") {
+        pname = "number of competitor splits"
+    }
+    else if (param == "control_maxsurrogate") {
+        pname = "number of surrogate splits"
+    }
+    else if (param == "control_usesurrogate") {
+        pname = "surrogate usage"
+    }
+    else if (param == "control_surstyle") {
+        pname = "surrogate style"
+    }    
     return(paste(pname, " = ", value, "\n", sep="", collapse=""))
 }
 
@@ -105,7 +117,7 @@ parameter.print <- function(params) {
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "method", "model", "x", "y", "random_seed")
     }
     else if (func == "speciestrait_cta") {
-        pnames = c("nb_run_eval", "data_split", "prevalence", "var_import", "do_full_models", "method", "control_xval", "control_minbucket", "control_minsplit", "control_cp", "control_maxdepth", "random_seed")
+        pnames = c("control_xval", "control_minbucket", "control_minsplit", "control_cp", "control_maxdepth", "control_maxcompete", "control_maxsurrogate", "control_usesurrogate", "control_surstyle", "random_seed")
     }
     else if (func == "traitdiff_glm") {
         # Todo: Need to update these parameters
