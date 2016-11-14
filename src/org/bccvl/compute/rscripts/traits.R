@@ -270,6 +270,11 @@ bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filen
 # intersecting extent
 # lowest or highest resolution depending upon flag
 bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
+
+    if (length(filenames) == 0) {
+        return(stack())
+    }
+
     # adjust rasters to same projection, resolution and extent
     rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, types, resamplingflag)
     # stack rasters
@@ -278,49 +283,56 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
     names(rasterstack) = unlist(layernames)
     return(rasterstack)
 }
-
-## CH: we want to keep constraints: in this case only the data in the user-defined constraint will be used (might need a bit of tweaking from
-## how we currently use constraints in SDM - let's discuss.
                              
 # geographically constrained modelling
-# bccvl.sdm.geoconstrained
-bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
-  
-    # Parse the geojson from text to SpatialPointsDataFrame
-    parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
-  
-    # Assign the same projection to the raster 
-    if (!compareCRS(rasterstack, parsedgeojson, verbatim=TRUE)) {
-        # CRS is different, reproject geojson to rasterstack
-        parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
+# return constrainted trait.data with env
+bccvl.trait.constraint.merge <- function(rasterstack, trait.data, rawgeojson) {
+
+    # trait must have at least a trait
+    if (is.null(trait.data)) {
+        return(trait.data)
     }
 
-    # Mask the rasterstack (and make sure it is a RasterStack)    
-    geoconstrained <- stack(mask(rasterstack, parsedgeojson))
+    # Parse the geojson from text to SpatialPointsDataFrame
+    traitSP <- SpatialPoints(trait.data[c('lon', 'lat')])
+    if (is.na(crs(traitSP))) {
+        crs(traitSP) <- '+init=epsg:4326'
+    }
+    # Make sure traitSP and env raster data has the same CRS
+    if (length(rasterstack) > 0) {
+        if (!compareCRS(traitSP, rasterstack, verbatim=TRUE)) {
+            traitSP <- spTransform(traitSP, crs(rasterstack))
+        }
+    }
 
-    # If there are occurrence points, constrain them
-    if (!is.null(occur)) {
-        # Constrain the occurrence points
-        occurSP <- SpatialPoints(occur)
-        # We have to make sure occurSP has the same CRS
-        if (is.na(crs(occurSP))) {
-            crs(occurSP) <- '+init=epsg:4326'
-        }
-        if (!compareCRS(occurSP, parsedgeojson, verbatim=TRUE)) {
-            occurSP <- spTransform(occurSP, crs(parsedgeojson))
-        }
-        occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
-        occurconstrained <- as.data.frame(occurSPconstrained)
-        # rest of scripts expects names "lon", "lat" and not "x", "y"
-        names(occurconstrained) <- c("lon", "lat")
+    if (is.null(rawgeojson))
+    {
+        traitSPconstrained <- traitSP
     }
     else {
-        occurconstrained = NULL
+        parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
+
+        # CRS is different, reproject geojson to the climate/env
+        if (!compareCRS(traitSP, parsedgeojson, verbatim=TRUE)) {
+            parsedgeojson <- spTransform(parsedgeojson, crs(traitSP))
+        }
+        # Constrain the occurrence points
+        traitSPconstrained <- traitSP[!is.na(over(traitSP, parsedgeojson))]
     }
-    
-    # Return the masked raster stack and constrained occurrence points
-    mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
-    return(mylist)
+
+    trait.constrained <- as.data.frame(traitSPconstrained)
+    names(trait.constrained) <- c("lon", "lat")
+
+    # constraint the trait.data
+    constrained.trait.data <- merge(trait.data, trait.constrained)
+
+    if (length(rasterstack) > 0) {
+        # Extract values from rasters, and combined with trait.data
+        constrained.rasters <- extract(rasterstack, trait.constrained)
+        constrained.trait.data <- cbind(constrained.trait.data, constrained.rasters)
+    }
+
+    return(constrained.trait.data)
 }
 
 # function to save projection output raster
