@@ -278,49 +278,58 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
     names(rasterstack) = unlist(layernames)
     return(rasterstack)
 }
-
-## CH: we want to keep constraints: in this case only the data in the user-defined constraint will be used (might need a bit of tweaking from
-## how we currently use constraints in SDM - let's discuss.
                              
 # geographically constrained modelling
-# bccvl.sdm.geoconstrained
-bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
-  
-    # Parse the geojson from text to SpatialPointsDataFrame
-    parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
-  
-    # Assign the same projection to the raster 
-    if (!compareCRS(rasterstack, parsedgeojson, verbatim=TRUE)) {
-        # CRS is different, reproject geojson to rasterstack
-        parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
+# return constrainted trait.data with env
+bccvl.trait.constraint.merge <- function(rasterstack, trait.data, rawgeojson) {
+
+    # trait must have at least a trait
+    if (is.null(trait.data)) {
+        return(trait.data)
     }
 
-    # Mask the rasterstack (and make sure it is a RasterStack)    
-    geoconstrained <- stack(mask(rasterstack, parsedgeojson))
-
-    # If there are occurrence points, constrain them
-    if (!is.null(occur)) {
-        # Constrain the occurrence points
-        occurSP <- SpatialPoints(occur)
-        # We have to make sure occurSP has the same CRS
+    # Parse the geojson from text to SpatialPointsDataFrame
+    occurSP <- SpatialPoints(trait.data[c('lon', 'lat')])
+    if (is.null(rawgeojson))
+    {
+        occurSPconstrained <- occurSP
+    }
+    else {
+        # Apply region constraint to trait data
+        # Make sure occurSP and env raster data has the same CRS
         if (is.na(crs(occurSP))) {
             crs(occurSP) <- '+init=epsg:4326'
         }
-        if (!compareCRS(occurSP, parsedgeojson, verbatim=TRUE)) {
-            occurSP <- spTransform(occurSP, crs(parsedgeojson))
+        if (!compareCRS(occurSP, rasterstack, verbatim=TRUE)) {
+            occurSP <- spTransform(occurSP, crs(rasterstack))
         }
+
+        parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
+
+        # Assign the same projection to the  region constraint
+        if (!compareCRS(rasterstack, parsedgeojson, verbatim=TRUE)) {
+            # CRS is different, reproject geojson to rasterstack
+            parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
+        }
+        # Constrain the occurrence points
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
-        occurconstrained <- as.data.frame(occurSPconstrained)
-        # rest of scripts expects names "lon", "lat" and not "x", "y"
-        names(occurconstrained) <- c("lon", "lat")
     }
-    else {
-        occurconstrained = NULL
-    }
-    
-    # Return the masked raster stack and constrained occurrence points
-    mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
-    return(mylist)
+
+    occurconstrained <- as.data.frame(occurSPconstrained)
+    names(occurconstrained) <- c("lon", "lat")
+
+    # constraint the trait.data
+    #selectedRows <- match(trait.data$lon, occurconstrained$lon, nomatch = -1) == match(trait.data$lat, occurconstrained$lat, nomatch = -1)
+    #trait.data <- trait.data[selectedRows,]
+    constrained.trait.data <- merge(trait.data, occurconstrained)
+
+    # Extract values from rasters, and combined with trait.data
+    constrained.rasters <- extract(rasterstack, occurconstrained)
+    constrained.trait.data <- cbind(constrained.trait.data, constrained.rasters)
+
+    # Update the params type
+   
+    return(constrained.trait.data)
 }
 
 # function to save projection output raster

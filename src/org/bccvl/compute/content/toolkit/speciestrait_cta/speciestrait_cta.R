@@ -13,16 +13,39 @@ trait.data.params = bccvl.params$traits_dataset_params
 # read in the trait data as data frame
 trait.data = read.csv(trait.data.filename)
 
-# TODO: Read in other env variables
+#define the current enviro data to use
+enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
+#type in terms of continuous or categorical
+enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
+#layer names for the current environmental layers used
+enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
+#geographic constraints
+enviro.data.constraints = bccvl.params$modelling_region
+# resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
+enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
+                                as.logical(bccvl.params$scale_down),
+                                'highest', 'lowest')
 
-## Set parameters (need to be adjusted to link to back end bccvl.params file)
+# read current climate data
+current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
+
+# geographically constrained modelling and merge the env data into trait.data
+if (!is.null(trait.data)) {
+  trait.data = bccvl.trait.constraint.merge(current.climate.scenario, trait.data, enviro.data.constraints);
+
+  # Update the dataset params with the merged env variables types
+  for (i in 1:length(enviro.data.layer)) {
+    colname <- enviro.data.layer[[i]]
+    trait.data.params[colname] = ifelse(enviro.data.type[i] == 'continuous', 'env_var_con', 'env_var_cat')
+  }
+}
 
 gen_formulae <- function(dataset_params) {
     cols = list(species=list(),
                 lat=list(),
                 lon=list(),
                 env=list(),
-                trait=list())
+                trait=list()) 
     for(colname in names(dataset_params)) {
         colval = dataset_params[[colname]]
         if (colval == 'species' || colval == 'lon' || colval == 'lat') {
