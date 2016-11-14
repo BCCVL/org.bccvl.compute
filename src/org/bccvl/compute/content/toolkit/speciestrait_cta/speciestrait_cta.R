@@ -31,13 +31,15 @@ current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.t
 
 # geographically constrained modelling and merge the env data into trait.data
 if (!is.null(trait.data)) {
-  trait.data = bccvl.trait.constraint.merge(current.climate.scenario, trait.data, enviro.data.constraints);
+    trait.data = bccvl.trait.constraint.merge(current.climate.scenario, trait.data, enviro.data.constraints);
 
-  # Update the dataset params with the merged env variables types
-  for (i in 1:length(enviro.data.layer)) {
-    colname <- enviro.data.layer[[i]]
-    trait.data.params[colname] = ifelse(enviro.data.type[i] == 'continuous', 'env_var_con', 'env_var_cat')
-  }
+    # Update the dataset params with the merged env variables types
+    if (length(current.climate.scenario)) {
+        for (i in 1:length(enviro.data.layer)) {
+          colname <- enviro.data.layer[[i]]
+          trait.data.params[colname] = ifelse(enviro.data.type[[i]] == 'continuous', 'env_var_con', 'env_var_cat')
+        }
+    }
 }
 
 gen_formulae <- function(dataset_params) {
