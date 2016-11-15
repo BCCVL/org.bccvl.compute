@@ -52,10 +52,10 @@ for (formula in formulae) {
     trait_name = formula$trait
 
     ## Run the model
-    gam.result = gam(formula=formula,
+    gam.result = gam(formula=formula(formula$formula),
                      data=trait.data,
-                     family=family_from_string(bccvl.params$family)
-                     subset=bccvl.params$subset,
+                     family=family_from_string(bccvl.params$family),
+                     subset=bccvl.params$subset,                      # Subset of env variables
                      weights=bccvl.params$weights,
                      na.action=bccvl.params$na_action,
                      start=bccvl.params$start,
@@ -63,8 +63,8 @@ for (formula in formulae) {
                      mustart=bccvl.params$mu_start,
                      method=bccvl.params$method,
                      model=bccvl.params$model,
-                     x=bccvl.params$x,
-                     y=bccvl.params$y,
+                     x=ifelse(is.null(bccvl.params$x), FALSE, as.logical(bccvl.params$x)),
+                     y=ifelse(is.null(bccvl.params$y), TRUE, as.logical(bccvl.params$y)),
                      contrasts=NULL)
 
     ## Save the result to file
