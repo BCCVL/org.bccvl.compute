@@ -173,9 +173,8 @@ bccvl.trait.gen_formulae <- function(dataset_params) {
     envvars = paste(names(cols[['env']]), collapse=' + ')
     for (trait in names(cols[['trait']])) {
         formulae = append(formulae, list(list(formula=paste(trait, '~', envvars),
-                                              method=ifelse(cols[['trait']][trait] == 'continuous', 'anova', 'class'), trait=trait)))
-                                                # CH: Yong, can you check if this way of assignging method 'anova' to continuous traits,
-                                                # and method 'class' to the other two (ordinal and nominal) is correct?
+                                    type=cols[['trait']][trait],
+                                    trait=trait)))
     }
     # return a list of lists, where each sublist has $formula, $method, and $trait
     return (formulae)

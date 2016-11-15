@@ -51,9 +51,9 @@ if (!is.null(trait.data)) {
 # Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
-    trait_name = formula$trait
+    trait_name <- formula$trait
     trait.cta.options <- list(formula = formula(formula$formula), # formula should be: trait ~ env1 + env2 + env3 etc 
-                              method = formula$method, # should be "class" for categorical trait data, and "anova" for continuous trait data
+                              method = ifelse(formula$type == 'continuous', 'anova', 'class'), # should be "class" for categorical trait data, and "anova" for continuous trait data
                               na.action = na.rpart, # default action deletes observations for which trait value is missing, but keeps those in which one or more environmental variables are missing
                               model = FALSE,
                               x = FALSE,

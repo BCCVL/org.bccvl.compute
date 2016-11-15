@@ -46,41 +46,6 @@ if (!is.null(trait.data)) {
 
 
 ## Set up the function call expression
-gam.params = list(data=trait.data)
-
-## set defaults for missing parameters according to R docs:
-## see Jon Shuker's inputs specification for reference
-gam.defaults = list(family="gaussian(link=identity)",
-                   subset=NULL,
-                   weights=NULL,
-                   na.action=options("na.action")[[1]],
-                   start=NULL,
-                   ea_start=NULL,
-                   mu_start=NULL,
-                   method="gam.fit",
-                   model=TRUE,
-                   x=FALSE,
-                   y=FALSE,
-                   contrasts=NULL)
-
-
-# parameters that sholud refer to a column in gam.data
-for (paramname in c('start', 'eta_start', 'mu_start', 'subset', 'weights', 'contrasts')) {
-    if (! is.null(bccvl.params[[paramname]])) {
-        gam.params[paramname] = gam.data[bccvl.params[[paramname]]]
-    } else {
-        gam.params[paramname] = gam.defaults[paramname]
-    }
-}
-
-# singular.ok has a different name in bccvl.params
-if (! is.null(bccvl.params['singular_ok'])) {
-    gam.params['singular.ok'] = bccvl.params$singular_ok
-} else {
-    gam.params['singular.ok'] = gam.defaults$singular.ok
-}
-
-
 # Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
@@ -92,7 +57,7 @@ for (formula in formulae) {
                      family=family_from_string(bccvl.params$family)
                      subset=bccvl.params$subset,
                      weights=bccvl.params$weights,
-                     na.action=bccvl.params$na.action,
+                     na.action=bccvl.params$na_action,
                      start=bccvl.params$start,
                      etastart=bccvl.params$eta_start,
                      mustart=bccvl.params$mu_start,
@@ -103,7 +68,6 @@ for (formula in formulae) {
                      contrasts=NULL)
 
     ## Save the result to file
-
     # Save the model
     bccvl.save(gam.result, paste0(trait_name, ".gam.model.object.RData"))
 
