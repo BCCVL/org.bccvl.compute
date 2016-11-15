@@ -28,7 +28,8 @@ enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 'highest', 'lowest')
 
 # Load the library
-#library("rpart")
+library("MASS")
+library("nnet")
 
 # Read current climate data
 current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
