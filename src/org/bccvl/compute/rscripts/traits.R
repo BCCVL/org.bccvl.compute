@@ -39,7 +39,7 @@ rasterOptions(tmpdir=paste(bccvl.env$workdir,"raster_tmp",sep="/"))
 
 # Use seed supplied if any. Otherwise generate a random seed.
 seed = bccvl.params$random_seed
-if (is.null(seed)) {
+if (is.null(seed) || seed == "") {
     seed = runif(1, -2^31, 2^31-1)
 }
 seed = as.integer(seed)
@@ -105,7 +105,7 @@ parameter.as.string <- function (param, value) {
 
 # print out parameters used for STM algorithms: speciestrait_glm, speciestrait_gam, speciestrait_cta
 parameter.print <- function(params) {
-    func = params[["function"]]
+    func = params[["algorithm"]]
     if (is.null(func))
         return("")
     cat("Algorithm:", func, "\n")

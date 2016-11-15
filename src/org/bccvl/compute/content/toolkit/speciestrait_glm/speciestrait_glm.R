@@ -49,7 +49,7 @@ if (!is.null(trait.data)) {
 
 ## MODEL
 # Run model
-formulae = bccvl.trait.gen_formulae(trait.data.params, bccvl.params[["function"]])
+formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
     if (formula$type == 'ordinal') {
         output_filename = paste0(formula$trait, ".polr.results.txt")
