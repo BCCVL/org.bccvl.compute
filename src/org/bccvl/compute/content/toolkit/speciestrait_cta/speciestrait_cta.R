@@ -11,6 +11,8 @@
 trait.data.filename = bccvl.params$traits_dataset$filename
 # Link to variable names of input dataset
 trait.data.params = bccvl.params$traits_dataset_params
+# Read in the trait data
+trait.data = read.csv(trait.data.filename)
 
 # Define the current environmental data to use
 enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
@@ -24,6 +26,9 @@ enviro.data.constraints = bccvl.params$modelling_region
 enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 as.logical(bccvl.params$scale_down),
                                 'highest', 'lowest')
+
+# Load the rpart library
+library("rpart")
 
 # Read current climate data
 current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
@@ -41,51 +46,14 @@ if (!is.null(trait.data)) {
     }
 }
 
-## MODEL
-
-# Generate formulae for models that test the response of each trait (1 per model) to all environmental variables selected
-# e.g. trait ~ env1 + env2 + env3 etc.
-gen_formulae <- function(dataset_params) {
-    cols = list(species=list(),
-                lat=list(),
-                lon=list(),
-                env=list(),
-                trait=list()) 
-    for(colname in names(dataset_params)) {
-    colval = dataset_params[[colname]]
-        if (colval == 'species' || colval == 'lon' || colval == 'lat') {
-            cols[[colval]][colname] = colval
-        } else if (colval == 'env_var_cat') {
-            cols[['env']][colname] = 'categorical'
-        } else if (colval == 'env_var_con') {
-            cols[['env']][colname] = 'continuous'
-        } else if (colval == 'trait_ord') {
-            cols[['trait']][colname] = 'ordinal'
-        } else if (colval == 'trait_nom') {
-            cols[['trait']][colname] = 'nominal'
-        } else if (colval == 'trait_con') {
-            cols[['trait']][colname] = 'continuous'
-        }
-  }
-    formulae = list()
-    envvars = paste(names(cols[['env']]), collapse=' + ')
-    for (trait in names(cols[['trait']])) {
-        formulae = append(formulae, list(list(formula=paste(trait, '~', envvars),
-                                              method=ifelse(cols[['trait']][trait] == 'continuous', 'anova', 'class'), trait=trait)))
-                                                # CH: Yong, can you check if this way of assignging method 'anova' to continuous traits,
-                                                # and method 'class' to the other two (ordinal and nominal) is correct?
-    }
-    # return a list of lists, where each sublist has $formula, $method, and $trait
-    return (formulae)
-}
 
 # Run models
-    
-formulae = gen_formulae(trait.data.params)
+# Generate a formula for each trait
+formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
-    trait_name = formula$trait
+    trait_name <- formula$trait
     trait.cta.options <- list(formula = formula(formula$formula), # formula should be: trait ~ env1 + env2 + env3 etc 
-                              method = formula$method, # should be "class" for categorical trait data, and "anova" for continuous trait data
+                              method = ifelse(formula$type == 'continuous', 'anova', 'class'), # should be "class" for categorical trait data, and "anova" for continuous trait data
                               na.action = na.rpart, # default action deletes observations for which trait value is missing, but keeps those in which one or more environmental variables are missing
                               model = FALSE,
                               x = FALSE,
@@ -102,25 +70,25 @@ for (formula in formulae) {
                                              )
                               )
 
-trait.cta = rpart(formula = trait.cta.options$formula,
-                  data = trait.data, # data frame containing trait and env data
-                  method = trait.cta.options$method,
-                  na.action = trait.cta.options$na.action,
-                  model = trait.cta.options$model,
-                  x = trait.cta.options$x,
-                  y = trait.cta.options$y,
-                  control = trait.cta.options$control)
+    trait.cta = rpart(formula = trait.cta.options$formula,
+                      data = trait.data, # data frame containing trait and env data
+                      method = trait.cta.options$method,
+                      na.action = trait.cta.options$na.action,
+                      model = trait.cta.options$model,
+                      x = trait.cta.options$x,
+                      y = trait.cta.options$y,
+                      control = trait.cta.options$control)
 
-### Save the results as text to file for each trait
-s <- summary(trait.cta) # saved and displayed as text
-bccvl.write.text(s, paste0(trait_name, ".cta.results.txt"))
-p <- printcp(trait.cta) # saved and displayed as text
-bccvl.write.text(p, paste0(trait_name, ".cta.results.txt"), append=TRUE)
+    ### Save the results as text to file for each trait
+    s <- summary(trait.cta) # saved and displayed as text
+    bccvl.write.text(s, paste0(trait_name, ".cta.results.txt"))
+    p <- printcp(trait.cta) # saved and displayed as text
+    bccvl.write.text(p, paste0(trait_name, ".cta.results.txt"), append=TRUE)
 
-# save the plot as png image
-ofilename = paste0(trait_name, ".cta.plotcp")
-bccvl.write.image(trait.cta, ofilename, "plotcp")
+    # save the plot as png image
+    ofilename = paste0(trait_name, ".cta.plotcp")
+    bccvl.write.image(trait.cta, ofilename, "plotcp")
 
-# Save the model
-bccvl.save(trait.cta, paste0(trait_name, ".cta.object.RData"))
+    # Save the model
+    bccvl.save(trait.cta, paste0(trait_name, ".cta.model.object.RData"))
 }

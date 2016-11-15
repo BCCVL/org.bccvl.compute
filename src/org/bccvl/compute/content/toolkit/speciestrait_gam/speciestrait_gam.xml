@@ -26,7 +26,7 @@
           <element>poisson(link="log")</element>
           <element>poisson(link="sqrt")</element>
           </values>
-        <default>gaussian(link="log")</default>
+        <default>gaussian(link="identity")</default>
         <required>True</required>
       </field>
       <field name="subset" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
@@ -41,9 +41,9 @@
       </field>
       <field name="na_action" type="zope.schema.Choice">
         <title>NA action</title>
-        <description>controls how to handle missing data; default = na.fail, model will only run if data contains no missing values; na.omit: records with missing values are removed; na.exlude: missing values are not used in model but maintained for residuals and fitted values; na.gam.replace: missing values are replaced with the mean of non-missing values</description>
+        <description>controls how to handle missing data; default = na.fail, model will only run if data contains no missing values; na.omit: records with missing values are removed; na.exclude: missing values are not used in model but maintained for residuals and fitted values; na.gam.replace: missing values are replaced with the mean of non-missing values</description>
         <required>True</required>
-        <default>na.fail</default>
+        <default>na.omit</default>
         <values>
           <element>na.fail</element>
           <element>na.omit</element>
@@ -77,7 +77,7 @@
         <required>True</required>
       </field>
       <field name="model" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
-        <default>False</default>
+        <default>True</default>
         <title>Model returned</title>
         <required>False</required>
       </field>
@@ -87,7 +87,7 @@
         <required>False</required>
       </field>
       <field name="y" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
-        <default>True</default>
+        <default>False</default>
         <title>y returned</title>
         <required>False</required>
       </field>

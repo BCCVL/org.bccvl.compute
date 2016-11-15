@@ -17,7 +17,7 @@
             "genre": "JobScript",
             "mimetype": "text/x-r",
             "order": 3
-        }
+        },
          "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",
