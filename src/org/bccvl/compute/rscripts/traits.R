@@ -176,7 +176,7 @@ bccvl.trait.gen_formulae <- function(dataset_params) {
                                     type=cols[['trait']][trait],
                                     trait=trait)))
     }
-    # return a list of lists, where each sublist has $formula, $method, and $trait
+    # return a list of lists, where each sublist has $formula, $type, and $trait
     return (formulae)
 }
            
