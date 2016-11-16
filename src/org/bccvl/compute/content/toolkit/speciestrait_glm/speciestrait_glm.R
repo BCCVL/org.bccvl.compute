@@ -27,18 +27,14 @@ enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 as.logical(bccvl.params$scale_down),
                                 'highest', 'lowest')
 
-# Load the library
-library("MASS")
-library("nnet")
-
 # Read current climate data
 current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
 
-# Geographically constrained modelling and merge the env data into trait.data
+# Geographically constrained modelling and merge the environmental data into trait.data
 if (!is.null(trait.data)) {
     trait.data = bccvl.trait.constraint.merge(current.climate.scenario, trait.data, enviro.data.constraints);
 
-    # Update the dataset params with the merged climate environmantal variables types
+    # Update the dataset parameters with the merged climate environmental variables types
     if (length(current.climate.scenario)) {
         for (i in 1:length(enviro.data.layer)) {
           colname <- enviro.data.layer[[i]]
@@ -47,21 +43,27 @@ if (!is.null(trait.data)) {
     }
 }
 
-
 ## MODEL
-# Run model
+  
+# Load the library
+library("MASS")
+library("nnet")  
+
+# Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
-    if (formula$type == 'ordinal') {
+
+# Run model - with polr function for ordinal traits, multinom function for nominal traits, glm function for continuous traits
+  if (formula$type == 'ordinal') {
         output_filename = paste0(formula$trait, ".polr.results.txt")
         glm.result = polr(formula=formula(formula$formula),
                           data=trait.data,
                           weights=NULL,
                           na.action=bccvl.params$na_action,
                           contrasts=NULL,
-                          model=FALSE, #CH check whether this should be true or false
+                          model=TRUE,
                           method="logistic")
-    } else if (formula$method == 'nominal') {
+    } else if (formula$type == 'nominal') {
         output_filename = paste0(formula$trait, ".nom.results.txt")
         glm.result = multinom(formula=formula(formula$formula),
                               data=trait.data,
@@ -69,9 +71,8 @@ for (formula in formulae) {
                               na.action=bccvl.params$na_action,
                               contrasts=NULL,
                               summ=0,        
-                              model=FALSE,) #CH check whether this should be true or false
+                              model=TRUE)
     } else {
-        # for continuous traits
         output_filename = paste0(formula$trait, ".glm.results.txt")
         glm.result = glm(formula=formula(formula$formula),
                          family=bccvl.params$family,
@@ -82,18 +83,19 @@ for (formula in formulae) {
                          etastart=NULL,
                          mustart=NULL,
                          offset=NULL,
-                         model=FALSE, #CH check whether this should be true or false
+                         model=TRUE,
                          method=bccvl.params$method,
                          x=FALSE,
                          y=FALSE,
                          contrasts=NULL)
     }
 
-    ## Save the result to file
-    # Save the model
-    bccvl.save(glm.result, paste0(formula$trait, ".glm.model.object.RData")
+## Save the result to file
+# Save the model
+bccvl.save(glm.result, paste0(formula$trait, ".glm.model.object.RData")
 
-    ## Save the results as text to file for each trait
-    s <- summary(glm.result) 
-    bccvl.write.text(s, output_filename)                                       
+## Save the results as text to file for each trait
+s <- summary(glm.result) 
+bccvl.write.text(s, output_filename)                                       
 }
+           
