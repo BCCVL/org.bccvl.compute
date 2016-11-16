@@ -5,9 +5,11 @@
 
 ### Runs a Generalized Additive Model to test the effect of selected environmental variables on species traits
 
-## trait dataset csv file
+## DATA
+
+# Link to input dataset csv file
 trait.data.filename = bccvl.params$traits_dataset$filename
-# mapping of variable names of trait dataset
+# Link to variable names of input dataset
 trait.data.params = bccvl.params$traits_dataset_params
 # Read in the trait data
 trait.data = read.csv(trait.data.filename)
@@ -25,17 +27,14 @@ enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 as.logical(bccvl.params$scale_down),
                                 'highest', 'lowest')
 
-# load the gam Library
-library("gam")
-
 # Read current climate data
 current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
 
-# Geographically constrained modelling and merge the env data into trait.data
+# Geographically constrained modelling and merge the environmental data into trait.data
 if (!is.null(trait.data)) {
     trait.data = bccvl.trait.constraint.merge(current.climate.scenario, trait.data, enviro.data.constraints);
 
-    # Update the dataset params with the merged env variables types
+    # Update the dataset parameters with the merged environmental variables types
     if (length(current.climate.scenario)) {
         for (i in 1:length(enviro.data.layer)) {
           colname <- enviro.data.layer[[i]]
@@ -44,38 +43,40 @@ if (!is.null(trait.data)) {
     }
 }
 
+  
+## MODEL
+  
+# Load the gam Library
+library("gam")
 
-## Set up the function call expression
 # Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
     trait_name = formula$trait
 
-    ## Run the model
+    # Run the model for each trait separately
     gam.result = gam(formula=formula(formula$formula),
                      data=trait.data,
-                     family=family_from_string(bccvl.params$family),
-                     subset=bccvl.params$subset,                      # Subset of env variables
-                     weights=bccvl.params$weights,
+                     family=bccvl.params$family,             
+                     weights=NULL,
                      na.action=bccvl.params$na_action,
-                     start=bccvl.params$start,
-                     etastart=bccvl.params$eta_start,
-                     mustart=bccvl.params$mu_start,
+                     start=NULL,
+                     etastart=NULL,
+                     mustart=NULL,
                      method=bccvl.params$method,
-                     model=bccvl.params$model,
-                     x=ifelse(is.null(bccvl.params$x), FALSE, as.logical(bccvl.params$x)),
-                     y=ifelse(is.null(bccvl.params$y), TRUE, as.logical(bccvl.params$y)),
-                     contrasts=NULL)
+                     model=TRUE,
+                     x=FALSE,
+                     y=FALSE)
 
-    ## Save the result to file
-    # Save the model
-    bccvl.save(gam.result, paste0(trait_name, ".gam.model.object.RData"))
+## Save the result to file
+# Save the model
+bccvl.save(gam.result, paste0(trait_name, ".gam.model.object.RData"))
 
-    ## Save result summary to a text file
-    s <- summary(gam.result)
-    bccvl.write.text(s, paste0(trait_name, ".gam_result_summary.txt"))
+# Save result summary to a text file
+s <- summary(gam.result)
+bccvl.write.text(s, paste0(trait_name, ".gam_result_summary.txt"))
 
-    # save the plot as png image
-    ofilename = paste0(trait_name, ".gam.plotgam")
-    bccvl.write.image(trait.cta, ofilename, "plot.gam")
+# save the plot as png image
+ofilename = paste0(trait_name, ".gam.plotgam")
+bccvl.write.image(trait.cta, ofilename, "plot.gam")
 }
