@@ -29,11 +29,6 @@
         <default>gaussian(link="identity")</default>
         <required>True</required>
       </field>
-      <field name="subset" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
-        <title>Subset</title>
-        <description>Optional vector that may be used to specify a subset of the data. Please specify a column included in the data model.</description>
-        <required>False</required>
-      </field>
       <field name="weights" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
         <title>Weights</title>
         <description>Optional vector that may be used to specify weights. Please specify a column included in the data model.</description>
