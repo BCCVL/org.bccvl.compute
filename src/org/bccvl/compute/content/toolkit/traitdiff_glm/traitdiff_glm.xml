@@ -7,7 +7,7 @@
               label="Configuration options"
               description="Options are set to package defaults unless otherwise modified.">
       <field name="family" type="zope.schema.Choice">
-        <title>Family</title>
+        <title>family</title>
         <description>error distribution and link function to be used in the model</description>
         <values>
           <element>binomial</element>
@@ -66,7 +66,7 @@
         <required>False</required>
       </field>
       <field name="method" type="zope.schema.Choice">
-        <title>Method</title>
+        <title>method</title>
         <description>method to be used in fitting the model; default = glm.fit, which uses the IWLS method; model.frame does no fitting</description>
         <values>
           <element>glm.fit</element>
