@@ -145,9 +145,10 @@ parameter.print(bccvl.params)
 bccvl.err.null <- function (e) return(NULL)
 
 
-# Generate formulae for models that test the response of each trait (1 per model) to all environmental variables selected
-# e.g. trait ~ env1 + env2 + env3 etc.
-bccvl.trait.gen_formulae <- function(dataset_params) {
+# Generate formulae for models that test the response of each trait to all environmental variables selected
+# i.e. for trait diff model, trait ~ species 
+# for trait cta/glm/gam models, trait ~ env1 + env2 + env3 etc 
+bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
     cols = list(species=list(),
                 lat=list(),
                 lon=list(),
@@ -170,9 +171,10 @@ bccvl.trait.gen_formulae <- function(dataset_params) {
         }
   }
     formulae = list()
-    envvars = paste(names(cols[['env']]), collapse=' + ')
+    # For trait diff, variable is the species, otherwise environmental variables.
+    variables = paste(names(cols[[ifelse(trait_diff, 'species', 'env')]]), collapse=' + ')
     for (trait in names(cols[['trait']])) {
-        formulae = append(formulae, list(list(formula=paste(trait, '~', envvars),
+        formulae = append(formulae, list(list(formula=paste(trait, '~', variables),
                                     type=cols[['trait']][trait],
                                     trait=trait)))
     }
