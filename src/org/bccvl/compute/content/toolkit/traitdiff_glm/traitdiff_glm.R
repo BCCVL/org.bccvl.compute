@@ -55,7 +55,7 @@ for (formula in formulae) {
         output_filename = paste0(formula$trait, ".diffglm.results.txt")
         glm.result = glm(formula=formula(formula$formula),
                          family=bccvl.params$family,
-                         data= trait.data
+                         data= trait.data,
                          weights=NULL,
                          na.action=bccvl.params$na_action,
                          start=NULL,
@@ -71,7 +71,7 @@ for (formula in formulae) {
         
     ## Save the result to file
     # Save the model
-    bccvl.save(glm.result, paste0(formula$trait, ".diffglm.model.object.RData")
+    bccvl.save(glm.result, paste0(formula$trait, ".diffglm.model.object.RData"))
 
     ## Save the results as text to file for each trait
     s <- summary(glm.result) 
