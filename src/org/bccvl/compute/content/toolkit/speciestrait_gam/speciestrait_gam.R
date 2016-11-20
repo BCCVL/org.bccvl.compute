@@ -68,15 +68,15 @@ for (formula in formulae) {
                      x=FALSE,
                      y=FALSE)
 
-## Save the result to file
-# Save the model
-bccvl.save(gam.result, paste0(trait_name, ".gam.model.object.RData"))
+    ## Save the result to file
+    # Save the model
+    bccvl.save(gam.result, paste0(trait_name, ".gam.model.object.RData"))
 
-# Save result summary to a text file
-s <- summary(gam.result)
-bccvl.write.text(s, paste0(trait_name, ".gam_result_summary.txt"))
+    # Save result summary to a text file
+    s <- summary(gam.result)
+    bccvl.write.text(s, paste0(trait_name, ".gam_result_summary.txt"))
 
-# save the plot as png image
-ofilename = paste0(trait_name, ".gam.plotgam")
-bccvl.write.image(trait.cta, ofilename, "plot.gam")
+    # save the plot as png image
+    ofilename = paste0(trait_name, ".gam.plotgam")
+    bccvl.write.image(gam.result, ofilename, "plot.gam")
 }
