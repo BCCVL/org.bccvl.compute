@@ -14,19 +14,8 @@
           <element>gaussian</element>
           <element>gamma</element>
           <element>poisson</element>
-          <element>binomial(link="logit")</element>
-          <element>binomial(link="probit")</element>
-          <element>gaussian(link="identity")</element>
-          <element>gaussian(link="log")</element>
-          <element>gaussian(link="inverse")</element>
-          <element>Gamma(link="identity")</element>
-          <element>Gamma(link="log")</element>  
-          <element>Gamma(link="inverse")</element>
-          <element>poisson(link="identity")</element>
-          <element>poisson(link="log")</element>
-          <element>poisson(link="sqrt")</element>
           </values>
-        <default>gaussian(link="identity")</default>
+        <default>gaussian</default>
         <required>True</required>
       </field>
       <field name="weights" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
@@ -70,21 +59,6 @@
         </values>
         <default>glm.fit</default>
         <required>True</required>
-      </field>
-      <field name="model" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
-        <default>True</default>
-        <title>Model returned</title>
-        <required>False</required>
-      </field>
-      <field name="x" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
-        <default>False</default>
-        <title>x returned</title>
-        <required>False</required>
-      </field>
-      <field name="y" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
-        <default>False</default>
-        <title>y returned</title>
-        <required>False</required>
       </field>
       <field name="random_seed" type="zope.schema.Int">
         <description>random seed used</description>

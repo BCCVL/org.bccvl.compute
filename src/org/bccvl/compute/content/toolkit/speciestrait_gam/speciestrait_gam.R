@@ -59,7 +59,7 @@ for (formula in formulae) {
                      data=trait.data,
                      family=bccvl.params$family,             
                      weights=NULL,
-                     na.action=bccvl.params$na_action,
+                     na.action=get(getOption(bccvl.params$na_action, "na.fail")),
                      start=NULL,
                      etastart=NULL,
                      mustart=NULL,
