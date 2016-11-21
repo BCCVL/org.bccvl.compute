@@ -182,177 +182,40 @@ bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
     return (formulae)
 }
            
-bccvl.raster.load <- function(filename) {
+bccvl.raster.load <- function(filename, filetype = 'continuous') {
     # load raster and assign crs if missing
     r = raster(filename)
     if (is.na(crs(r))) {
         crs(r) = CRS("+init=epsg:4326")
     }
+
+    if (filetype == "categorical") {
+        # convert to factor if categorical
+        r = as.factor(r)
+    }
     return(r)
-}
-
-# rasters: a vector of rasters, all rasters should have same resolution
-# common.crs: crs to use to calculate intersection
-bccvl.raster.common.extent <- function(rasters, common.crs)
-{
-    # bring all rasters into common crs
-    extent.list = lapply(rasters, function(r) { extent(projectExtent(r, common.crs)) })
-    # intersect all extents
-    common.extent = Reduce(intersect, extent.list)
-    # compare all against commen extents to find out if all extents are the same (used to print warning)
-    equal.extents = all(sapply(extent.list, function (x) common.extent == x))
-
-    return (list(equal.extents=equal.extents, common.extent=common.extent))
-}
-
-bccvl.raster.extent.to.str <- function(ext)
-{
-  return(sprintf("xmin=%f xmax=%f ymin=%f ymax=%f", ext@xmin, ext@xmax, ext@ymin, ext@ymax));
-}
-
-# rasters: a vector of rasters ... preferrably empty
-# resamplingflag: a flag to determine which resampling approach to take
-bccvl.rasters.common.resolution <- function(rasters, resamplingflag) {
-    resolutions = lapply(rasters, res)
-    if (resamplingflag == "highest") {
-        common.res = Reduce(pmin, resolutions)
-    } else if (resamplingflag == "lowest") {
-        common.res = Reduce(pmax, resolutions)
-    }
-    is.same.res = all(sapply(resolutions, function(x) all(common.res == x)))
-    return (list(common.res=common.res, is.same.res=is.same.res))
-}
-
-# generate reference raster with common resolutin, crs and extent
-bccvl.rasters.common.reference <- function(rasters, resamplingflag) {
-    # create list of empty rasters to speed up alignment
-    empty.rasters = lapply(rasters, function(x) { projectExtent(x, crs(x)) })
-    # choose a common.crs if all crs in rasters are the same use that one, otherwise use EPSG:4326 (common data in bccvl)
-    common.crs = crs(empty.rasters[[1]])
-    # TODO: print warning about reprojecting if necessary (if inside next condition)
-    if (! do.call(compareRaster, c(empty.rasters, extent=FALSE, rowcol=FALSE, prj=TRUE, res=FALSE, orig=FALSE, rotation=FALSE, stopiffalse=FALSE))) {
-        # we have different CRSs, so use EPSG:4326 as common
-        # TODO: another strategy to find common CRS?
-        common.crs = CRS("+init=epsg:4326")
-        # project all rasters into common crs
-        bccvl.log.warning(sprintf("Auto projecting to common CRS %s", common.crs))
-        empty.rasters = lapply(empty.rasters, function(x) { projectExtent(x, common.crs) })
-    }
-
-    # determine commen.extent in common.crs
-    # Note: extent is in projection units, -> rasters have to be in same CRS
-    ce = bccvl.raster.common.extent(empty.rasters, common.crs)
-    if (! ce$equal.extents) {
-        bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
-    }
-    
-    # determine common resolution
-    # Note: resolution is usually in projection units. -> rasters should be in same CRS
-    cr = bccvl.rasters.common.resolution(empty.rasters, resamplingflag)
-    # TODO: print warning about resampling: common.res$is.same.res
-    if (! cr$is.same.res) {
-        bccvl.log.warning(sprintf("Auto resampling to %s resolution [%f %f]", resamplingflag, cr$common.res[[1]], cr$common.res[[2]]))
-    }
-
-    # apply common extent and resolution to empty rasters
-    empty.rasters = lapply(
-        empty.rasters,
-        function(x) {
-            extent(x) = ce$common.extent
-            res(x) = cr$common.res
-            return(x)
-        })
-    # from now an all empty.rasters should be exactly the same, pick first and return as
-    # template.
-    return(empty.rasters[[1]])
-}
-
-bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
-    rasters = mapply(
-        function(filename, filetype) {
-
-            r = bccvl.raster.load(filename)
-            # warp, crop and rescale raster file if necessary
-            dir = dirname(filename)
-            tmpf = file.path(dir, 'tmp.tif') # TODO: better filename and location?
-            te = extent(reference)
-            gdalwarp(filename, tmpf,
-                     s_srs=CRSargs(crs(r)), t_srs=CRSargs(crs(reference)),
-                     te=c(te@xmin, te@ymin, te@xmax, te@ymax),
-                     ts=c(ncol(reference), nrow(reference)),
-                     # tr=c(...), ... either this or ts
-                     r="near",
-                     of="GTiff",
-                     dstnodata=r@file@nodatavalue
-                     #co=c("TILED=YES", "COMPRESS=???")
-                     )
-            # put new file back into place
-            file.rename(tmpf, filename)
-            # load new file and convert to categorical if required
-            r = raster(filename)
-            if (filetype == "categorical") {
-                # convert to factor if categorical
-                r = as.factor(r)
-            }
-            return(r)
-        },
-        raster.filenames, raster.types)
-    return(rasters)
-}
-
-# raster.filenames : a vector of filenames that will be loaded as rasters
-# resamplingflag: a flag to determine which resampling approach to take
-bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, raster.types, resamplingflag)
-{
-    # Load rasters and assign CRS if missing
-    rasters = lapply(raster.filenames, bccvl.raster.load)
-
-    # determine common raster shape
-    reference = bccvl.rasters.common.reference(rasters, resamplingflag)
-    
-    # adjust rasters spatially and convert categorical rasters to factors
-    rasters = bccvl.rasters.warp(raster.filenames, raster.types, reference)
-
-    return(rasters)
-}
-
-# return a RasterStack of given vector of input files
-# intersecting extent
-# lowest or highest resolution depending upon flag
-bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
-
-    if (length(filenames) == 0) {
-        return(stack())
-    }
-
-    # adjust rasters to same projection, resolution and extent
-    rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, types, resamplingflag)
-    # stack rasters
-    rasterstack = stack(rasters)
-    # assign predefined variable names
-    names(rasterstack) = unlist(layernames)
-    return(rasterstack)
 }
                              
 # geographically constrained modelling
 # return constrainted trait.data with env
-bccvl.trait.constraint.merge <- function(rasterstack, trait.data, rawgeojson) {
+bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filenames, raster.types, layernames, rawgeojson) {
 
     # trait must have at least a trait
     if (is.null(trait.data)) {
-        return(trait.data)
+        return(list("data" = trait.data, "params" = trait.params))
+    }
+
+    # Read in the raster, and assign predefined variable names
+    rasters = list()
+    if (length(raster.filenames) > 0) {
+        rasters = mapply(bccvl.raster.load, raster.filenames, raster.types)
+        names(rasters) = unlist(layernames)
     }
 
     # Parse the geojson from text to SpatialPointsDataFrame
     traitSP <- SpatialPoints(trait.data[c('lon', 'lat')])
     if (is.na(crs(traitSP))) {
         crs(traitSP) <- '+init=epsg:4326'
-    }
-    # Make sure traitSP and env raster data has the same CRS
-    if (length(rasterstack) > 0) {
-        if (!compareCRS(traitSP, rasterstack, verbatim=TRUE)) {
-            traitSP <- spTransform(traitSP, crs(rasterstack))
-        }
     }
 
     if (is.null(rawgeojson))
@@ -362,7 +225,7 @@ bccvl.trait.constraint.merge <- function(rasterstack, trait.data, rawgeojson) {
     else {
         parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
 
-        # CRS is different, reproject geojson to the climate/env
+        # CRS is different, reproject geojson to the trait coordinate systemf
         if (!compareCRS(traitSP, parsedgeojson, verbatim=TRUE)) {
             parsedgeojson <- spTransform(parsedgeojson, crs(traitSP))
         }
@@ -376,13 +239,19 @@ bccvl.trait.constraint.merge <- function(rasterstack, trait.data, rawgeojson) {
     # constraint the trait.data
     constrained.trait.data <- merge(trait.data, trait.constrained)
 
-    if (length(rasterstack) > 0) {
+    if (length(rasters) > 0) {
         # Extract values from rasters, and combined with trait.data
-        constrained.rasters <- extract(rasterstack, trait.constrained)
+        constrained.rasters <- sapply(rasters, extract, y = trait.constrained)
         constrained.trait.data <- cbind(constrained.trait.data, constrained.rasters)
+
+        # Update the trait dataset parameters with environmental variables types
+        for (i in 1:length(layernames)) {
+          colname <- layernames[[i]]
+          trait.params[colname] = ifelse(raster.types[[i]] == 'continuous', 'env_var_con', 'env_var_cat')
+        }
     }
 
-    return(constrained.trait.data)
+    return(list("data" = constrained.trait.data, "params" = trait.params))
 }
 
 # function to save projection output raster

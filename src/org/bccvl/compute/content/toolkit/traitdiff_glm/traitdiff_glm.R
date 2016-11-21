@@ -16,10 +16,13 @@ trait.data = read.csv(trait.data.filename)
 enviro.data.constraints = bccvl.params$modelling_region
 
 # Empty environmental dataset as it is not needed
-current.climate.scenario = stack()
+enviro.data.current = list()
+
 # Geographically constrained modelling and merge the environmental data into trait.data
 if (!is.null(trait.data)) {
-    trait.data = bccvl.trait.constraint.merge(current.climate.scenario, trait.data, enviro.data.constraints);
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints);
+    trait.data = merged.result$data
+    trait.data.params = merged.result$params
 }
 
 
