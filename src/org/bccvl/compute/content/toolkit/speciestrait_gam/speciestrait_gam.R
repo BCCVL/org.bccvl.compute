@@ -57,7 +57,7 @@ for (formula in formulae) {
     # Run the model for each trait separately
     gam.result = gam(formula=formula(formula$formula),
                      data=trait.data,
-                     family=bccvl.params$family,             
+                     family=family_from_string(bccvl.params$family),
                      weights=NULL,
                      na.action=get(getOption(bccvl.params$na_action, "na.fail")),
                      start=NULL,

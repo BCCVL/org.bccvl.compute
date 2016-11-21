@@ -14,8 +14,19 @@
           <element>gaussian</element>
           <element>gamma</element>
           <element>poisson</element>
+          <element>binomial(link="logit")</element>
+          <element>binomial(link="probit")</element>
+          <element>gaussian(link="identity")</element>
+          <element>gaussian(link="log")</element>
+          <element>gaussian(link="inverse")</element>
+          <element>Gamma(link="identity")</element>
+          <element>Gamma(link="log")</element>  
+          <element>Gamma(link="inverse")</element>
+          <element>poisson(link="identity")</element>
+          <element>poisson(link="log")</element>
+          <element>poisson(link="sqrt")</element>          
           </values>
-        <default>gaussian</default>
+        <default>gaussian(link="identity")</default>
         <required>True</required>
       </field>
       <field name="weights" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">

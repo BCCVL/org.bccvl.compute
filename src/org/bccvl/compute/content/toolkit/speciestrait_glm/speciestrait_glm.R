@@ -54,12 +54,13 @@ formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
 
 # Run model - with polr function for ordinal traits, multinom function for nominal traits, glm function for continuous traits
+  na_action = get(getOption(bccvl.params$na_action, "na.fail"))
   if (formula$type == 'ordinal') {
         output_filename = paste0(formula$trait, ".polr.results.txt")
         glm.result = polr(formula=formula(formula$formula),
                           data=trait.data,
                           weights=NULL,
-                          na.action=bccvl.params$na_action,
+                          na.action=na_action,
                           contrasts=NULL,
                           model=TRUE,
                           method="logistic")
@@ -68,17 +69,17 @@ for (formula in formulae) {
         glm.result = multinom(formula=formula(formula$formula),
                               data=trait.data,
                               weights=NULL,
-                              na.action=bccvl.params$na_action,
+                              na.action=na_action,
                               contrasts=NULL,
                               summ=0,        
                               model=TRUE)
     } else {
         output_filename = paste0(formula$trait, ".glm.results.txt")
         glm.result = glm(formula=formula(formula$formula),
-                         family=bccvl.params$family,
+                         family=family_from_string(bccvl.params$family),
                          data= trait.data,
                          weights=NULL,
-                         na.action=bccvl.params$na_action,
+                         na.action=na_action,
                          start=NULL,
                          etastart=NULL,
                          mustart=NULL,
