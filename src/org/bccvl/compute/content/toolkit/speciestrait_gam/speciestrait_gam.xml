@@ -38,7 +38,7 @@
         <title>NA action</title>
         <description>controls how to handle missing data; default = na.fail, model will only run if data contains no missing values; na.omit: records with missing values are removed; na.exclude: missing values are not used in model but maintained for residuals and fitted values; na.gam.replace: missing values are replaced with the mean of non-missing values</description>
         <required>True</required>
-        <default>na.omit</default>
+        <default>na.fail</default>
         <values>
           <element>na.fail</element>
           <element>na.omit</element>
