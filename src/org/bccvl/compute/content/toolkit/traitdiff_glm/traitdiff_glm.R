@@ -30,15 +30,16 @@ library("MASS")
 library("nnet")  
 
 # Generate the formulae to test differences among species for each trait separately
-formulae = gen_formulae(trait.data.params, trait_diff=TRUE)
+formulae = bccvl.trait.gen_formulae(trait.data.params, trait_diff=TRUE)
 # Run model - with polr function for ordinal traits, multinom function for nominal traits, glm function for continuous traits
+na_action = get(getOption(bccvl.params$na_action, "na.fail"))
 for (formula in formulae) {
     if (formula$type == 'ordinal') {
         output_filename = paste0(formula$trait, ".diffpolr.results.txt")
         glm.result = polr(formula=formula(formula$formula),
                           data=trait.data,
                           weights=NULL,
-                          na.action=bccvl.params$na_action,
+                          na.action=na_action,
                           contrasts=NULL,
                           model=TRUE,
                           method="logistic")
@@ -47,17 +48,17 @@ for (formula in formulae) {
         glm.result = multinom(formula=formula(formula$formula),
                               data=trait.data,
                               weights=NULL,
-                              na.action=bccvl.params$na_action,
+                              na.action=na_action,
                               contrasts=NULL,
                               summ=0,        
                               model=TRUE)
     } else {
         output_filename = paste0(formula$trait, ".diffglm.results.txt")
         glm.result = glm(formula=formula(formula$formula),
-                         family=bccvl.params$family,
+                         family=family_from_string(bccvl.params$family),
                          data= trait.data,
                          weights=NULL,
-                         na.action=bccvl.params$na_action,
+                         na.action=na_action,
                          start=NULL,
                          etastart=NULL,
                          mustart=NULL,
@@ -75,5 +76,5 @@ for (formula in formulae) {
 
     ## Save the results as text to file for each trait
     s <- summary(glm.result) 
-    bccvl.write.text(s, output_filename)                                       
+    bccvl.write.text(s, output_filename)
 }
