@@ -22,25 +22,13 @@ enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$typ
 enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
 # Geographic constraints
 enviro.data.constraints = bccvl.params$modelling_region
-# Resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
-enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
-                                as.logical(bccvl.params$scale_down),
-                                'highest', 'lowest')
 
-# Read current climate data
-current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
 
 # Geographically constrained modelling and merge the environmental data into trait.data
 if (!is.null(trait.data)) {
-    trait.data = bccvl.trait.constraint.merge(current.climate.scenario, trait.data, enviro.data.constraints);
-
-    # Update the dataset parameters with the merged climate environmental variables types
-    if (length(current.climate.scenario)) {
-        for (i in 1:length(enviro.data.layer)) {
-          colname <- enviro.data.layer[[i]]
-          trait.data.params[colname] = ifelse(enviro.data.type[[i]] == 'continuous', 'env_var_con', 'env_var_cat')
-        }
-    }
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints);
+    trait.data = merged.result$data
+    trait.data.params = merged.result$params
 }
 
 ## MODEL
@@ -99,4 +87,3 @@ bccvl.save(glm.result, paste0(formula$trait, ".glm.model.object.RData"))
 s <- summary(glm.result) 
 bccvl.write.text(s, output_filename)                                       
 }
-           
