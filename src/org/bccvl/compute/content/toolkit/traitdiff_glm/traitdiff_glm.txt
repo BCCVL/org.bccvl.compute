@@ -1,4 +1,4 @@
-
+{
     "files": {
         "*.txt": {
             "title": "Model summary",
@@ -24,7 +24,7 @@
             "mimetype": "application/x-r-data",
             "order": 4
         }        
- },
+    },
     "archives": {
     }
 }
