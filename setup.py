@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-version = '1.14.0.dev0'
+VERSION = '1.14.0.dev0'
 
 setup(
     name='org.bccvl.compute',
-    version=version,
+    version=VERSION,
     description="BCCVL Compute Scripts",
     # long_description=open("README.txt").read() + "\n" +
     #                  open(os.path.join("docs", "HISTORY.txt")).read(),
@@ -29,7 +29,7 @@ setup(
         'setuptools',  # distribute
         'zope.i18nmessageid',
     ],
-    tests_require = [
+    tests_require=[
         'numpy',
         'scipy',
         'Pillow',
@@ -53,4 +53,4 @@ setup(
     #[z3c.autoinclude.plugin]
     #target = plone
     """,
-    )
+)
