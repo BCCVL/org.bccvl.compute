@@ -145,6 +145,16 @@ parameter.print(bccvl.params)
 bccvl.err.null <- function (e) return(NULL)
 
 
+bccvl.trait.asfactor <- function(trait.data, dataset_params) {
+    for (colname in names(dataset_params)) {
+        colval = dataset_params[[colname]]
+        if (colval == 'trait_ord' || colval == 'trait_nom') {
+            trait.data[colval] = factor(trait.data[colval])
+        } 
+    }
+    return(trait.data)
+}
+
 # Generate formulae for models that test the response of each trait to all environmental variables selected
 # i.e. for trait diff model, trait ~ species 
 # for trait cta/glm/gam models, trait ~ env1 + env2 + env3 etc 
@@ -155,7 +165,7 @@ bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
                 env=list(),
                 trait=list()) 
     for(colname in names(dataset_params)) {
-    colval = dataset_params[[colname]]
+        colval = dataset_params[[colname]]
         if (colval == 'species' || colval == 'lon' || colval == 'lat') {
             cols[[colval]][colname] = colval
         } else if (colval == 'env_var_cat') {
@@ -169,7 +179,7 @@ bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
         } else if (colval == 'trait_con') {
             cols[['trait']][colname] = 'continuous'
         }
-  }
+    }
     formulae = list()
     # For trait diff, variable is the species, otherwise environmental variables.
     variables = paste(names(cols[[ifelse(trait_diff, 'species', 'env')]]), collapse=' + ')
@@ -241,6 +251,8 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filena
 
     if (length(rasters) > 0) {
         # Extract values from rasters, and combined with trait.data
+        # Use constraint trait.data as the constraint to ensure same number of rows
+        trait.constrained <- constrained.trait.data[c('lon', 'lat')]
         constrained.rasters <- sapply(rasters, extract, y = trait.constrained)
         constrained.trait.data <- cbind(constrained.trait.data, constrained.rasters)
 
@@ -249,6 +261,14 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filena
           colname <- layernames[[i]]
           trait.params[colname] = ifelse(raster.types[[i]] == 'continuous', 'env_var_con', 'env_var_cat')
         }
+    }
+
+    # Convert column as factor for ordinal and norminal trait data
+    for (colname in names(trait.params)) {
+        colval = trait.params[[colname]]
+        if (colval == 'trait_ord' || colval == 'trait_nom') {
+            constrained.trait.data[colname] = factor(constrained.trait.data[[colname]])
+        } 
     }
 
     return(list("data" = constrained.trait.data, "params" = trait.params))
