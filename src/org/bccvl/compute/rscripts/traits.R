@@ -144,17 +144,6 @@ parameter.print(bccvl.params)
 ## Needed for tryCatch'ing:
 bccvl.err.null <- function (e) return(NULL)
 
-
-bccvl.trait.asfactor <- function(trait.data, dataset_params) {
-    for (colname in names(dataset_params)) {
-        colval = dataset_params[[colname]]
-        if (colval == 'trait_ord' || colval == 'trait_nom') {
-            trait.data[colval] = factor(trait.data[colval])
-        } 
-    }
-    return(trait.data)
-}
-
 # Generate formulae for models that test the response of each trait to all environmental variables selected
 # i.e. for trait diff model, trait ~ species 
 # for trait cta/glm/gam models, trait ~ env1 + env2 + env3 etc 
