@@ -144,13 +144,13 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         if (biomod.build.clamping.mask) {
             mosaic_rasters(clampings,
                            file.path(outdir,
-                                     paste("proj", projection.name, "_ClampingMask", ".tif", sep="")),
+                                     paste("proj_", projection.name, "_ClampingMask", ".tif", sep="")),
                            co=c("COMPRESS=LZW", "TILED=YES"),
                            format="GTiff")
         }
         mosaic_rasters(projections,
                        file.path(outdir,
-                                 paste("proj", projection.name, "_", biomod.species.name, ".tif", sep="")),
+                                 paste("proj_", projection.name, "_", biomod.species.name, ".tif", sep="")),
                        co=c("COMPRESS=LZW", "TILED=YES"),
                        format="GTiff")
         
