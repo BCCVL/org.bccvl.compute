@@ -25,7 +25,7 @@ write.table(installed.packages()[,c("Package", "Version", "Priority")],
 
 #script to run to develop distribution models
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "rgeos", "pROC", "R2HTML", "png", "gstat", "biomod2", "gdalUtils") #list the libraries needed
+necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "rgeos", "pROC", "R2HTML", "png", "gstat", "biomod2", "gdalUtils", "spatial.tools") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -441,6 +441,7 @@ bccvl.rasters.common.reference <- function(rasters, resamplingflag) {
 }
 
 bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
+    # This warping runs all the time,... while it is fairly fast, it probably can be skipped if all raster layers lign up correctly
     rasters = mapply(
         function(filename, filetype) {
 
