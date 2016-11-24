@@ -37,10 +37,27 @@ if (!is.null(trait.data)) {
 # Load the gam Library
 library("gam")
 
+# To do: Shall mgcv library instead of gam library?
+# It causes issue with gam library
+#library("mgcv")
+
 # Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
     trait_name = formula$trait
+
+    if (formula$type == 'ordinal') {
+        fam = ocat(R=nlevels(trait.data[[trait_name]]))
+    }
+    else if (formula$type == 'nominal')
+    {
+        # env variables for the formula
+        envvar = attr(terms(formula(formula$formula)), 'term.labels')
+        fam = multinom(K=length(envvar))
+    }
+    else {
+        fam = family_from_string(bccvl.params$family)
+    }
 
     # Run the model for each trait separately
     gam.result = gam(formula=formula(formula$formula),
