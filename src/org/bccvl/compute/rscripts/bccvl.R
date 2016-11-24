@@ -457,8 +457,8 @@ bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
                      # tr=c(...), ... either this or ts
                      r="near",
                      of="GTiff",
-                     dstnodata=r@file@nodatavalue
-                     #co=c("TILED=YES", "COMPRESS=???")
+                     # dstnodata=NAvalue(r),
+                     co=c("TILED=YES", "COMPRESS=LZW")
                      )
             # put new file back into place
             file.rename(tmpf, filename)
@@ -580,7 +580,7 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
         basename = paste("proj", projection.name, species, filename_ext, sep="_")   
     }
     filename = file.path(outputdir, paste(basename, 'tif', sep="."))
-    writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
+    writeRaster(model.obj, filename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
 
     # TODO: can we merge this bit with bccvl.saveProjection in eval.R ?
     # Save as image as well
