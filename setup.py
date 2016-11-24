@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-version = '1.14.0rc1'
+VERSION = '1.14.0rc1'
 
 setup(
     name='org.bccvl.compute',
-    version=version,
+    version=VERSION,
     description="BCCVL Compute Scripts",
     # long_description=open("README.txt").read() + "\n" +
     #                  open(os.path.join("docs", "HISTORY.txt")).read(),

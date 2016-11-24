@@ -50,6 +50,7 @@ for (formula in formulae) {
                           weights=NULL,
                           na.action=na_action,
                           contrasts=NULL,
+                          Hess=TRUE,
                           model=TRUE,
                           method="logistic")
     } else if (formula$type == 'nominal') {

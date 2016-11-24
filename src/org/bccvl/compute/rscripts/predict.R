@@ -36,11 +36,15 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario, futuredata)
     # geographically constrained modelling
-    if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
+    if (!is.null(enviro.data.constraints)) {
+      # TODO: we have to be careful here, as the raster package may create a lot of temporary data here when we constrain input data, and run a projection
+      # actual problem: ... the mask call in geoconstrained generates a whole lot of temporary gri/grd files. these are then fed into biomod (only maxent?). when biomod does it's thing, it again generates a lot of temporary raster files, which quickly fills up the disk  
+      # solution: https://r-forge.r-project.org/forum/forum.php?max_rows=25&style=nested&offset=12&forum_id=995&group_id=302 ... split up predictors into small areas ... project each one... combine the mosaic result at the end... might even speed up projection as it is less disc intense
       constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, enviro.data.constraints, enviro.data.generateCHall);
       predictors <- constrainedResults$raster
+        
     }
-    
+
     # do projection
     if (inherits(model.obj, "DistModel")) {
         # dismo package
@@ -59,50 +63,99 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                               type="response")
         bccvl.saveModelProjection(model.proj, projection.name, species)
     } else if (inherits(model.obj, "BIOMOD.models.out")) {
-        # expect additional model data in input folder.
-        # for biomod to find it we'll have to change wd
+        # For biomod we process the raster in blocks to avoid creating an unnecessary large number of temporary raster files.
 
-        biomod.xy.new.env <- NULL
-        biomod.selected.models <- bccvl.params$selected_models
-        biomod.binary.meth <- NULL
-        biomod.filtered.meth <- NULL
-        biomod.compress <- NULL # bccvl.params$compress
-        biomod.build.clamping.mask <- TRUE
-        biomod.species.name <-  species
-        opt.biomod.silent <- FALSE
-        opt.biomod.do.stack <- TRUE
-        opt.biomod.keep.in.memory <- TRUE
-        opt.biomod.output.format <- NULL
+        projections = c()
+        clampings = c()
+        
+        blocksize = 512
 
-        model.proj <- BIOMOD_Projection(modeling.output=model.obj,
-                                        new.env=predictors,
-                                        proj.name=projection.name,
-                                        xy.new.env=biomod.xy.new.env,
-                                        selected.models=biomod.selected.models,
-                                        binary.meth=biomod.binary.meth,
-                                        filtered.meth=biomod.filtered.meth,
-                                        # compress=biomod.compress, # .. Null not accepted
-                                        build.clamping.mask=biomod.build.clamping.mask,
-                                        silent=opt.biomod.silent,
-                                        do.stack=opt.biomod.do.stack,
-                                        keep.in.memory=opt.biomod.keep.in.memory,
-                                        output.format=opt.biomod.output.format,
-                                        on_0_1000=FALSE)
-        # save projection to output folder
-        # move proj_folder
-        projinput <- file.path(getwd(),
-                               biomod.species.name,
-                               paste("proj", projection.name, sep="_"))
-        projoutput <- file.path(bccvl.env$outputdir,
-                                biomod.species.name,
-                                paste("proj", projection.name, sep="_"))
-        # create top level dir
-        dir.create(file.path(bccvl.env$outputdir, biomod.species.name))
-        # move proj_future folder to output folder
-        file.rename(projinput, projoutput)
-        # convert grd files to tif
-        bccvl.grdtogtiff(projoutput)
+        # log progress
+        steps = ceiling(ncol(predictors) / blocksize) * ceiling(nrow(predictors) / blocksize)
+        step = 1
+        
+        for (c1 in seq(1, ncol(predictors), blocksize)) {
+            for(r1 in seq(1, nrow(predictors), blocksize)) {
+                c2 = min(c1 + blocksize - 1, ncol(predictors))
+                r2 = min(r1 + blocksize - 1, nrow(predictors))
+                block = stack(getValuesBlock_enhanced(predictors, r1, r2, c1, c2, format='raster'))
+                block_name = paste(r1, c1, sep="_")
+
+                # expect additional model data in input folder.
+                # for biomod to find it we'll have to change wd
+
+                biomod.xy.new.env <- NULL
+                biomod.selected.models <- bccvl.params$selected_models
+                biomod.binary.meth <- NULL
+                biomod.filtered.meth <- NULL
+                biomod.compress <- NULL # bccvl.params$compress
+                biomod.build.clamping.mask <- TRUE
+                biomod.species.name <-  species
+                opt.biomod.silent <- TRUE
+                opt.biomod.do.stack <- TRUE
+                opt.biomod.keep.in.memory <- TRUE
+                opt.biomod.output.format <- NULL
+
+                cat(paste("\n", "Projecting block:", step, "of", steps, sep=" "))
+                
+                model.proj <- BIOMOD_Projection(modeling.output=model.obj,
+                                                new.env=block,
+                                                proj.name=block_name,
+                                                xy.new.env=biomod.xy.new.env,
+                                                selected.models=biomod.selected.models,
+                                                binary.meth=biomod.binary.meth,
+                                                filtered.meth=biomod.filtered.meth,
+                                                # compress=biomod.compress, # .. Null not accepted
+                                                build.clamping.mask=biomod.build.clamping.mask,
+                                                silent=opt.biomod.silent,
+                                                do.stack=opt.biomod.do.stack,
+                                                keep.in.memory=opt.biomod.keep.in.memory,
+                                                output.format=opt.biomod.output.format,
+                                                on_0_1000=FALSE)
+
+                step = step + 1
+                
+                # store paths
+                # output raster model.proj@proj
+                proj_folder = file.path(getwd(),
+                                        model.obj@sp.name,
+                                        paste("proj_", block_name, sep= ""))
+                # convert projection output and clamping mask to geotiff
+                bccvl.grdtogtiff(proj_folder)
+                # collect geotiff file names for 
+                projections = c(projections,
+                                file.path(proj_folder,
+                                          paste("proj_", block_name, "_", model.obj@sp.name, ".tif", sep="")))
+                clampings = c(clampings,
+                              file.path(proj_folder,
+                                        paste("proj_", block_name,"_ClampingMask", ".tif", sep="")))
+                                
+                # free up temp space used up by biomod and raster
+                removeTmpFiles(0)
+            }
+        }
+
+        # create output folder
+        outdir = file.path(bccvl.env$outputdir,
+                           biomod.species.name,
+                           paste("proj", projection.name, sep="_"))
+        dir.create(outdir, recursive=TRUE)
+        # combine all seperate rasters into one big file
+        if (biomod.build.clamping.mask) {
+            mosaic_rasters(clampings,
+                           file.path(outdir,
+                                     paste("proj_", projection.name, "_ClampingMask", ".tif", sep="")),
+                           co=c("COMPRESS=LZW", "TILED=YES"),
+                           format="GTiff")
+        }
+        mosaic_rasters(projections,
+                       file.path(outdir,
+                                 paste("proj_", projection.name, "_", biomod.species.name, ".tif", sep="")),
+                       co=c("COMPRESS=LZW", "TILED=YES"),
+                       format="GTiff")
+        
     }
+    
 }
 
 
