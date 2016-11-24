@@ -611,7 +611,7 @@ bccvl.getModelObject <- function(model.file=bccvl.env$inputmodel) {
 # TODO: extend to handle other grid file formats, e.g. .asc
 bccvl.grdtogtiff <- function(folder, filename_ext=NULL) {
     grdfiles <- list.files(path=folder,
-                           pattern="^.*\\.gri")
+                           pattern="^.*\\.grd")
     for (grdfile in grdfiles) {
         # get grid file name
         grdname <- file_path_sans_ext(grdfile)
@@ -630,7 +630,8 @@ bccvl.grdtogtiff <- function(folder, filename_ext=NULL) {
             basename = paste(grdname, filename_ext, sep="_")
         }
         filename = file.path(folder, paste(basename, 'tif', sep="."))
-        writeRaster(grd, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
+        writeRaster(grd, filename, datatype=dataType(grd),
+                    format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
         # remove grd files
         file.remove(file.path(folder, paste(grdname, c("grd","gri"), sep=".")))
     }
