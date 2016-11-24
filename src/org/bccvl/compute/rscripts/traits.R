@@ -14,7 +14,7 @@ write.table(installed.packages()[,c("Package", "Version", "Priority")],
             row.names=FALSE)
 
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "rgdal", "rpart", "R2HTML", "png", "gstat", "gdalUtils") #list the libraries needed
+necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "raster", "rgdal", "R2HTML", "png", "gstat", "gdalUtils") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -39,7 +39,7 @@ rasterOptions(tmpdir=paste(bccvl.env$workdir,"raster_tmp",sep="/"))
 
 # Use seed supplied if any. Otherwise generate a random seed.
 seed = bccvl.params$random_seed
-if (is.null(seed)) {
+if (is.null(seed) || seed == "") {
     seed = runif(1, -2^31, 2^31-1)
 }
 seed = as.integer(seed)
@@ -88,12 +88,24 @@ parameter.as.string <- function (param, value) {
     else if (param == "nb_run_eval") {
         pname = "n-fold cross validation"
     } 
+    else if (param == "control_maxcompete") {
+        pname = "number of competitor splits"
+    }
+    else if (param == "control_maxsurrogate") {
+        pname = "number of surrogate splits"
+    }
+    else if (param == "control_usesurrogate") {
+        pname = "surrogate usage"
+    }
+    else if (param == "control_surstyle") {
+        pname = "surrogate style"
+    }    
     return(paste(pname, " = ", value, "\n", sep="", collapse=""))
 }
 
 # print out parameters used for STM algorithms: speciestrait_glm, speciestrait_gam, speciestrait_cta
 parameter.print <- function(params) {
-    func = params[["function"]]
+    func = params[["algorithm"]]
     if (is.null(func))
         return("")
     cat("Algorithm:", func, "\n")
@@ -105,7 +117,7 @@ parameter.print <- function(params) {
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "method", "model", "x", "y", "random_seed")
     }
     else if (func == "speciestrait_cta") {
-        pnames = c("nb_run_eval", "data_split", "prevalence", "var_import", "do_full_models", "method", "control_xval", "control_minbucket", "control_minsplit", "control_cp", "control_maxdepth", "random_seed")
+        pnames = c("control_xval", "control_minbucket", "control_minsplit", "control_cp", "control_maxdepth", "control_maxcompete", "control_maxsurrogate", "control_usesurrogate", "control_surstyle", "random_seed")
     }
     else if (func == "traitdiff_glm") {
         # Todo: Need to update these parameters
@@ -131,196 +143,124 @@ parameter.print(bccvl.params)
 
 ## Needed for tryCatch'ing:
 bccvl.err.null <- function (e) return(NULL)
+
+# Generate formulae for models that test the response of each trait to all environmental variables selected
+# i.e. for trait diff model, trait ~ species 
+# for trait cta/glm/gam models, trait ~ env1 + env2 + env3 etc 
+bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
+    cols = list(species=list(),
+                lat=list(),
+                lon=list(),
+                env=list(),
+                trait=list()) 
+    for(colname in names(dataset_params)) {
+        colval = dataset_params[[colname]]
+        if (colval == 'species' || colval == 'lon' || colval == 'lat') {
+            cols[[colval]][colname] = colval
+        } else if (colval == 'env_var_cat') {
+            cols[['env']][colname] = 'categorical'
+        } else if (colval == 'env_var_con') {
+            cols[['env']][colname] = 'continuous'
+        } else if (colval == 'trait_ord') {
+            cols[['trait']][colname] = 'ordinal'
+        } else if (colval == 'trait_nom') {
+            cols[['trait']][colname] = 'nominal'
+        } else if (colval == 'trait_con') {
+            cols[['trait']][colname] = 'continuous'
+        }
+    }
+    formulae = list()
+    # For trait diff, variable is the species, otherwise environmental variables.
+    variables = paste(names(cols[[ifelse(trait_diff, 'species', 'env')]]), collapse=' + ')
+    for (trait in names(cols[['trait']])) {
+        formulae = append(formulae, list(list(formula=paste(trait, '~', variables),
+                                    type=cols[['trait']][trait],
+                                    trait=trait)))
+    }
+    # return a list of lists, where each sublist has $formula, $type, and $trait
+    return (formulae)
+}
            
-bccvl.raster.load <- function(filename) {
+bccvl.raster.load <- function(filename, filetype = 'continuous') {
     # load raster and assign crs if missing
     r = raster(filename)
     if (is.na(crs(r))) {
         crs(r) = CRS("+init=epsg:4326")
     }
+
+    if (filetype == "categorical") {
+        # convert to factor if categorical
+        r = as.factor(r)
+    }
     return(r)
 }
-
-# rasters: a vector of rasters, all rasters should have same resolution
-# common.crs: crs to use to calculate intersection
-bccvl.raster.common.extent <- function(rasters, common.crs)
-{
-    # bring all rasters into common crs
-    extent.list = lapply(rasters, function(r) { extent(projectExtent(r, common.crs)) })
-    # intersect all extents
-    common.extent = Reduce(intersect, extent.list)
-    # compare all against commen extents to find out if all extents are the same (used to print warning)
-    equal.extents = all(sapply(extent.list, function (x) common.extent == x))
-
-    return (list(equal.extents=equal.extents, common.extent=common.extent))
-}
-
-bccvl.raster.extent.to.str <- function(ext)
-{
-  return(sprintf("xmin=%f xmax=%f ymin=%f ymax=%f", ext@xmin, ext@xmax, ext@ymin, ext@ymax));
-}
-
-# rasters: a vector of rasters ... preferrably empty
-# resamplingflag: a flag to determine which resampling approach to take
-bccvl.rasters.common.resolution <- function(rasters, resamplingflag) {
-    resolutions = lapply(rasters, res)
-    if (resamplingflag == "highest") {
-        common.res = Reduce(pmin, resolutions)
-    } else if (resamplingflag == "lowest") {
-        common.res = Reduce(pmax, resolutions)
-    }
-    is.same.res = all(sapply(resolutions, function(x) all(common.res == x)))
-    return (list(common.res=common.res, is.same.res=is.same.res))
-}
-
-# generate reference raster with common resolutin, crs and extent
-bccvl.rasters.common.reference <- function(rasters, resamplingflag) {
-    # create list of empty rasters to speed up alignment
-    empty.rasters = lapply(rasters, function(x) { projectExtent(x, crs(x)) })
-    # choose a common.crs if all crs in rasters are the same use that one, otherwise use EPSG:4326 (common data in bccvl)
-    common.crs = crs(empty.rasters[[1]])
-    # TODO: print warning about reprojecting if necessary (if inside next condition)
-    if (! do.call(compareRaster, c(empty.rasters, extent=FALSE, rowcol=FALSE, prj=TRUE, res=FALSE, orig=FALSE, rotation=FALSE, stopiffalse=FALSE))) {
-        # we have different CRSs, so use EPSG:4326 as common
-        # TODO: another strategy to find common CRS?
-        common.crs = CRS("+init=epsg:4326")
-        # project all rasters into common crs
-        bccvl.log.warning(sprintf("Auto projecting to common CRS %s", common.crs))
-        empty.rasters = lapply(empty.rasters, function(x) { projectExtent(x, common.crs) })
-    }
-
-    # determine commen.extent in common.crs
-    # Note: extent is in projection units, -> rasters have to be in same CRS
-    ce = bccvl.raster.common.extent(empty.rasters, common.crs)
-    if (! ce$equal.extents) {
-        bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
-    }
-    
-    # determine common resolution
-    # Note: resolution is usually in projection units. -> rasters should be in same CRS
-    cr = bccvl.rasters.common.resolution(empty.rasters, resamplingflag)
-    # TODO: print warning about resampling: common.res$is.same.res
-    if (! cr$is.same.res) {
-        bccvl.log.warning(sprintf("Auto resampling to %s resolution [%f %f]", resamplingflag, cr$common.res[[1]], cr$common.res[[2]]))
-    }
-
-    # apply common extent and resolution to empty rasters
-    empty.rasters = lapply(
-        empty.rasters,
-        function(x) {
-            extent(x) = ce$common.extent
-            res(x) = cr$common.res
-            return(x)
-        })
-    # from now an all empty.rasters should be exactly the same, pick first and return as
-    # template.
-    return(empty.rasters[[1]])
-}
-
-bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
-    rasters = mapply(
-        function(filename, filetype) {
-
-            r = bccvl.raster.load(filename)
-            # warp, crop and rescale raster file if necessary
-            dir = dirname(filename)
-            tmpf = file.path(dir, 'tmp.tif') # TODO: better filename and location?
-            te = extent(reference)
-            gdalwarp(filename, tmpf,
-                     s_srs=CRSargs(crs(r)), t_srs=CRSargs(crs(reference)),
-                     te=c(te@xmin, te@ymin, te@xmax, te@ymax),
-                     ts=c(ncol(reference), nrow(reference)),
-                     # tr=c(...), ... either this or ts
-                     r="near",
-                     of="GTiff",
-                     dstnodata=r@file@nodatavalue
-                     #co=c("TILED=YES", "COMPRESS=???")
-                     )
-            # put new file back into place
-            file.rename(tmpf, filename)
-            # load new file and convert to categorical if required
-            r = raster(filename)
-            if (filetype == "categorical") {
-                # convert to factor if categorical
-                r = as.factor(r)
-            }
-            return(r)
-        },
-        raster.filenames, raster.types)
-    return(rasters)
-}
-
-# raster.filenames : a vector of filenames that will be loaded as rasters
-# resamplingflag: a flag to determine which resampling approach to take
-bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, raster.types, resamplingflag)
-{
-    # Load rasters and assign CRS if missing
-    rasters = lapply(raster.filenames, bccvl.raster.load)
-
-    # determine common raster shape
-    reference = bccvl.rasters.common.reference(rasters, resamplingflag)
-    
-    # adjust rasters spatially and convert categorical rasters to factors
-    rasters = bccvl.rasters.warp(raster.filenames, raster.types, reference)
-
-    return(rasters)
-}
-
-# return a RasterStack of given vector of input files
-# intersecting extent
-# lowest or highest resolution depending upon flag
-bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
-    # adjust rasters to same projection, resolution and extent
-    rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, types, resamplingflag)
-    # stack rasters
-    rasterstack = stack(rasters)
-    # assign predefined variable names
-    names(rasterstack) = unlist(layernames)
-    return(rasterstack)
-}
-
-## CH: we want to keep constraints: in this case only the data in the user-defined constraint will be used (might need a bit of tweaking from
-## how we currently use constraints in SDM - let's discuss.
                              
 # geographically constrained modelling
-# bccvl.sdm.geoconstrained
-bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson) {
-  
-    # Parse the geojson from text to SpatialPointsDataFrame
-    parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
-  
-    # Assign the same projection to the raster 
-    if (!compareCRS(rasterstack, parsedgeojson, verbatim=TRUE)) {
-        # CRS is different, reproject geojson to rasterstack
-        parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
+# return constrainted trait.data with env
+bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filenames, raster.types, layernames, rawgeojson) {
+
+    # trait must have at least a trait
+    if (is.null(trait.data)) {
+        return(list("data" = trait.data, "params" = trait.params))
     }
 
-    # Mask the rasterstack (and make sure it is a RasterStack)    
-    geoconstrained <- stack(mask(rasterstack, parsedgeojson))
+    # Read in the raster, and assign predefined variable names
+    rasters = list()
+    if (length(raster.filenames) > 0) {
+        rasters = mapply(bccvl.raster.load, raster.filenames, raster.types)
+        names(rasters) = unlist(layernames)
+    }
 
-    # If there are occurrence points, constrain them
-    if (!is.null(occur)) {
-        # Constrain the occurrence points
-        occurSP <- SpatialPoints(occur)
-        # We have to make sure occurSP has the same CRS
-        if (is.na(crs(occurSP))) {
-            crs(occurSP) <- '+init=epsg:4326'
-        }
-        if (!compareCRS(occurSP, parsedgeojson, verbatim=TRUE)) {
-            occurSP <- spTransform(occurSP, crs(parsedgeojson))
-        }
-        occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
-        occurconstrained <- as.data.frame(occurSPconstrained)
-        # rest of scripts expects names "lon", "lat" and not "x", "y"
-        names(occurconstrained) <- c("lon", "lat")
+    # Parse the geojson from text to SpatialPointsDataFrame
+    traitSP <- SpatialPoints(trait.data[c('lon', 'lat')])
+    if (is.na(crs(traitSP))) {
+        crs(traitSP) <- '+init=epsg:4326'
+    }
+
+    if (is.null(rawgeojson))
+    {
+        traitSPconstrained <- traitSP
     }
     else {
-        occurconstrained = NULL
+        parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
+
+        # CRS is different, reproject geojson to the trait coordinate systemf
+        if (!compareCRS(traitSP, parsedgeojson, verbatim=TRUE)) {
+            parsedgeojson <- spTransform(parsedgeojson, crs(traitSP))
+        }
+        # Constrain the occurrence points
+        traitSPconstrained <- traitSP[!is.na(over(traitSP, parsedgeojson))]
     }
-    
-    # Return the masked raster stack and constrained occurrence points
-    mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
-    return(mylist)
+
+    trait.constrained <- as.data.frame(traitSPconstrained)
+    names(trait.constrained) <- c("lon", "lat")
+
+    # constraint the trait.data
+    constrained.trait.data <- merge(trait.data, trait.constrained)
+
+    if (length(rasters) > 0) {
+        # Extract values from rasters, and combined with trait.data
+        # Use constraint trait.data as the constraint to ensure same number of rows
+        trait.constrained <- constrained.trait.data[c('lon', 'lat')]
+        constrained.rasters <- sapply(rasters, extract, y = trait.constrained)
+        constrained.trait.data <- cbind(constrained.trait.data, constrained.rasters)
+
+        # Update the trait dataset parameters with environmental variables types
+        for (i in 1:length(layernames)) {
+          colname <- layernames[[i]]
+          trait.params[colname] = ifelse(raster.types[[i]] == 'continuous', 'env_var_con', 'env_var_cat')
+        }
+    }
+
+    # Convert column as factor for ordinal and norminal trait data
+    for (colname in names(trait.params)) {
+        colval = trait.params[[colname]]
+        if (colval == 'trait_ord' || colval == 'trait_nom') {
+            constrained.trait.data[colname] = factor(constrained.trait.data[[colname]])
+        } 
+    }
+
+    return(list("data" = constrained.trait.data, "params" = trait.params))
 }
 
 # function to save projection output raster
@@ -345,10 +285,23 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
     dev.off()
 }
 
+
 # function to save RData in outputdir
 bccvl.save <- function(robj, name, outputdir=bccvl.env$outputdir) {
     filename = file.path(outputdir, name)
     save(robj, file=filename)
+}
+
+bccvl.write.image <- function(robj, name, plotfn, outputdir=bccvl.env$outputdir) {
+    png(file.path(outputdir, paste(name, 'png', sep=".")))
+    plot.function = paste0(plotfn, "(robj)")
+    eval(parse(text=plot.function))
+    dev.off()
+}
+
+bccvl.write.text <- function(robj, name, outputdir=bccvl.env$outputdir, append=FALSE) {
+    filename = file.path(outputdir, name)
+    capture.output(robj, file=filename, append=append)
 }
 
 # function to save CSV Data in outputdir

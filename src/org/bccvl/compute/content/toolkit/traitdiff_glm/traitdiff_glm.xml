@@ -7,71 +7,31 @@
               label="Configuration options"
               description="Options are set to package defaults unless otherwise modified.">
       <field name="family" type="zope.schema.Choice">
-        <title>Family</title>
-        <description>Please refer to the R documention</description>
+        <title>family</title>
+        <description>error distribution and link function to be used in the model</description>
         <values>
           <element>binomial</element>
+          <element>gaussian</element>
+          <element>gamma</element>
+          <element>poisson</element>
           <element>binomial(link="logit")</element>
           <element>binomial(link="probit")</element>
-          <element>binomial(link="cauchit")</element>
-          <element>binomial(link="log")</element>
-          <element>binomial(link="cloglog")</element>
-          <element>gaussian</element>
           <element>gaussian(link="identity")</element>
           <element>gaussian(link="log")</element>
           <element>gaussian(link="inverse")</element>
-          <element>Gamma</element>
-          <element>Gamma(link="inverse")</element>
-          <element>Gamma(link="identity")</element>
-          <element>Gamma(link="log")</element>
-          <element>poisson</element>
-          <element>poisson(link="log")</element>
+          <element>gamma(link="identity")</element>
+          <element>gamma(link="log")</element>
+          <element>gamma(link="inverse")</element>
           <element>poisson(link="identity")</element>
+          <element>poisson(link="log")</element>
           <element>poisson(link="sqrt")</element>
-          <element>inverse.gaussian</element>
-          <element>inverse.gaussian(link="1/mu^2")</element>
-          <element>inverse.gaussian(link="inverse")</element>
-          <element>inverse.gaussian(link="identity")</element>
-          <element>inverse.gaussian(link="log")</element>
-          <element>quasi</element>
-          <element>quasi(link="logit")</element>
-          <element>quasi(link="probit")</element>
-          <element>quasi(link="cloglog")</element>
-          <element>quasi(link="identity")</element>
-          <element>quasi(link="inverse")</element>
-          <element>quasi(link="log")</element>
-          <element>quasi(link="1/mu^2")</element>
-          <element>quasi(link="sqrt")</element>
-          <element>quasibinomial</element>
-          <element>quasibinomial(link="logit")</element>
-          <element>quasibinomial(link="probit")</element>
-          <element>quasibinomial(link="cloglog")</element>
-          <element>quasibinomial(link="identity")</element>
-          <element>quasibinomial(link="inverse")</element>
-          <element>quasibinomial(link="log")</element>
-          <element>quasibinomial(link="1/mu^2")</element>
-          <element>quasibinomial(link="sqrt")</element>
-          <element>quasipoisson</element>
-          <element>quasipoisson(link="logit")</element>
-          <element>quasipoisson(link="probit")</element>
-          <element>quasipoisson(link="cloglog")</element>
-          <element>quasipoisson(link="identity")</element>
-          <element>quasipoisson(link="inverse")</element>
-          <element>quasipoisson(link="log")</element>
-          <element>quasipoisson(link="1/mu^2")</element>
-          <element>quasipoisson(link="sqrt")</element>
         </values>
-        <default>gaussian(link="identity")</default>
+        <default>gaussian(link="log")</default>
         <required>True</required>
-      </field>
-      <field name="subset" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
-        <title>Subset</title>
-        <description>Optional vector that may be used to specify a subset of the data. Please specify a column included in the data model.</description>
-        <required>False</required>
       </field>
       <field name="weights" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
         <title>Weights</title>
-        <description>Optional vector that may be used to specify weights. Please specify a column included in the data model.</description>
+        <description>optional vector that may be used to specify weights; please specify a column included in the data model</description>
         <required>False</required>
       </field>
       <field name="na_action" type="zope.schema.Choice">
@@ -87,26 +47,26 @@
       </field>
       <field name="start" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
         <title>Start</title>
-        <description>Optional vector that may be used to specify start. Please specify a column included in the data model.</description>
+        <description>optional vector that may be used to specify start; please specify a column included in the data model</description>
         <required>False</required>
       </field>
       <field name="eta_start" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
         <title>ETA start</title>
-        <description>Optional vector that may be used to specify ETA start. Please specify a column included in the data model.</description>
+        <description>optional vector that may be used to specify ETA start; please specify a column included in the data model</description>
         <required>False</required>
       </field>
       <field name="mu_start" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
         <title>Mu start</title>
-        <description>Optional vector that may be used to specify Mu start. Please specify a column included in the data model.</description>
+        <description>optional vector that may be used to specify Mu start; please specify a column included in the data model</description>
         <required>False</required>
       </field>
       <field name="offset" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
         <title>Offset</title>
-        <description>Optional vector. Please specify a column included in the data model.</description>
+        <description>optional vector; please specify a column included in the data model</description>
         <required>False</required>
       </field>
       <field name="method" type="zope.schema.Choice">
-        <title>Method</title>
+        <title>method</title>
         <description>method to be used in fitting the model; default = glm.fit, which uses the IWLS method; model.frame does no fitting</description>
         <values>
           <element>glm.fit</element>

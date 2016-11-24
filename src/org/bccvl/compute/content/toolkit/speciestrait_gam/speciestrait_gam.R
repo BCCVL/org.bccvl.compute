@@ -5,94 +5,66 @@
 
 ### Runs a Generalized Additive Model to test the effect of selected environmental variables on species traits
 
-## trait dataset csv file
+## DATA
+
+# Link to input dataset csv file
 trait.data.filename = bccvl.params$traits_dataset$filename
-# mapping of variable names of trait dataset
-trait.data.varnames = bccvl.params$traits_dataset_params
-
-# read in the trait data
+# Link to variable names of input dataset
+trait.data.params = bccvl.params$traits_dataset_params
+# Read in the trait data
 trait.data = read.csv(trait.data.filename)
-# Loop through the trait data variables name to extract trait and env data
-for (varname in ls(trait.data.varnames)) {
-    if (varname %in% colnames(trait.data)) {
-      assign(paste(varname), trait.data[,varname])
-    }
+
+# Define the current environmental data to use
+enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
+# Type in terms of continuous or categorical
+enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
+# Layer names for the current environmental layers used
+enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
+# Geographic constraints
+enviro.data.constraints = bccvl.params$modelling_region
+
+
+# Geographically constrained modelling and merge the environmental data into trait.data
+if (!is.null(trait.data)) {
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints);
+    trait.data = merged.result$data
+    trait.data.params = merged.result$params
 }
 
-env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how do we make sure we select all env variables selected here?
+  
+## MODEL
+  
+# Load the gam Library
+library("gam")
 
-# Library
-library("gam") # CH: should we add this in the package list in traits.R, if it is not in there already....
+# Generate a formula for each trait
+formulae = bccvl.trait.gen_formulae(trait.data.params)
+for (formula in formulae) {
+    trait_name = formula$trait
 
-## Set up the function call expression
-gam.params = list(data=gam.data)
+    # Run the model for each trait separately
+    gam.result = gam(formula=formula(formula$formula),
+                     data=trait.data,
+                     family=family_from_string(bccvl.params$family),
+                     weights=NULL,
+                     na.action=get(getOption(bccvl.params$na_action, "na.fail")),
+                     start=NULL,
+                     etastart=NULL,
+                     mustart=NULL,
+                     method=bccvl.params$method,
+                     model=TRUE,
+                     x=FALSE,
+                     y=FALSE)
 
-## set defaults for missing parameters according to R docs:
-## see Jon Shuker's inputs specification for reference
-gam.defaults = list(family="gaussian(link=identity)",
-                   subset=NULL,
-                   weights=NULL,
-                   na.action=options("na.action")[[1]],
-                   start=NULL,
-                   ea_start=NULL,
-                   mu_start=NULL,
-                   method="gam.fit",
-                   model=TRUE,
-                   x=FALSE,
-                   y=FALSE,
-                   contrasts=NULL)
+    ## Save the result to file
+    # Save the model
+    bccvl.save(gam.result, paste0(trait_name, ".gam.model.object.RData"))
 
-# plain old parameters
-for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y')) {
-    if (! is.null(bccvl.params[[paramname]])) {
-        gam.params[paramname] = bccvl.params[paramname]
-    } else {
-        gam.params[paramname] = gam.defaults[paramname]
-    }
+    # Save result summary to a text file
+    s <- summary(gam.result)
+    bccvl.write.text(s, paste0(trait_name, ".gam_result_summary.txt"))
+
+    # save the plot as png image
+    ofilename = paste0(trait_name, ".gam.plotgam")
+    bccvl.write.image(gam.result, ofilename, "plot.gam")
 }
-
-# parameters that sholud refer to a column in gam.data
-for (paramname in c('start', 'eta_start', 'mu_start', 'subset', 'weights', 'contrasts')) {
-    if (! is.null(bccvl.params[[paramname]])) {
-        gam.params[paramname] = gam.data[bccvl.params[[paramname]]]
-    } else {
-        gam.params[paramname] = gam.defaults[paramname]
-    }
-}
-
-# singular.ok has a different name in bccvl.params
-if (! is.null(bccvl.params['singular_ok'])) {
-    gam.params['singular.ok'] = bccvl.params$singular_ok
-} else {
-    gam.params['singular.ok'] = gam.defaults$singular.ok
-}
-
-# parse the family string (character) into a proper family object
-gam.params$family=family_from_string(gam.params$family)
-
-
-## Build the model
-gam.result = gam(formula=formula(gam.params$formula),
-                 data=gam.params$data,
-                 family=gam.params$family,
-                 subset=gam.params$subset,
-                 weights=gam.params$weights,
-                 na.action=gam.params$na.action[[1]],
-                 start=gam.params$start,
-                 etastart=gam.params$eta_start,
-                 mustart=gam.params$mu_start,
-                 method=gam.params$method,
-                 model=gam.params$model,
-                 x=gam.params$x,
-                 y=gam.params$y,
-                 contrasts=gam.params$contrasts)
-
-## Save the result to file
-
-bccvl.save(gam.result, "gam.model.object.RData")
-
-## Save result summary to a text file
-
-sink(file="gam_result_summary.txt")
-summary(gam.result)
-sink()

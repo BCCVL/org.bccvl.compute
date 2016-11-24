@@ -100,7 +100,7 @@ class ResultSource(object):
         genre = bccvlmd.get('genre', None)
         if genre:
             # FIXME: attach species data to everything?
-            if genre in ('DataGenreSDMModel', 'DataGenreCP', 'DataGenreClampingMask'):
+            if genre in ('DataGenreSDMModel', 'DataGenreCP', 'DataGenreCP_ENVLOP', 'DataGenreClampingMask'):
                 addLayersUsedInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
                 addSpeciesInfo(bccvlmd, self.context)

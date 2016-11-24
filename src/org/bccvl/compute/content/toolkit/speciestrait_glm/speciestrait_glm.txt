@@ -1,29 +1,30 @@
 {
     "files": {
-        "Rplots.pdf": {
-            "skip": true
+        "*.txt": {
+            "title": "Model summary",
+            "genre": "DataGenreSTResult",
+            "mimetype": "text/plain",
+            "order": 1
+        },    
+        "*.R": {
+            "title": "Job Script",
+            "genre": "JobScript",
+            "mimetype": "text/x-r",
+            "order": 2
         },
-        "*.Rout": {
+         "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",
-            "mimetype": "text/x-r-transcript"
-        },
-        "*.txt": {
-            "title": "Summary",
-            "genre": "DataGenreSTResult",
-            "mimetype": "text/plain"
+            "mimetype": "text/x-r-transcript",
+            "order": 3
         },
         "*.RData": {
             "title": "R Species Traits Model object",
             "genre": "DataGenreSTModel",
-            "mimetype": "application/x-r-data"
-        },
-        "*.R": {
-            "title": "Job Script",
-            "genre": "JobScript",
-            "mimetype": "text/x-r"
-        }
-    },
+            "mimetype": "application/x-r-data",
+            "order": 4
+        }        
+ },
     "archives": {
     }
 }

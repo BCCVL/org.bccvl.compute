@@ -1,97 +1,84 @@
-
 #########################################
 ###        traitdiff_glm.R         ###
 #########################################
 
 ### Runs a Generalized Linear Model to test how traits differ among species
 
-## trait dataset csv file
+## DATA
+
+# Link to input dataset csv file
 trait.data.filename = bccvl.params$traits_dataset$filename
-# mapping of variable names of trait dataset
-trait.data.varnames = bccvl.params$traits_dataset_params
-
-# read in the trait data
+# Link to variable names of input dataset
+trait.data.params = bccvl.params$traits_dataset_params
+# Read in the trait data
 trait.data = read.csv(trait.data.filename)
-# Loop through the trait data variables name to extract trait and env data
-for (varname in ls(trait.data.varnames)) {
-    if (varname %in% colnames(trait.data)) {
-      assign(paste(varname), trait.data[,varname])
-    }
+# Geographic constraints
+enviro.data.constraints = bccvl.params$modelling_region
+
+# Empty environmental dataset as it is not needed
+enviro.data.current = list()
+
+# Geographically constrained modelling and merge the environmental data into trait.data
+if (!is.null(trait.data)) {
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints);
+    trait.data = merged.result$data
+    trait.data.params = merged.result$params
 }
 
-env.data <- bccvl.params$traits_dataset_params$EnvVar1 # CH: same question, how do we make sure we select all env variables selected here?
 
-## Set up the function call expression
-glm.params = list(data=glm.data)
+## MODEL
 
-## set defaults for missing parameters according to R docs:
-## see Jon Shuker's inputs specification for reference
-glm.defaults = list(family="gaussian(link=identity)",
-                   subset=NULL,
-                   weights=NULL,
-                   na.action=options("na.action")[[1]],
-                   start=NULL,
-                   ea_start=NULL,
-                   mu_start=NULL,
-                   offset=NULL,
-                   method="glm.fit",
-                   model=TRUE,
-                   x=FALSE,
-                   y=FALSE,
-                   contrasts=NULL)
+# Load the library
+library("MASS")
+library("nnet")  
 
-# plain old parameters
-for (paramname in c('formula', 'family', 'na.action', 'method', 'model', 'x', 'y')) {
-    if (! is.null(bccvl.params[[paramname]])) {
-        glm.params[paramname] = bccvl.params[paramname]
+# Generate the formulae to test differences among species for each trait separately
+formulae = bccvl.trait.gen_formulae(trait.data.params, trait_diff=TRUE)
+# Run model - with polr function for ordinal traits, multinom function for nominal traits, glm function for continuous traits
+na_action = get(getOption(bccvl.params$na_action, "na.fail"))
+for (formula in formulae) {
+    if (formula$type == 'ordinal') {
+        output_filename = paste0(formula$trait, ".diffpolr.results.txt")
+        glm.result = polr(formula=formula(formula$formula),
+                          data=trait.data,
+                          weights=NULL,
+                          na.action=na_action,
+                          contrasts=NULL,
+                          Hess=TRUE,
+                          model=TRUE,
+                          method="logistic")
+    } else if (formula$type == 'nominal') {
+        output_filename = paste0(formula$trait, ".diffnom.results.txt")
+        glm.result = multinom(formula=formula(formula$formula),
+                              data=trait.data,
+                              weights=NULL,
+                              na.action=na_action,
+                              contrasts=NULL,
+                              summ=0,        
+                              model=TRUE)
     } else {
-        glm.params[paramname] = glm.defaults[paramname]
+        output_filename = paste0(formula$trait, ".diffglm.results.txt")
+        glm.result = glm(formula=formula(formula$formula),
+                         family=family_from_string(bccvl.params$family),
+                         data= trait.data,
+                         weights=NULL,
+                         na.action=na_action,
+                         start=NULL,
+                         etastart=NULL,
+                         mustart=NULL,
+                         offset=NULL,
+                         model=TRUE,
+                         method=bccvl.params$method,
+                         x=FALSE,
+                         y=FALSE,
+                         contrasts=NULL)
     }
+        
+    ## Save the result to file
+    # Save the model
+    bccvl.save(glm.result, paste0(formula$trait, ".diffglm.model.object.RData"))
+
+    ## Save the results as text to file for each trait
+    s <- summary(glm.result) 
+    bccvl.write.text(s, output_filename)
 }
-
-# parameters that sholud refer to a column in glm.data
-for (paramname in c('start', 'eta_start', 'mu_start', 'subset', 'weights', 'contrasts','offset')) {
-    if (! is.null(bccvl.params[[paramname]])) {
-        glm.params[paramname] = glm.data[bccvl.params[[paramname]]]
-    } else {
-        glm.params[paramname] = glm.defaults[paramname]
-    }
-}
-
-# singular.ok has a different name in bccvl.params
-if (! is.null(bccvl.params['singular_ok'])) {
-    glm.params['singular.ok'] = bccvl.params$singular_ok
-} else {
-    glm.params['singular.ok'] = glm.defaults$singular.ok
-}
-
-# parse the family string (character) into a proper family object
-glm.params$family=family_from_string(glm.params$family)
-
-
-## Run the regression
-glm.result = glm(formula=glm.params$formula,
-                 family=glm.params$family,
-                 data=glm.params$data,
-                 weights=glm.params$weights,
-                 subset=glm.params$subset,
-                 na.action=glm.params$na.action[[1]],
-                 start=glm.params$start,
-                 etastart=glm.params$eta_start,
-                 mustart=glm.params$mu_start,
-                 offset=glm.params$offset,
-                 model=glm.params$model,
-                 method=glm.params$method,
-                 x=glm.params$x,
-                 y=glm.params$y,
-                 contrasts=glm.params$contrasts)
-
-## Save the result to file
-
-bccvl.save(glm.result, "glm.model.object.RData")
-
-## Save result summary to a text file
-
-sink(file="glm_result_summary.txt")
-summary(glm.result)
-sink()
