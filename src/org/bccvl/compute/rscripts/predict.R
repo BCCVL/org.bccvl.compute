@@ -89,7 +89,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                 biomod.binary.meth <- NULL
                 biomod.filtered.meth <- NULL
                 biomod.compress <- NULL # bccvl.params$compress
-                biomod.build.clamping.mask <- TRUE
+                biomod.build.clamping.mask <- FALSE
                 biomod.species.name <-  species
                 opt.biomod.silent <- TRUE
                 opt.biomod.do.stack <- TRUE
