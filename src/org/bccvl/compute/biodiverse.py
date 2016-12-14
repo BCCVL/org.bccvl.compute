@@ -89,16 +89,6 @@ OUTPUTS = {
             "genre": "DataGenreENDW_RICHNESS",
             "mimetype": "image/geotiff"
         },
-        '*ENDW_SINGLE.tif': {
-            "title": "Endemism whole - Unweigthed by the number of neighbours",
-            "genre": "DataGenreENDW_SINGLE",
-            "mimetype": "image/geotiff"
-        },
-        '*REDUNDANCY_SET1.tif': {
-            "title": "Redundancy - neigbour set 1",
-            "genre": "DataGenreREDUNDANCY_SET1",
-            "mimetype": "image/geotiff",
-        },
         '*REDUNDANCY_SET2.tif': {
             "title": "Redundancy - neigbour set 2",
             "genre": "DataGenreREDUNDANCY_SET2",

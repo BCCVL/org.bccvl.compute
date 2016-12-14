@@ -25,7 +25,7 @@ write.table(installed.packages()[,c("Package", "Version", "Priority")],
 
 #script to run to develop distribution models
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "rgeos", "pROC", "R2HTML", "png", "gstat", "biomod2", "gdalUtils") #list the libraries needed
+necessary=c("ggplot2","tools", "rjson", "dismo","SDMTools", "gbm", "rgdal", "rgeos", "pROC", "R2HTML", "png", "gstat", "biomod2", "gdalUtils", "spatial.tools") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -441,6 +441,7 @@ bccvl.rasters.common.reference <- function(rasters, resamplingflag) {
 }
 
 bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
+    # This warping runs all the time,... while it is fairly fast, it probably can be skipped if all raster layers lign up correctly
     rasters = mapply(
         function(filename, filetype) {
 
@@ -456,8 +457,8 @@ bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
                      # tr=c(...), ... either this or ts
                      r="near",
                      of="GTiff",
-                     dstnodata=r@file@nodatavalue
-                     #co=c("TILED=YES", "COMPRESS=???")
+                     # dstnodata=NAvalue(r),
+                     co=c("TILED=YES", "COMPRESS=LZW")
                      )
             # put new file back into place
             file.rename(tmpf, filename)
@@ -579,7 +580,7 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
         basename = paste("proj", projection.name, species, filename_ext, sep="_")   
     }
     filename = file.path(outputdir, paste(basename, 'tif', sep="."))
-    writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
+    writeRaster(model.obj, filename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
 
     # TODO: can we merge this bit with bccvl.saveProjection in eval.R ?
     # Save as image as well
@@ -610,7 +611,7 @@ bccvl.getModelObject <- function(model.file=bccvl.env$inputmodel) {
 # TODO: extend to handle other grid file formats, e.g. .asc
 bccvl.grdtogtiff <- function(folder, filename_ext=NULL) {
     grdfiles <- list.files(path=folder,
-                           pattern="^.*\\.gri")
+                           pattern="^.*\\.grd")
     for (grdfile in grdfiles) {
         # get grid file name
         grdname <- file_path_sans_ext(grdfile)
@@ -629,7 +630,8 @@ bccvl.grdtogtiff <- function(folder, filename_ext=NULL) {
             basename = paste(grdname, filename_ext, sep="_")
         }
         filename = file.path(folder, paste(basename, 'tif', sep="."))
-        writeRaster(grd, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
+        writeRaster(grd, filename, datatype=dataType(grd),
+                    format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
         # remove grd files
         file.remove(file.path(folder, paste(grdname, c("grd","gri"), sep=".")))
     }
