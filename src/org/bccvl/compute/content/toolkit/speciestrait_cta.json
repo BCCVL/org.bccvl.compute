@@ -1,7 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Classification/Regression Tree Analysis",
-    "description": "A CTA model that uses smoothed functions of the environmental variables to model non-linear relationships.",
+    "description": "A tree-based model that predicts the effects of environmental variables on traits by repeatedly splitting the dataset into mutually exclusive groups based on a threshold value of one of the environmental variables.",
     "subjects": ["cta"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.speciestraitsexperiment",
