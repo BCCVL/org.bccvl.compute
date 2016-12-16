@@ -444,22 +444,45 @@ bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
     # This warping runs all the time,... while it is fairly fast, it probably can be skipped if all raster layers lign up correctly
     rasters = mapply(
         function(filename, filetype) {
-
+            # Get the nodatavalue if available. Shall set to source's nodatavalue
+            gdinfo = rgdal::GDALinfo(filename)
+            mdata = attr(gdinfo, 'df')
+            dtype = as.character(mdata[['GDType']])
+            hasNoDataValues = mdata[['hasNoDataValue']]
+    
             r = bccvl.raster.load(filename)
             # warp, crop and rescale raster file if necessary
             dir = dirname(filename)
             tmpf = file.path(dir, 'tmp.tif') # TODO: better filename and location?
             te = extent(reference)
-            gdalwarp(filename, tmpf,
-                     s_srs=CRSargs(crs(r)), t_srs=CRSargs(crs(reference)),
-                     te=c(te@xmin, te@ymin, te@xmax, te@ymax),
-                     ts=c(ncol(reference), nrow(reference)),
-                     # tr=c(...), ... either this or ts
-                     r="near",
-                     of="GTiff",
-                     # dstnodata=NAvalue(r),
-                     co=c("TILED=YES", "COMPRESS=LZW")
-                     )
+
+            # This is to fix issue with NA value being treated as value 0 if nodatavalue is not set.
+            if (hasNoDataValues) {
+                # set nodatavalue to the original nodatavalue in the source file
+                gdalwarp(filename, tmpf,
+                         s_srs=CRSargs(crs(r)), t_srs=CRSargs(crs(reference)),
+                         te=c(te@xmin, te@ymin, te@xmax, te@ymax),
+                         ts=c(ncol(reference), nrow(reference)),
+                         # tr=c(...), ... either this or ts
+                         r="near",
+                         of="GTiff",
+                         dstnodata=mdata[['NoDataValue']],
+                         co=c("TILED=YES", "COMPRESS=LZW")
+                         )
+            }
+            else {
+                # call gdalwarp without dstnodata
+                gdalwarp(filename, tmpf,
+                         s_srs=CRSargs(crs(r)), t_srs=CRSargs(crs(reference)),
+                         te=c(te@xmin, te@ymin, te@xmax, te@ymax),
+                         ts=c(ncol(reference), nrow(reference)),
+                         # tr=c(...), ... either this or ts
+                         r="near",
+                         of="GTiff",
+                         co=c("TILED=YES", "COMPRESS=LZW")
+                         )
+            }
+
             # put new file back into place
             file.rename(tmpf, filename)
             # load new file and convert to categorical if required
