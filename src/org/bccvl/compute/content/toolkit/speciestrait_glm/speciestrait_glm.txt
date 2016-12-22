@@ -23,7 +23,7 @@
             "genre": "DataGenreSTModel",
             "mimetype": "application/x-r-data",
             "order": 4
-        }
+        },
         "params.json": {
             "title": "Input parameters",
             "genre": "InputParams",
