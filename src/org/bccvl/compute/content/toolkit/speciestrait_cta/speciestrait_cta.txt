@@ -29,6 +29,12 @@
             "genre": "DataGenreSTModel",
             "mimetype": "application/x-r-data",
             "order": 5
+        },
+        "params.json": {
+            "title": "Input parameters",
+            "genre": "InputParams",
+            "mimetype": "text/x-r-transcript",
+            "order": 100
         }
     },
     "archives": {

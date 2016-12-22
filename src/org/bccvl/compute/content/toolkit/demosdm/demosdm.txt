@@ -143,7 +143,13 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 40
-        }        
+        },
+        "params.json": {
+            "title": "Input parameters",
+            "genre": "InputParams",
+            "mimetype": "text/x-r-transcript",
+            "order": 100
+        }
     },
     "archives": {
         "model.object.RData.zip": {
