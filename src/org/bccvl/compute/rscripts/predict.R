@@ -153,12 +153,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                                  paste("proj_", projection.name, "_", biomod.species.name, ".tif", sep="")),
                        co=c("COMPRESS=LZW", "TILED=YES"),
                        format="GTiff")
-
-        mosaic_rasters(projections,
-                       file.path(outdir,
-                                 paste("proj_", projection.name, "_", biomod.species.name, ".png", sep="")),
-                       co=c("COMPRESS=LZW", "TILED=YES"),
-                       format="PNG")        
+        
     }
     
 }
