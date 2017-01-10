@@ -590,6 +590,41 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
     return(mylist)
 }
 
+# function to plot projection tiff file (with histogram)
+bccvl.plotProjection <- function(inputfile, main) {
+    ## define the breaks of the color key
+    my.at <- seq(0,1.0,by=0.1)
+    ## the labels will be placed vertically centered
+    my.labs.at <- seq(0,1.0,by=0.25)
+    ## define the labels
+    my.lab <- seq(0,1.0,by=0.25)
+    ## define colors
+    my.col <- colorRampPalette(c("grey90","yellow4","green4"))(100)
+    
+    # Read in tiff input file as rasterstack and plot it
+    require('rasterVis')
+    levelplot(stack(raster(inputfile)),
+              at=my.at, 
+              margin=T, 
+              col.regions=my.col,
+              main=main,
+              colorkey=list(labels=list(
+                labels=my.lab,
+                at=my.labs.at)))
+}
+
+# function to save projection as png image
+bccvl.saveProjectionImage <- function(inputfile, projection.name, species, outputdir=bccvl.env$outputdir) {
+    basename = paste("proj", projection.name, species, sep="_")
+
+    png(file.path(outputdir, paste(basename, 'png', sep=".")))
+    title = paste(species, projection.name, "projections", sep=" ")
+    plot(raster(inputfile), main=title, xlab='longitude', ylab='latitude')
+    # TODO: to use levelplot to produce histogram instead of plot.
+    #bccvl.plotProjection(inputfile, title)
+    dev.off()
+}
+
 # function to save projection output raster
 bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
     ## save projections under biomod2 compatible name:
@@ -607,6 +642,9 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
 
     # TODO: can we merge this bit with bccvl.saveProjection in eval.R ?
     # Save as image as well
+    # TODO: replace this with bccvl.saveProjectionImage when levelplot works properly.
+    #bccvl.saveProjectionImage(filename, projection.name, species, outputdir=outputdir)
+
     png(file.path(outputdir, paste(basename, 'png', sep=".")))
     title = paste(species, projection.name, "projections", sep=" ")
     plot(model.obj, xlab="latitude", ylab="longtitude", main=title)

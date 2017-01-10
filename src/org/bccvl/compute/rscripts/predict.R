@@ -148,12 +148,16 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                            co=c("COMPRESS=LZW", "TILED=YES"),
                            format="GTiff")
         }
-        mosaic_rasters(projections,
-                       file.path(outdir,
-                                 paste("proj_", projection.name, "_", biomod.species.name, ".tif", sep="")),
+
+        tiffilepath = file.path(outdir,
+                                 paste("proj_", projection.name, "_", biomod.species.name, ".tif", sep=""))
+        mosaic_rasters(projections, 
+                       tiffilepath,
                        co=c("COMPRESS=LZW", "TILED=YES"),
                        format="GTiff")
-        
+
+        # save projection as png as well
+        bccvl.saveProjectionImage(tiffilepath, projection.name, biomod.species.name, outputdir=outdir)
     }
     
 }
