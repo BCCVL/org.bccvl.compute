@@ -205,7 +205,7 @@ bccvl.saveDISMOModelEvaluation('brt', model.sdm, occur, absen)
 
 # Do projection over current climate scenario without constraint
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-    model.proj = predict(model.sdm, current.climate.scenario.orig, tails=opt.tails)
+    model.proj = predict(current.climate.scenario.orig, model.sdm, n.trees=model.sdm$gbm.call$best.trees, type="response")
     # save output
     bccvl.saveModelProjection(model.proj, projection.name, occur.species, filename_ext="unconstraint")
 }
