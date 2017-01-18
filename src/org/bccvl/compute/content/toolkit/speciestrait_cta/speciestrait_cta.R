@@ -73,8 +73,11 @@ for (formula in formulae) {
     bccvl.write.text(p, paste0(trait_name, ".cta.results.txt"), append=TRUE)
 
     # save the plot as png image
-    ofilename = paste0(trait_name, ".cta.plot")
-    bccvl.write.image(trait.cta, ofilename, "plot")
+    png(file.path(bccvl.env$outputdir, paste(trait_name, "cta.plot", "png", sep=".")))
+    plot(trait.cta)
+    text(trait.cta)
+    dev.off()
+
 
     # Save the model
     bccvl.save(trait.cta, paste0(trait_name, ".cta.model.object.RData"))
