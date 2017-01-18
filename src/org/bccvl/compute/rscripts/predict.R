@@ -31,12 +31,13 @@ future.climate.data.type = lapply(bccvl.params$future_climate_datasets, function
 future.climate.data.layer = lapply(bccvl.params$future_climate_datasets, function(x) x$layer)
 
 
-projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species) {
+# constraint_type: null for protjection with constraint, and  "unconstraint" for projection without constraint.
+projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species, constraint_type=NULL) {
     future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, datalayername, resamplingflag=enviro.data.resampling)
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario, futuredata)
     # geographically constrained modelling
-    if (!is.null(enviro.data.constraints)) {
+    if (!is.null(enviro.data.constraints) && is.null(constraint_type)) {
       # TODO: we have to be careful here, as the raster package may create a lot of temporary data here when we constrain input data, and run a projection
       # actual problem: ... the mask call in geoconstrained generates a whole lot of temporary gri/grd files. these are then fed into biomod (only maxent?). when biomod does it's thing, it again generates a lot of temporary raster files, which quickly fills up the disk  
       # solution: https://r-forge.r-project.org/forum/forum.php?max_rows=25&style=nested&offset=12&forum_id=995&group_id=302 ... split up predictors into small areas ... project each one... combine the mosaic result at the end... might even speed up projection as it is less disc intense
@@ -54,14 +55,14 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                               predictors,
                               tails=opt.tails,
                               ext=opt.ext)
-        bccvl.saveModelProjection(model.proj, projection.name, species)
+        bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
     } else if (inherits(model.obj, "gbm")) {
         # brt package)
         model.proj <- predict(predictors,
                               model.obj,
                               n.trees=model.obj$gbm.call$best.trees,
                               type="response")
-        bccvl.saveModelProjection(model.proj, projection.name, species)
+        bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
     } else if (inherits(model.obj, "BIOMOD.models.out")) {
         # For biomod we process the raster in blocks to avoid creating an unnecessary large number of temporary raster files.
 
@@ -139,18 +140,21 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         outdir = file.path(bccvl.env$outputdir,
                            biomod.species.name,
                            paste("proj", projection.name, sep="_"))
-        dir.create(outdir, recursive=TRUE)
+        if (!dir.exists(outdir)) {
+            dir.create(outdir, recursive=TRUE)
+        }
         # combine all seperate rasters into one big file
+        file_ext = ifelse(is.null(constraint_type), "", paste("_", constraint_type, sep=""))
         if (biomod.build.clamping.mask) {
             mosaic_rasters(clampings,
                            file.path(outdir,
-                                     paste("proj_", projection.name, "_ClampingMask", ".tif", sep="")),
+                                     paste("proj_", projection.name, "_ClampingMask", file_ext, ".tif", sep="")),
                            co=c("COMPRESS=LZW", "TILED=YES"),
                            format="GTiff")
         }
 
         tiffilepath = file.path(outdir,
-                                 paste("proj_", projection.name, "_", biomod.species.name, ".tif", sep=""))
+                                 paste("proj_", projection.name, "_", biomod.species.name, file_ext, ".tif", sep=""))
         mosaic_rasters(projections, 
                        tiffilepath,
                        co=c("COMPRESS=LZW", "TILED=YES"),
@@ -185,3 +189,8 @@ model.obj <- bccvl.getModelObject(modelfile)
 
 # use folder name of first dataset to generate name for projection output
 projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species)
+
+# Do projection without any constraint only if there is constraint.
+if (!is.null(enviro.data.constraints)) {
+    projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species, constraint_type="unconstraint")
+}
