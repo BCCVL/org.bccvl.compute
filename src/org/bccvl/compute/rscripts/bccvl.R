@@ -582,8 +582,9 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
         occurconstrained = NULL
     }
 
-    # Mask the rasterstack (and make sure it is a RasterStack)    
-    geoconstrained <- stack(mask(rasterstack, parsedgeojson))
+    # Mask the rasterstack (and make sure it is a RasterStack)   
+    # Give a named temp filename
+    geoconstrained <- stack(mask(rasterstack, parsedgeojson, filename = basename(tempfile(fileext = '.grd'))))
     
     # Return the masked raster stack and constrained occurrence points
     mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
@@ -614,8 +615,13 @@ bccvl.plotProjection <- function(inputfile, main) {
 }
 
 # function to save projection as png image
-bccvl.saveProjectionImage <- function(inputfile, projection.name, species, outputdir=bccvl.env$outputdir) {
-    basename = paste("proj", projection.name, species, sep="_")
+bccvl.saveProjectionImage <- function(inputfile, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
+    if (is.null(filename_ext)) {
+        basename = paste("proj", projection.name, species, sep="_")
+    }
+    else {
+        basename = paste("proj", projection.name, species, filename_ext, sep="_")
+    }
 
     png(file.path(outputdir, paste(basename, 'png', sep=".")))
     title = paste(species, projection.name, "projections", sep=" ")
