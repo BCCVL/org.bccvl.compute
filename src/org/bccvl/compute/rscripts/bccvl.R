@@ -583,8 +583,9 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
     }
 
     # Mask the rasterstack (and make sure it is a RasterStack)   
-    # Give a named temp filename
-    geoconstrained <- stack(mask(rasterstack, parsedgeojson, filename = basename(tempfile(fileext = '.grd'))))
+    # Give a named temp filename in the work dir
+    grifilename = paste(bccvl.env$workdir, basename(tempfile(fileext = '.grd')), sep="/")
+    geoconstrained <- stack(mask(rasterstack, parsedgeojson, filename = grifilename))
     
     # Return the masked raster stack and constrained occurrence points
     mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
