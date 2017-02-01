@@ -1,7 +1,7 @@
 {
     "_type": "org.bccvl.content.function",
     "title": "Bioclim",
-    "description": "Predicts species occurrence probabilities based on a comparison of the values of the environmental variables at new sites, compared to the lower and upper percentiles of the values at locations where the species is known to occur.",
+    "description": "Predicts species occurrence probabilities based on a comparison of the values of the environmental variables at new sites, compared to the lower and upper percentiles of the values at locations where the species is known to occur. </br><a href='https://support.bccvl.org.au/support/solutions/articles/6000083201-bioclim' target='_blank'>Read More ...</a>",
     "subjects": ["bioclim"],
     "interpreter": "R",
     "experiment_type": "org.bccvl.content.sdmexperiment",
