@@ -681,8 +681,15 @@ bccvl.grdtogtiff <- function(folder, filename_ext=NULL) {
     grdfiles <- list.files(path=folder,
                            pattern="^.*\\.grd")
     for (grdfile in grdfiles) {
-        # get grid file name
-        grdname <- file_path_sans_ext(grdfile)
+        # get grid file name without the extension
+        # file_path_sans_ext does not work when file has double '.' before extension i.e. filename..grd
+        #grdname <- file_path_sans_ext(grdfile)            
+        ext = file_ext(grdfile)
+        if (!is.null(ext)) {
+            pattern = paste0('\\.', ext, '$')
+            grdname <- sub(pattern, '', grdfile)
+        }
+        
         # read grid raster
         grd <- raster(file.path(folder, grdfile))
 
