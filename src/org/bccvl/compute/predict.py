@@ -78,7 +78,7 @@ def generate_project_script():
 OUTPUTS = {
     'files': {
         "Rplots.pdf": {
-            "skip": true
+            "skip": True
         },    
         '*.Rout': {
             "title": "Log file",
