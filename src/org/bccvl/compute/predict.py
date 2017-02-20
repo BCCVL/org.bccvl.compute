@@ -77,6 +77,9 @@ def generate_project_script():
 # FIXME: which projection get's which metadata? (GCM, emsc, scale, year)
 OUTPUTS = {
     'files': {
+        "Rplots.pdf": {
+            "skip": True
+        },    
         '*.Rout': {
             "title": "Log file",
             "genre": "DataGenreLog",
