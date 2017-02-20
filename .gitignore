@@ -37,3 +37,4 @@ nosetests.xml
 src/org/bccvl/compute/rscripts/.Rhistory
 test_rscripts/outputs
 .eggs
+.cache
