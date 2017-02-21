@@ -9,7 +9,7 @@ tests_require = [
 setup(
     name='org.bccvl.compute',
     setup_requires=['guscmversion'],
-    guscmverision=True,
+    guscmversion=True,
     description="BCCVL Compute Scripts",
     # long_description=open("README.txt").read() + "\n" +
     #                  open(os.path.join("docs", "HISTORY.txt")).read(),
