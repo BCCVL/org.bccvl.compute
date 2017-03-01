@@ -230,12 +230,16 @@ bccvl.err.null <- function (e) return(NULL)
 # read species presence/absence data
 #    return NULL if filename is not  given
 # TODO: shall we set projection here as well? use SpatialPoints?
-bccvl.species.read <- function(filename) {
+bccvl.species.read <- function(filename, month_filter=NULL) {
     if (!is.null(filename)) {
         # We might loose precision of lon/lat when ronverting to double,
         # However, given the nature of the numbers, and the resolution of raster files
         # we deal with, this shouldn't be a problem.
-        return (read.csv(filename, colClasses=c("lon"="numeric", "lat"="numeric")))
+        csvfile = read.csv(filename, colClasses=c("lon"="numeric", "lat"="numeric"))
+        if (is.null(month_filter)) {
+            return(csvfile)
+        }
+        return(subset(csvfile, month %in% unlist(month_filter)))
     }
 }
 
