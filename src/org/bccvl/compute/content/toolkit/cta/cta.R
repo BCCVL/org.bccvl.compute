@@ -20,6 +20,7 @@
 # define the lon/lat of the observation records -- 2 column matrix of longitude and latitude
 occur.data = bccvl.params$species_occurrence_dataset$filename
 occur.species = bccvl.params$species_occurrence_dataset$species
+occur.filter = bccvl.params$species_filter
 #define the the lon/lat of the background / psuedo absence points to use -- 2 column matrix of longitude and latitude
 absen.data = bccvl.params$species_absence_dataset$filename
 #define the current enviro data to use
@@ -106,7 +107,7 @@ model.accuracy = c(dismo.eval.method, biomod.models.eval.meth)
 current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, resamplingflag=enviro.data.resampling)
 
 ###read in the necessary observation, background and environmental data
-occur = bccvl.species.read(occur.data) #read in the observation data lon/lat
+occur = bccvl.species.read(occur.data, occur.filter) #read in the observation data lon/lat
 # keep only lon and lat columns
 occur = occur[c("lon","lat")]
 
