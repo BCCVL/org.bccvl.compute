@@ -1,10 +1,15 @@
 from setuptools import setup, find_packages
 
-VERSION = '1.15.0.dev'
+
+tests_require = [
+    'scikit-image'
+]
+
 
 setup(
     name='org.bccvl.compute',
-    version=VERSION,
+    setup_requires=['guscmversion'],
+    guscmversion=True,
     description="BCCVL Compute Scripts",
     # long_description=open("README.txt").read() + "\n" +
     #                  open(os.path.join("docs", "HISTORY.txt")).read(),
@@ -29,28 +34,8 @@ setup(
         'setuptools',  # distribute
         'zope.i18nmessageid',
     ],
-    tests_require=[
-        'numpy',
-        'scipy',
-        'Pillow',
-        'scikit-image',
-        'GDAL'
-    ],
+    tests_require=tests_require,
     extras_require={
-        'test': [
-            'org.bccvl.testsetup',
-        ],
-        'test_r': [
-            'numpy',
-            'scipy',
-            'Pillow',
-            'scikit-image',
-            'GDAL'
-        ]
-    },
-    entry_points="""
-    # -*- Entry points: -*-
-    #[z3c.autoinclude.plugin]
-    #target = plone
-    """,
+        'test': tests_require,
+    }
 )
