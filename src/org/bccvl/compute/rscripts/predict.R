@@ -121,7 +121,10 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                                         model.obj@sp.name,
                                         paste("proj_", block_name, sep= ""))
                 # convert projection output and clamping mask to geotiff
-                bccvl.grdtogtiff(proj_folder)
+                # Set the nodatavalue explicitly to fix an issue with unrecognised default nodatavalue with gdal.
+                # Shall be removed when gdal bug is fixed in gdal 2.1.3.
+                bccvl.grdtogtiff(proj_folder, noDataValue=-4294967296)
+
                 # collect geotiff file names for 
                 projections = c(projections,
                                 file.path(proj_folder,
