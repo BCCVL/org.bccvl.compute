@@ -235,7 +235,7 @@ bccvl.species.read <- function(filename, month_filter=NULL) {
         # We might loose precision of lon/lat when ronverting to double,
         # However, given the nature of the numbers, and the resolution of raster files
         # we deal with, this shouldn't be a problem.
-        csvfile = read.csv(filename, colClasses=c("lon"="numeric", "lat"="numeric"))
+        csvfile = read.csv(filename, colClasses=c("lon"="numeric", "lat"="numeric", "month"="numeric"))
         if (is.null(month_filter)) {
             return(csvfile)
         }
