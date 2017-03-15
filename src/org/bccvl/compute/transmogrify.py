@@ -16,7 +16,8 @@ from zope.interface import implementer, provider
 from org.bccvl.site.interfaces import IBCCVLMetadata
 from org.bccvl.site.content.interfaces import (IProjectionExperiment,
                                                ISDMExperiment,
-                                               IMSDMExperiment)
+                                               IMSDMExperiment,
+                                               IMMExperiment)
 
 LOG = logging.getLogger(__name__)
 
@@ -51,7 +52,9 @@ def addLayersUsedInfo(bccvlmd, result):
 
 
 def addSpeciesInfo(bccvlmd, result):
-    if ISDMExperiment.providedBy(result.__parent__) or IMSDMExperiment.providedBy(result.__parent__):
+    if ISDMExperiment.providedBy(result.__parent__) or \
+       IMSDMExperiment.providedBy(result.__parent__) or \
+       IMMExperiment.providedBy(result.__parent__):
         spds = uuidToObject(result.job_params['species_occurrence_dataset'])
     if IProjectionExperiment.providedBy(result.__parent__):
         spds = uuidToObject(result.job_params['species_distribution_models'])
