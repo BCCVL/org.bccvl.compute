@@ -15,7 +15,9 @@
 
 sdm.species = bccvl.params$species_distribution_models$species
 sdm.model.file = bccvl.params$species_distribution_models$filename
+sdm.projections.files = lapply(bccvl.params$sdm_projections, function(x) x$filename)
 projection.name = bccvl.params$projection_name
+projection.threshold = ifelse(is.null(bccvl.params$threshold), 0.5, bccvl.params$threshold)
 #geographic constraints
 enviro.data.constraints = bccvl.params$projection_region
 #Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
@@ -46,6 +48,8 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
     }
 
     # do projection
+    tiffilepath <- NULL
+    outdir <- bccvl.env$outputdir
     if (inherits(model.obj, "DistModel")) {
         # dismo package
         opt.tails <- bccvl.params$tails
@@ -54,14 +58,14 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                               predictors,
                               tails=opt.tails,
                               ext=opt.ext)
-        bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
+        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
     } else if (inherits(model.obj, "gbm")) {
         # brt package)
         model.proj <- predict(predictors,
                               model.obj,
                               n.trees=model.obj$gbm.call$best.trees,
                               type="response")
-        bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
+        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
     } else if (inherits(model.obj, "BIOMOD.models.out")) {
         # For biomod we process the raster in blocks to avoid creating an unnecessary large number of temporary raster files.
 
@@ -146,17 +150,17 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
             dir.create(outdir, recursive=TRUE)
         }
         # combine all seperate rasters into one big file
-        file_ext = ifelse(is.null(constraint_type), "", paste("_", constraint_type, sep=""))
+        filename_ext = ifelse(is.null(constraint_type), "", paste("_", constraint_type, sep=""))
         if (biomod.build.clamping.mask) {
             mosaic_rasters(clampings,
                            file.path(outdir,
-                                     paste("proj_", projection.name, "_ClampingMask", file_ext, ".tif", sep="")),
+                                     paste("proj_", projection.name, "_ClampingMask", filename_ext, ".tif", sep="")),
                            co=c("COMPRESS=LZW", "TILED=YES"),
                            format="GTiff")
         }
 
         tiffilepath = file.path(outdir,
-                                 paste("proj_", projection.name, "_", biomod.species.name, file_ext, ".tif", sep=""))
+                                 paste("proj_", projection.name, "_", biomod.species.name, filename_ext, ".tif", sep=""))
         mosaic_rasters(projections, 
                        tiffilepath,
                        co=c("COMPRESS=LZW", "TILED=YES"),
@@ -165,7 +169,49 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # save projection as png as well
         bccvl.saveProjectionImage(tiffilepath, projection.name, biomod.species.name, outputdir=outdir, filename_ext=constraint_type)
     }
-    
+
+    # Compute metrics only for unconstraint projection.
+    if (length(sdm.projections.files) == 1 || !is.null(constraint_type)) {
+        # get the correct sdm projection file
+        sdm_projection_file = sdm.projections.files[[1]]
+        if ((is.null(constraint_type) && grepl("_unconstraint.tiff$", sdm_projection_file)) ||
+            (!is.null(constraint_type) && !grepl("_unconstraint.tiff$", sdm_projection_file))) {
+            sdm_projection_file = sdm.projections.files[[2]]
+        }
+
+        # Make sure both projections have the same extent and resolution; scale it to the resolution of CC 
+        data_types = list("continuous", "continuous")
+        filenames = list(tiffilepath, sdm_projection_file)
+        resamplingflag = ifelse(res(raster(tiffilepath))[1] >= res(raster(sdm_projection_file))[1], 'highest', 'lowest')
+        proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, data_types, resamplingflag)
+
+        # generate occurrence probability change for future and current projections
+        changefilepath = bccvl.get_filepath("metric_occur_prob_change_", 
+                                            projection.name, 
+                                            species, 
+                                            outputdir=outdir, 
+                                            filename_ext=constraint_type,
+                                            file_ext="tif")
+        bccvl.generateOccurrenceProbChangeMetric(proj_rasters, changefilepath)
+
+        # generate species range change metric and summary
+        changefilepath = bccvl.get_filepath("metric_species_range_change_", 
+                                            projection.name, 
+                                            species, 
+                                            outputdir=outdir, 
+                                            filename_ext=constraint_type,
+                                            file_ext="tif")
+        bccvl.generateSpeciesRangeChangeMetric(proj_rasters, projection.threshold, changefilepath)
+
+        # Generate the Centre of Species Range metric
+        changefilepath = bccvl.get_filepath("metric_centre_species_range_", 
+                                            projection.name, 
+                                            species, 
+                                            outputdir=outdir, 
+                                            filename_ext=constraint_type,
+                                            file_ext="csv")
+        bccvl.generateCentreOfGravityMetric(filenames, changefilepath)
+    }
 }
 
 

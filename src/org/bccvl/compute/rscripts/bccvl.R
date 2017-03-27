@@ -619,16 +619,21 @@ bccvl.plotProjection <- function(inputfile, main) {
                 at=my.labs.at)))
 }
 
-# function to save projection as png image
-bccvl.saveProjectionImage <- function(inputfile, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
+# function to genrate a filename for the specified file type and extension.
+bccvl.get_filepath <- function(file_type, projection_name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL, file_ext='tif') {
     if (is.null(filename_ext)) {
-        basename = paste("proj", projection.name, species, sep="_")
+        basename = paste(file_type, projection_name, species, sep="_")
     }
     else {
-        basename = paste("proj", projection.name, species, filename_ext, sep="_")
+        basename = paste(file_type, projection_name, species, filename_ext, sep="_")
     }
+    return(file.path(outputdir, paste(basename, file_ext, sep=".")))
+}
 
-    png(file.path(outputdir, paste(basename, 'png', sep=".")))
+# function to save projection as png image
+bccvl.saveProjectionImage <- function(inputfile, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
+    filename = bccvl.get_filepath("proj", projection.name, species, outputdir, filename_ext, "png")
+    png(filename)
     title = paste(species, projection.name, "projections", sep=" ")
     plot(raster(inputfile), main=title, xlab='longitude', ylab='latitude')
     # TODO: to use levelplot to produce histogram instead of plot.
@@ -636,19 +641,78 @@ bccvl.saveProjectionImage <- function(inputfile, projection.name, species, outpu
     dev.off()
 }
 
+# function to compute and save occurrence probability change metrics as geotif file
+bccvl.generateOccurrenceProbChangeMetric <- function(prob_rasters, outfilename) {
+    changeproj <- overlay(prob_rasters[[1]], prob_rasters[[2]], fun=function(r1, r2) { return(r1-r2) })
+    writeRaster(changeproj, outfilename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
+}
+
+# function to compute and save species range change metric as geotif file
+bccvl.generateSpeciesRangeChangeMetric <- function(prob_rasters, threshold, outfilename) {
+    # return 1 for Blank, 3 for Expansion, 0 for Contraction and 2 for No Change
+    rangeChange <- overlay(as.integer(prob_rasters[[1]] > threshold), 
+                           as.integer(prob_rasters[[2]] > threshold), 
+                           fun=function(fp, cp) { return((2 * fp) + 1 - cp)})
+    writeRaster(rangeChange, outfilename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
+
+    # compute the area for each change category
+    grid_area <- raster.from.asc(grid.area(asc.from.raster(rangeChange)))
+    total_pixels = ncell(na.omit(as.data.frame(rangeChange)))
+    chg_summary = as.data.frame(matrix(ncol=3, nrow=4))
+    rownames(chg_summary) <- c('Contraction', 'Blank', 'No Change', 'Expansion')
+    colnames(chg_summary) <- c('no_grid_cells', '%_grid_cells', 'area_km2')
+    for (i in c(0,1,2,3)) {
+        no_pixels = length(rangeChange[rangeChange == i])
+        chg_summary[i+1,] <- c(
+                no_pixels,
+                (no_pixels*100.0)/total_pixels,
+                sum(grid_area[rangeChange == i])/1000000.0
+            )
+    }
+
+    # write it to a file.
+    outfilename2 = outfilename
+    ext = file_ext(outfilename)
+    if (!is.null(ext)) {
+        pattern = paste0('\\.', ext, '$')
+        outfilename2 <- sub(pattern, '', outfilename)
+    }
+    outfilename2 = paste(outfilename2, 'csv', sep=".")
+    write.csv(chg_summary, file=outfilename2, row.names=TRUE)
+}
+
+# function to compute and save Centre of Gravity as csv file.
+bccvl.generateCentreOfGravityMetric <- function(projfiles, outfilename) {
+    future_proj = raster(projfiles[[1]])
+    current_proj = raster(projfiles[[2]])
+    future_cog = COGravity(future_proj)
+    current_cog = COGravity(current_proj)
+
+    results = as.data.frame(matrix(ncol=4, nrow=3))
+    rownames(results) = c('Centre_of_Range', 'Minimum', 'Maximum')
+    colnames(results) = c('current_latitude', 'current_longitude', 'future_latitude', 'future_longitude')
+    results[1,] = c(current_cog['COGx'], current_cog['COGy'], future_cog['COGx'], future_cog['COGy'])
+    results[2,] = c(min(coordinates(current_proj)[,1]),
+                   min(coordinates(current_proj)[,2]),
+                   min(coordinates(future_proj)[,1]),
+                   min(coordinates(future_proj)[,2])
+        )
+    results[3,] = c(max(coordinates(current_proj)[,1]),
+                   max(coordinates(current_proj)[,2]),
+                   max(coordinates(future_proj)[,1]),
+                   max(coordinates(future_proj)[,2])
+        )
+    write.csv(results, file=outfilename)
+}
+
+
 # function to save projection output raster
 bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
     ## save projections under biomod2 compatible name:
     ##  proj_name_species.tif
     ##  only useful for dismo outputs
 
-    if (is.null(filename_ext)) {
-        basename = paste("proj", projection.name, species, sep="_")        
-    }
-    else {
-        basename = paste("proj", projection.name, species, filename_ext, sep="_")   
-    }
-    filename = file.path(outputdir, paste(basename, 'tif', sep="."))
+    filename = bccvl.get_filepath("proj", projection.name, species, outputdir, filename_ext, "tif")
     writeRaster(model.obj, filename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
 
     # TODO: can we merge this bit with bccvl.saveProjection in eval.R ?
@@ -656,10 +720,13 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
     # TODO: replace this with bccvl.saveProjectionImage when levelplot works properly.
     #bccvl.saveProjectionImage(filename, projection.name, species, outputdir=outputdir)
 
-    png(file.path(outputdir, paste(basename, 'png', sep=".")))
+    pngfilename = bccvl.get_filepath("proj", projection.name, species, outputdir, filename_ext, "png")
+    png(pngfilename)
     title = paste(species, projection.name, "projections", sep=" ")
     plot(model.obj, xlab="latitude", ylab="longtitude", main=title)
     dev.off()
+
+    return (filename)
 }
 
 # function to save RData in outputdir
@@ -713,7 +780,7 @@ bccvl.grdtogtiff <- function(folder, filename_ext=NULL, noDataValue=NULL) {
         # To do: This is a temporary fix for nodatavalue is not recognised by mosaic_raster
         # due to a bug in gdal libarry. It shall be removed when using gdal 2.1.3.
         dtype = dataType(grd)
-        if (is.null(noDataValue) || dtype != 'FLT8S') {
+        if (is.null(noDataValue)) {
             writeRaster(grd, filename, datatype=dataType(grd),
                         format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
         }
