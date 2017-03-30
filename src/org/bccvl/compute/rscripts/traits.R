@@ -123,6 +123,10 @@ parameter.print <- function(params) {
         # Todo: Need to update these parameters
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
     }
+    else if (func == "traitdiff_glmm") {
+        # Todo: Need to update these parameters
+        pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
+    }
 
     for (p in pnames) {
         cat(parameter.as.string(p, params[[p]]))
