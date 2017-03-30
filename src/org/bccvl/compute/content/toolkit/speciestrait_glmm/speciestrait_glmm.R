@@ -7,9 +7,6 @@
 
 ## DATA
 
-### CH: Yong to check if this is ok
-### CH: need to incorporate which factors are fixed and which are random
-
 # Link to input dataset csv file
 trait.data.filename = bccvl.params$traits_dataset$filename
 # Link to variable names of input dataset
@@ -41,15 +38,11 @@ library(lme4)
 library(ordinal)
 
 # Generate a formula for each trait
-
-### CH: formula should look like this: 
-### trait ~ fixed1 + fixed2 + (1|random)
-
+# trait ~ fixed1 + fixed2 + (1|random1) + (1|random2)
 formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
-
-# Run model - with clmm function for ordinal traits, glmer function for nominal traits, glmer function for continuous traits
-### CH: not sure whether 'glmer' works for nominal trait data - need to further look into this
+  # Run model - with clmm function for ordinal traits, glmer function for nominal traits, glmer function for continuous traits
+  # Todo: not sure whether 'glmer' works for nominal trait data - need to further look into this
   na_action = get(getOption(bccvl.params$na_action, "na.fail"))
   if (formula$type == 'ordinal') {
         output_filename = paste0(formula$trait, ".clmm.results.txt")
@@ -83,11 +76,11 @@ for (formula in formulae) {
                          contrasts=NULL)
     }
 
-## Save the result to file
-# Save the model
-bccvl.save(glmm.result, paste0(formula$trait, ".glmm.model.object.RData"))
+  ## Save the result to file
+  # Save the model
+  bccvl.save(glmm.result, paste0(formula$trait, ".glmm.model.object.RData"))
 
-## Save the results as text to file for each trait
-s <- summary(glmm.result) 
-bccvl.write.text(s, output_filename)                                       
+  ## Save the results as text to file for each trait
+  s <- summary(glmm.result) 
+  bccvl.write.text(s, output_filename)                                       
 }
