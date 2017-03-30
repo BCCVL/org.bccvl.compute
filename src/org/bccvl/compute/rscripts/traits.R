@@ -113,6 +113,10 @@ parameter.print <- function(params) {
     if (func == "speciestrait_glm") {
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
     }
+    else if (func == "speciestrait_glmm") {
+        # Todo: Need to update these parameters
+        pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
+    }
     else if (func == "speciestrait_gam") {
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "method", "model", "x", "y", "random_seed")
     }
@@ -120,10 +124,6 @@ parameter.print <- function(params) {
         pnames = c("control_xval", "control_minbucket", "control_minsplit", "control_cp", "control_maxdepth", "control_maxcompete", "control_maxsurrogate", "control_usesurrogate", "control_surstyle", "random_seed")
     }
     else if (func == "traitdiff_glm") {
-        # Todo: Need to update these parameters
-        pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
-    }
-    else if (func == "traitdiff_glmm") {
         # Todo: Need to update these parameters
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
     }
