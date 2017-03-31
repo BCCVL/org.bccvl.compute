@@ -63,7 +63,7 @@ for (formula in formulae) {
                               summ=0,        
                               model=TRUE)
     } else {
-        output_filename = paste0(formula$trait, ".glm.results.txt")
+        output_filename = paste0(formula$trait, ".glmer.results.txt")
         glmm.result = glmer(formula=formula(formula$formula),
                          family=family_from_string(bccvl.params$family),
                          data= trait.data,

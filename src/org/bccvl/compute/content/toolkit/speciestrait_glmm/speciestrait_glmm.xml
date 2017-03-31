@@ -26,7 +26,7 @@
           <element>poisson(link="log")</element>
           <element>poisson(link="sqrt")</element>
           </values>
-        <default>gaussian(link="log")</default>
+        <default>gaussian(link="identity")</default>
         <required>True</required>
       </field>
       <field name="subset" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
