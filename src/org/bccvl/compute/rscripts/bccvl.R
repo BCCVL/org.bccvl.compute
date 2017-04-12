@@ -688,20 +688,20 @@ bccvl.generateCentreOfGravityMetric <- function(projfiles, outfilename) {
     future_cog = COGravity(future_proj)
     current_cog = COGravity(current_proj)
 
-    results = as.data.frame(matrix(ncol=4, nrow=3))
+    results = as.data.frame(matrix(ncol=5, nrow=3))
     rownames(results) = c('Centre_of_Range', 'Minimum', 'Maximum')
-    colnames(results) = c('current_latitude', 'current_longitude', 'future_latitude', 'future_longitude')
-    results[1,] = c(current_cog['COGx'], current_cog['COGy'], future_cog['COGx'], future_cog['COGy'])
-    results[2,] = c(min(coordinates(current_proj)[,1]),
-                   min(coordinates(current_proj)[,2]),
-                   min(coordinates(future_proj)[,1]),
-                   min(coordinates(future_proj)[,2])
-        )
-    results[3,] = c(max(coordinates(current_proj)[,1]),
-                   max(coordinates(current_proj)[,2]),
-                   max(coordinates(future_proj)[,1]),
-                   max(coordinates(future_proj)[,2])
-        )
+    colnames(results) = c('current_latitude', 'current_longitude', 'future_latitude', 'future_longitude', 'change_in_km')
+    results[1,] = distance(current_cog['COGy'], current_cog['COGx'], future_cog['COGy'], future_cog['COGx'])
+    results[2,] = distance(min(coordinates(current_proj)[,2]),
+                           min(coordinates(current_proj)[,1]),
+                           min(coordinates(future_proj)[,2]),
+                           min(coordinates(future_proj)[,1])
+                          )
+    results[3,] = distance(max(coordinates(current_proj)[,2]),
+                           max(coordinates(current_proj)[,1]),
+                           max(coordinates(future_proj)[,2]),
+                           max(coordinates(future_proj)[,1])
+                          )
     write.csv(results, file=outfilename)
 }
 

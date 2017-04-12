@@ -171,13 +171,9 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
     }
 
     # Compute metrics only for unconstraint projection.
-    if (length(sdm.projections.files) == 1 || !is.null(constraint_type)) {
+    if (length(sdm.projections.files) > 0 && is.null(constraint_type)) {
         # get the correct sdm projection file
         sdm_projection_file = sdm.projections.files[[1]]
-        if ((is.null(constraint_type) && grepl("_unconstraint.tiff$", sdm_projection_file)) ||
-            (!is.null(constraint_type) && !grepl("_unconstraint.tiff$", sdm_projection_file))) {
-            sdm_projection_file = sdm.projections.files[[2]]
-        }
 
         # Make sure both projections have the same extent and resolution; scale it to the resolution of CC 
         data_types = list("continuous", "continuous")
