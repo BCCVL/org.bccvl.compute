@@ -193,10 +193,20 @@ model.sdm <-
                     do.full.models    = biomod.do.full.models,
                     modeling.id       = biomod.modeling.id
                     )
+
+# save the VIP plot
+x.data <- attr(model.data,"data.env.var")
+y.data <- attr(model.data,"data.species")
+data1 = data.frame(y.data,x.data)
+bccvl.VIPplot(method="ann", data1=data1, pdf=TRUE, 
+              filename='vip_plot', 
+              this.dir=paste(biomod.species.name, "/models/bccvl", sep=""))
+
 #save out the model object
 # TODO: biomod stores the model already in species/species.bccvl.models.out
 # TODO: get species name into this somehow -> requires archive generation on input to do the same
 bccvl.save(model.sdm, name="model.object.RData")
+
 # predict for current climate scenario
 # TODO: would I want to use saveObj here again?
 model.proj <-
@@ -214,6 +224,8 @@ model.proj <-
                       keep.in.memory      = opt.biomod.keep.in.memory,
                       output.format       = opt.biomod.output.format,
                       on_0_1000           = FALSE)
+
+
 # convert projection output from grd to gtiff
 # TODO: get proj4string in here somewhere and use in grdtogtiff
 bccvl.grdtogtiff(file.path(getwd(),
