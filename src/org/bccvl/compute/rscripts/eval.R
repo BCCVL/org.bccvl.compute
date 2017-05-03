@@ -684,7 +684,7 @@ bccvl.savePdf <- function(..., filename, aspdf, outputdir=bccvl.env$outputdir)
   library("gridExtra")
   if (aspdf) 
   { 
-    pdf(file=file.path(outputdir, paste(filename, 'pdf', sep=".")))
+    png(file=file.path(outputdir, paste(filename, 'png', sep=".")))
     grid.arrange(...)
     dev.off()  
   }
@@ -696,7 +696,7 @@ bccvl.savePdf <- function(..., filename, aspdf, outputdir=bccvl.env$outputdir)
 
 # A special R function for variable importance plots based on biomod2 fitted model outcomes
 bccvl.VIPplot <- function(fittedmodel=NULL, 
-                         method=c("glm",,"rpart","gam","ann", "rf", "gbm", "mars", "maxent.p"),  
+                         method=c("glm",,"cta","gam","ann", "rf", "gbm", "mars", "maxent"),  
                          cor.method=c("pearson","spearman"),
                          pdf=TRUE, biom_vi=FALSE,output.table=FALSE, data1, this.dir, filename)
 {
