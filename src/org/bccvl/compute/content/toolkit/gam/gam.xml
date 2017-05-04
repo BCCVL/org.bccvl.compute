@@ -63,7 +63,7 @@
         <min>0</min>
         <max>1</max>
       </field>
-      <field name="var_import" type="zope.schema.Int">
+      <field name="var_import" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
         <default>0</default>
         <required>True</required>
         <description>number of permutations to estimate the relative importance of each variable</description>

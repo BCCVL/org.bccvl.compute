@@ -1,0 +1,87 @@
+<model xmlns:security="http://namespaces.plone.org/supermodel/security"
+       xmlns:marshal="http://namespaces.plone.org/supermodel/marshal"
+       xmlns:form="http://namespaces.plone.org/supermodel/form"
+       xmlns="http://namespaces.plone.org/supermodel/schema">
+  <schema based-on="zope.interface.Interface">
+    <fieldset name="Other"
+              label="Configuration options"
+              description="Options are set to package defaults unless otherwise modified.">
+      <field name="family" type="zope.schema.Choice">
+        <title>family</title>
+        <description>error distribution and link function to be used in the model</description>
+        <values>
+          <element>binomial</element>
+          <element>gaussian</element>
+          <element>gamma</element>
+          <element>poisson</element>
+          <element>binomial(link="logit")</element>
+          <element>binomial(link="probit")</element>
+          <element>gaussian(link="identity")</element>
+          <element>gaussian(link="log")</element>
+          <element>gaussian(link="inverse")</element>
+          <element>Gamma(link="identity")</element>
+          <element>Gamma(link="log")</element>  
+          <element>Gamma(link="inverse")</element>
+          <element>poisson(link="identity")</element>
+          <element>poisson(link="log")</element>
+          <element>poisson(link="sqrt")</element>
+          </values>
+        <default>gaussian(link="identity")</default>
+        <required>True</required>
+      </field>
+      <field name="subset" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
+        <title>Subset</title>
+        <description>Optional vector that may be used to specify a subset of the data. Please specify a column included in the data model.</description>
+        <required>False</required>
+      </field>
+      <field name="weights" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
+        <title>Weights</title>
+        <description>Optional vector that may be used to specify weights. Please specify a column included in the data model.</description>
+        <required>False</required>
+      </field>
+      <field name="na_action" type="zope.schema.Choice">
+        <title>NA action</title>
+        <description>controls how to handle missing data; default = na.omit: records with missing values are removed; na.fail: model will only run if data contains no missing values; na.exlude: missing values are not used in model but maintained for residuals and fitted values</description>
+        <required>True</required>
+        <default>na.omit</default>
+        <values>
+          <element>na.fail</element>
+          <element>na.omit</element>
+          <element>na.exclude</element>
+       </values>
+      </field>
+      <field name="start" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
+        <title>Start</title>
+        <description>Optional vector that may be used to specify start. Please specify a column included in the data model.</description>
+        <required>False</required>
+      </field>
+      <field name="eta_start" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
+        <title>ETA start</title>
+        <description>Optional vector that may be used to specify ETA start. Please specify a column included in the data model.</description>
+        <required>False</required>
+      </field>
+      <field name="mu_start" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
+        <title>Mu start</title>
+        <description>Optional vector that may be used to specify Mu start. Please specify a column included in the data model.</description>
+        <required>False</required>
+      </field>
+      <field name="offset" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
+        <title>Offset</title>
+        <description>Optional vector. Please specify a column included in the data model.</description>
+        <required>False</required>
+      </field>
+      <field name="contrasts" type="zope.schema.TextLine" form:mode="z3c.form.interfaces.IForm:hidden">
+        <title>Contrasts</title>
+        <description>Optional list.</description>
+        <required>False</required>
+      </field>
+      <field name="random_seed" type="zope.schema.Int">
+        <description>random seed used</description>
+        <required>False</required>
+        <title>random seed</title>
+        <min>-2147483648</min>
+        <max>2147483647</max>      
+      </field>  
+    </fieldset>  
+  </schema>
+</model>

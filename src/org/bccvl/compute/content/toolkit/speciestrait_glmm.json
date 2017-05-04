@@ -1,0 +1,14 @@
+{
+    "_type": "org.bccvl.content.function",
+    "title": "Generalized Linear Mixed Model",
+    "description": "Approximates the likelihood of a generalized linear mixed model using Monte Carlo likelihood approximation. Then maximizes the likelihood approximation to return maximum likelihood estimates, observed Fisher information, and other model information.",
+    "subjects": ["glmm"],
+    "interpreter": "R",
+    "experiment_type": "org.bccvl.content.speciestraitsexperiment",
+    "script": {"filename": "speciestrait_glmm.R"},
+    "schema": {"filename": "speciestrait_glmm.xml"},
+    "output": {"filename": "speciestrait_glmm.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish",
+    "algorithm_category": null
+}

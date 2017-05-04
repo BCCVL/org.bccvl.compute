@@ -113,6 +113,10 @@ parameter.print <- function(params) {
     if (func == "speciestrait_glm") {
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
     }
+    else if (func == "speciestrait_glmm") {
+        # Todo: Need to update these parameters
+        pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
+    }
     else if (func == "speciestrait_gam") {
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "method", "model", "x", "y", "random_seed")
     }
@@ -147,11 +151,13 @@ bccvl.err.null <- function (e) return(NULL)
 # Generate formulae for models that test the response of each trait to all environmental variables selected
 # i.e. for trait diff model, trait ~ species 
 # for trait cta/glm/gam models, trait ~ env1 + env2 + env3 etc 
+# for trait glmm, trait ~ env1 + env2 + (1|random1) + (1|random2)
 bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
     cols = list(species=list(),
                 lat=list(),
                 lon=list(),
                 env=list(),
+                random=list(),
                 trait=list()) 
     for(colname in names(dataset_params)) {
         colval = dataset_params[[colname]]
@@ -167,13 +173,27 @@ bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
             cols[['trait']][colname] = 'nominal'
         } else if (colval == 'trait_con') {
             cols[['trait']][colname] = 'continuous'
+        } else if (colval == 'random_cat') {
+            cols[['random']][colname] = 'categorical'
+        } else if (colval == 'random_con') {
+            cols[['random']][colname] = 'continuous'
         }
     }
+
     formulae = list()
     # For trait diff, variable is the species, otherwise environmental variables.
     variables = paste(names(cols[[ifelse(trait_diff, 'species', 'env')]]), collapse=' + ')
+
+    ranvarnames = names(cols[['random']])
+    randomvars = ""
+    if (!is.null(ranvarnames)) {
+        randomvars = paste("(1|", ranvarnames, ")", sep = '', collapse=' + ')
+    }
     for (trait in names(cols[['trait']])) {
-        formulae = append(formulae, list(list(formula=paste(trait, '~', variables),
+        formula = ifelse(is.null(ranvarnames), 
+                         paste(trait, '~', variables),
+                         paste(trait, '~', variables, '+', randomvars))
+        formulae = append(formulae, list(list(formula=formula,
                                     type=cols[['trait']][trait],
                                     trait=trait)))
     }

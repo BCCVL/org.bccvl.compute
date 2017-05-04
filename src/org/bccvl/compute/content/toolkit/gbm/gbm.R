@@ -219,7 +219,16 @@ model.sdm <-
                     do.full.models = biomod.do.full.models,
                     modeling.id = biomod.modeling.id
                     )
-    # model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
+
+# save the VIP plot
+x.data <- attr(model.data,"data.env.var")
+y.data <- attr(model.data,"data.species")
+data1 = data.frame(y.data,x.data)
+bccvl.VIPplot(method="gbm", data1=data1, pdf=TRUE, 
+              filename='vip_plot', 
+              this.dir=paste(biomod.species.name, "/models/bccvl", sep=""))
+
+# model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
 #save out the model object
 bccvl.save(model.sdm, name="model.object.RData")
 # predict for current climate scenario

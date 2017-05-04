@@ -138,6 +138,12 @@
             "mimetype": "image/png",
             "order": 40
         },
+        "vip_plot.png": {
+            "title": "Variable Importance plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "application/pdf",
+            "order": 41
+        },
         "params.json": {
             "title": "Input parameters",
             "genre": "InputParams",
