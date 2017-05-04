@@ -28,6 +28,13 @@ def get_project_params(result):
     sdmobj = uuidToObject(uuid)
     sdmmd = IBCCVLMetadata(sdmobj)
     params['species_distribution_models']['layers'] = sdmmd.get('layers_used', None)
+
+    # do SDM projection results
+    sdm_projections = []
+    for resuuid in params['sdm_projections']:
+         sdm_projections.append(getdatasetparams(resuuid))
+    params['sdm_projections'] = sdm_projections
+
     # do future climate layers
     climatelist = []
     for uuid, layers in params['future_climate_datasets'].items():
@@ -61,7 +68,7 @@ def get_project_params(result):
 
     # add hints for worker
     workerhints = {
-        'files': ('species_distribution_models', 'future_climate_datasets')
+        'files': ('species_distribution_models', 'future_climate_datasets', 'sdm_projections')
     }
     return {'env': {}, 'params': params, 'worker': workerhints}
 
