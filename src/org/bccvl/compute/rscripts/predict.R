@@ -171,7 +171,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
     }
 
     # Compute metrics only for unconstraint projection.
-    if (length(sdm.projections.files) > 0 && is.null(constraint_type)) {
+    if (length(sdm.projections.files) > 0 && !is.null(constraint_type)) {
         # get the correct sdm projection file
         sdm_projection_file = sdm.projections.files[[1]]
 
