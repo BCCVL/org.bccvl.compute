@@ -87,33 +87,68 @@ OUTPUTS = {
         "Rplots.pdf": {
             "skip": True
         },    
-        '*.Rout': {
-            "title": "Log file",
-            "genre": "DataGenreLog",
-            "mimetype": "text/x-r-transcript"
-        },
         # Dismo projection output
         'proj_*.tif': {
-            'title': 'Future Projection',
+            'title': 'Future Projection map',
             'genre': 'DataGenreFP',
             'mimetype': 'image/geotiff',
+            'order': 1
         },
+        'proj_*.png': {
+            'title': 'Future Projection graph',
+            'genre': 'DataGenreFP',
+            'mimetype': 'image/png',
+            'order': 2
+        },
+        "*/proj_*/proj_*.tif": {
+            "title": "Future Projection map",
+            "genre": "DataGenreFP",
+            "mimetype": "image/geotiff",
+            "order": 1
+        },        
         # Biomod projection output
         '*/proj_*/proj_*_ClampingMask.tif': {
             "title": "Clamping Mask",
             "genre": "DataGenreClampingMask",
-            "mimetype": "image/geotiff"
+            "mimetype": "image/geotiff",
+            "order": 3
         },
-        "*/proj_*/proj_*.tif": {
-            "title": "Future Projection",
-            "genre": "DataGenreFP",
-            "mimetype": "image/geotiff"
+        'metric_occur_prob_change_*.tif': {
+            'title': 'Change in probability map',
+            'genre': 'DataGenreClimateChangeMetric',
+            'mimetype': 'image/geotiff',
+            "order": 4
+        },
+        'metric_species_range_change_*.tif': {
+            'title': 'Change in species range map',
+            'genre': 'DataGenreClimateChangeMetric',
+            'mimetype': 'image/geotiff',
+            "order": 5
+        },
+        'metric_species_range_change_*.csv': {
+            'title': 'Change in species range table',
+            'genre': 'DataGenreClimateChangeMetric',
+            'mimetype': 'text/csv',
+            "order": 6
+        },
+        'metric_centre_species_range_*.csv': {
+            'title': 'Change in centre of species range table',
+            'genre': 'DataGenreClimateChangeMetric',
+            'mimetype': 'text/csv',
+            "order": 7
         },
         '*.R': {
             'title': 'Job Script',
             'genre': 'JobScript',
             'mimetype': 'text/x-r',
+            'order': 8
         },
+        '*.Rout': {
+            "title": "Log file",
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript",
+            "order": 9
+        },        
     },
     'archives': {
         # 'results.html.zip': {
