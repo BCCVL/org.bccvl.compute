@@ -276,7 +276,8 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                                   climate.data=NULL,
                                   occur=NULL,
                                   species.name=NULL,
-                                  save.pseudo.absen=TRUE) {
+                                  save.pseudo.absen=TRUE,
+                                  generate.background.data=FALSE) {
 
     # Read true absence point if available.
     if (is.null(absen.filename)) {        
@@ -311,8 +312,32 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         cat("No pseudo absence point is generated.")
     }    
 
+    # Generate background data as pseudo absence points
+    if (pseudo.absen.strategy != 'none' & generate.background.data) {
+        biomod.data.pa <- c(rep(1, nrow(occur)), rep(0, nrow(absen)))
+        myBackgrdData <-
+            BIOMOD_FormatingData(resp.var  = biomod.data.pa,
+                                 expl.var  = climate.data,
+                                 resp.name = species.name,
+                                 PA.nb.rep = pseudo.absen.rep,
+                                 PA.nb.absences = pseudo.absen.points,
+                                 PA.strategy = pseudo.absen.strategy,
+                                 PA.dist.min = pseudo.absen.disk.min,
+                                 PA.dist.max = pseudo.absen.disk.max,
+                                 PA.sre.quant = pseudo.absen.sre.quant)
+
+        # Get background data as absence data
+        colnames(myBackgrdData@coord) <- c('lon', 'lat')
+        absen <- myBackgrdData@coord[c(which(is.na(myBackgrdData@data.species))), c('lon', 'lat')]
+
+        # Do not generate pa in next call to BIOMOD_FormatingData
+        pseudo.absen.rep = 0
+        pseudo.absen.strategy = 'none'
+    }
+
     biomod.data <- rbind(occur[,c("lon", "lat")], absen[,c("lon", "lat")])
     biomod.data.pa <- c(rep(1, nrow(occur)), rep(0, nrow(absen)))
+
     myBiomodData <-
         BIOMOD_FormatingData(resp.var  = biomod.data.pa,
                              expl.var  = climate.data,
@@ -336,6 +361,10 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         bccvl.merge.save(climate.data, pseudoAbsen, species.name, "absence_environmental.csv")        
     }
     else if (nrow(absen) > 0) {
+        # save background data generated
+        if (generate.background.data) {
+            bccvl.write.csv(absen, 'pseudo_absences.csv', rownames = FALSE)
+        }
         # save the true absence points with environmental variables
         bccvl.merge.save(climate.data, absen, species.name, "absence_environmental.csv")
     }
@@ -533,7 +562,7 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
 # geographically constrained modelling
 bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHull) {
 
-    if (is.null(rawgeojson) && !generateCHull) {
+    if (is.null(rawgeojson) & !generateCHull) {
         return(list("raster" = rasterstack, "occur" = occur))
     }
 
