@@ -182,14 +182,16 @@ if (pa_ratio > 0) {
 
 # 1. Format the data as required by the biomod package
 model.data = bccvl.biomod2.formatData(absen.filename     = absen.data,
-                                  pseudo.absen.points    = pa_number_point,
-                                  pseudo.absen.strategy  = bccvl.params$pa_strategy,
-                                  pseudo.absen.disk.min  = bccvl.params$pa_disk_min,
-                                  pseudo.absen.disk.max  = bccvl.params$pa_disk_max,
-                                  pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
-                                  climate.data           = current.climate.scenario,
-                                  occur                  = occur,
-                                  species.name           = biomod.species.name)
+                                      pseudo.absen.points    = pa_number_point,
+                                      pseudo.absen.strategy  = bccvl.params$pa_strategy,
+                                      pseudo.absen.disk.min  = bccvl.params$pa_disk_min,
+                                      pseudo.absen.disk.max  = bccvl.params$pa_disk_max,
+                                      pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
+                                      climate.data           = current.climate.scenario,
+                                      occur                  = occur,
+                                      species.name           = biomod.species.name,
+                                      generate.background.data = TRUE                # Generate background data as pseudo absence data
+                                     )
 
 # 2. Define the model options
 model.options <- BIOMOD_ModelingOptions(MAXENT = model.options.maxent)
