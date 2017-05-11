@@ -141,7 +141,7 @@
         "vip_plot.png": {
             "title": "Variable Importance plots",
             "genre": "DataGenreSDMEval",
-            "mimetype": "application/pdf",
+            "mimetype": "image/png",
             "order": 41
         },        
         "params.json": {
