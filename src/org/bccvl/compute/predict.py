@@ -148,7 +148,13 @@ OUTPUTS = {
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
             "order": 9
-        },        
+        }, 
+        "params.json": {
+            "title": "Input parameters",
+            "genre": "InputParams",
+            "mimetype": "text/x-r-transcript",
+            "order": 100
+        }
     },
     'archives': {
         # 'results.html.zip': {
