@@ -36,113 +36,131 @@
             "mimetype": "text/csv",
             "order": 5
         },
+        "occurrence_environmental.csv": {
+            "title": "Occurrence points with environmental data",
+            "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 6
+        },        
+        "absence_environmental.csv": {
+            "title": "Absence points with environmental data",
+            "genre": "DataGenreSpeciesAbsenceEnv",
+            "mimetype": "text/csv",
+            "order": 7
+        },
+        "vip_plot.png": {
+            "title": "Variable Importance plots",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 8
+        },
         "mean_response_curves*.png": {
             "title": "Mean Response Curves",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 6
+            "order": 9
         },
         "biomod2.modelEvaluation.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 7
+            "order": 10
         },
         "combined.Full.modelEvaluation.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 8
+            "order": 11
         },
         "Full-ppp.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 9
+            "order": 12
         },
         "Full-occurrence_absence_hist.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 10
+            "order": 13
         },
         "Full-occurence_absence_pdf.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 11
+            "order": 14
         },
         "Full-true_and_false_posivite_rates.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 12
+            "order": 15
         },
         "Full-error.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 13
+            "order": 16
         },
         "Full-roc.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 14
+            "order": 17
         },
         "Full-tradeoffs.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 15
+            "order": 18
         },
         "evaluation.summary.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 16
+            "order": 19
         },
         "Full-intervals.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 17
+            "order": 20
         },
         "evaluation.performance.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 18
+            "order": 21
         },        
         "*/models/bccvl/*_MAXENT_outputs/maxentResults.csv": {
             "title": "Maxent Thresholds",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 19
+            "order": 22
         },
         "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
             "mimetype": "text/x-r",
-            "order": 20
+            "order": 30
         },
         "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
-            "order": 22
+            "order": 32
         },
         "*.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 30
+            "order": 40
         },
         "*.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 40
+            "order": 50
         },
         "params.json": {
             "title": "Input parameters",
@@ -162,7 +180,7 @@
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
             "mimetype": "application/zip",
-            "order": 21
+            "order": 31
         },
         "maxent_outputs.zip": {
             "files": ["*/models/bccvl/*_MAXENT_outputs/*",
@@ -170,7 +188,7 @@
             "title": "Maxent output",
             "genre": "DataGenreSDMEval",
             "mimetype": "application/zip",
-            "order": 22
+            "order": 33
         }        
     }
 }

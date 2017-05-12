@@ -33,119 +33,131 @@
             "mimetype": "text/csv",
             "order": 4
         },
+        "occurrence_environmental.csv": {
+            "title": "Occurrence points with environmental data",
+            "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 5
+        },        
+        "absence_environmental.csv": {
+            "title": "Absence points with environmental data",
+            "genre": "DataGenreSpeciesAbsenceEnv",
+            "mimetype": "text/csv",
+            "order": 6
+        },        
         "*_response.png": {
             "title": "Marginal Response Curve",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 5
+            "order": 7
         },        
         "biomod2_like_VariableImportance.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 6
+            "order": 8
         },
         "maxent_like_VariableImportance.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 7
+            "order": 9
         },
         "combined.modelEvaluation.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 8
+            "order": 10
         },
         "bioclim-ppp.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 9
+            "order": 11
         },        
         "Full-occurrence_absence_hist.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 10
+            "order": 12
         },        
         "Full-true_and_false_posivite_rates.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 11
+            "order": 13
         },        
         "bioclim-error.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 12
+            "order": 14
         },        
         "bioclim-roc.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 13
+            "order": 15
         },        
         "bioclim-tradeoffs.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 14
+            "order": 16
         },
         "evaluation.summary.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 15
+            "order": 17
         },        
         "bioclim-intervals.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 16
+            "order": 18
         },
         "evaluation.performance.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 17
+            "order": 19
         },        
         "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
             "mimetype": "text/x-r",
-            "order": 20
+            "order": 30
         },     
         "dismo.eval.object.RData": {
             "title": "R ModelEvaluation object",
             "genre": "DataGenreSDMEval",
             "mimetype": "application/x-r-data",
-            "order": 21
+            "order": 31
         },
         "*.model.object.RData": {
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
             "mimetype": "application/x-r-data",
-            "order": 22
+            "order": 32
         },
         "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
-            "order": 23
+            "order": 33
         },
         "*.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 30
+            "order": 40
         },
         "*.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 40
+            "order": 50
         },
         "params.json": {
             "title": "Input parameters",
