@@ -36,107 +36,119 @@
             "mimetype": "text/csv",
             "order": 5
         },
+        "occurrence_environmental.csv": {
+            "title": "Occurrence points with environmental data",
+            "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 6
+        },        
+        "absence_environmental.csv": {
+            "title": "Absence points with environmental data",
+            "genre": "DataGenreSpeciesAbsenceEnv",
+            "mimetype": "text/csv",
+            "order": 7
+        },        
         "mean_response_curves*.png": {
             "title": "Response curves",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 6
+            "order": 8
         },
         "Evaluation statistics.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 7
+            "order": 9
         },
         "combined.Full.modelEvaluation.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 8
+            "order": 10
         },
         "Full-presence-absence-plot.png": {
             "title": "Presence/absence density plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 9
+            "order": 11
         },
         "Full-presence-absence-hist.png": {
             "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 10
+            "order": 12
         },
         "Full-occurence_absence_pdf.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 11
+            "order": 13
         },
         "Full-TPR-TNR.png": {
             "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 12
+            "order": 14
         },
         "Full-error-rates.png": {
             "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 13
+            "order": 15
         },
         "Full-ROC.png": {
             "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 14
+            "order": 16
         },
         "Full-loss-functions.png": {
             "title": "Loss functions plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 15
+            "order": 17
         },
         "Loss function intervals table.csv": {
             "title": "Loss functions table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 16
+            "order": 18
         },
         "Full-loss-intervals.png": {
             "title": "Loss functions intervals",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 17
+            "order": 19
         },
         "Evaluation data.csv": {
             "title": "Model evaluation data",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 18
+            "order": 20
         },        
         "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
             "mimetype": "text/x-r",
-            "order": 20
+            "order": 30
         },
         "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
-            "order": 22
+            "order": 32
         },
         "*.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 30
+            "order": 40
         },
         "*.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 40
+            "order": 50
         },
             "params.json": {
             "title": "Input parameters",
@@ -156,7 +168,7 @@
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
             "mimetype": "application/zip",
-            "order": 21
+            "order": 31
         }
     }
 }

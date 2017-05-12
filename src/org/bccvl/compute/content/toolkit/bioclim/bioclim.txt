@@ -33,83 +33,95 @@
             "mimetype": "text/csv",
             "order": 4
         },
+        "occurrence_environmental.csv": {
+            "title": "Occurrence points with environmental data",
+            "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 5
+        },        
+        "absence_environmental.csv": {
+            "title": "Absence points with environmental data",
+            "genre": "DataGenreSpeciesAbsenceEnv",
+            "mimetype": "text/csv",
+            "order": 6
+        },        
         "*_response.png": {
             "title": "Marginal Response Curve",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 5
+            "order": 7
         },        
         "biomod2_like_VariableImportance.csv": {
             "title": "Variable importance table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 6
+            "order": 8
         },
         "maxent_like_VariableImportance.csv": {
             "title": "Variable importance table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 7
+            "order": 9
         },
         "Evaluation statistics.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 8
+            "order": 10
         },
         "bioclim-presence-absence-plot.png": {
             "title": "Presence/absence density plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 9
+            "order": 11
         },        
         "bioclim-presence-absence-hist.png": {
             "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 10
+            "order": 12
         },        
         "bioclim-TPR-TNR.png": {
             "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 11
+            "order": 13
         },        
         "bioclim-error-rates.png": {
             "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 12
+            "order": 14
         },        
         "bioclim-ROC.png": {
             "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 13
+            "order": 15
         },        
         "bioclim-loss-functions.png": {
             "title": "Loss functions plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 14
+            "order": 16
         },
         "Loss function intervals table.csv": {
             "title": "Loss functions table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 15
+            "order": 17
         },        
         "bioclim-loss-intervals.png": {
             "title": "Loss functions intervals",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 16
+            "order": 18
         },
         "Evaluation data.csv": {
             "title": "Model evaluation data",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 17
+            "order": 19
         },        
         "*.R": {
             "title": "Job Script",
@@ -139,13 +151,13 @@
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 30
+            "order": 40
         },
         "*.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 40
+            "order": 50
         },
         "params.json": {
             "title": "Input parameters",
