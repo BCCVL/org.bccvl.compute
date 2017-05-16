@@ -94,18 +94,24 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             'order': 1
         },
+        "*/proj_*/proj_*.tif": {
+            "title": "Future Projection map",
+            "genre": "DataGenreFP",
+            "mimetype": "image/geotiff",
+            "order": 1
+        },
         'proj_*.png': {
             'title': 'Future Projection graph',
             'genre': 'DataGenreFP',
             'mimetype': 'image/png',
             'order': 2
         },
-        "*/proj_*/proj_*.tif": {
-            "title": "Future Projection map",
-            "genre": "DataGenreFP",
-            "mimetype": "image/geotiff",
-            "order": 1
-        },        
+        '*/proj_*/proj_*.png': {
+            'title': 'Future Projection graph',
+            'genre': 'DataGenreFP',
+            'mimetype': 'image/png',
+            'order': 2
+        },
         # Biomod projection output
         '*/proj_*/proj_*_ClampingMask.tif': {
             "title": "Clamping Mask",
@@ -119,7 +125,19 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 4
         },
+        '*/proj_*/metric_occur_prob_change_*.tif': {
+            'title': 'Change in probability map',
+            'genre': 'DataGenreClimateChangeMetric',
+            'mimetype': 'image/geotiff',
+            "order": 4
+        },
         'metric_species_range_change_*.tif': {
+            'title': 'Change in species range map',
+            'genre': 'DataGenreClimateChangeMetric',
+            'mimetype': 'image/geotiff',
+            "order": 5
+        },
+        '*/proj_*/metric_species_range_change_*.tif': {
             'title': 'Change in species range map',
             'genre': 'DataGenreClimateChangeMetric',
             'mimetype': 'image/geotiff',
@@ -131,7 +149,19 @@ OUTPUTS = {
             'mimetype': 'text/csv',
             "order": 6
         },
+        '*/proj_*/metric_species_range_change_*.csv': {
+            'title': 'Change in species range table',
+            'genre': 'DataGenreClimateChangeMetric',
+            'mimetype': 'text/csv',
+            "order": 6
+        },
         'metric_centre_species_range_*.csv': {
+            'title': 'Change in centre of species range table',
+            'genre': 'DataGenreClimateChangeMetric',
+            'mimetype': 'text/csv',
+            "order": 7
+        },
+        '*/proj_*/metric_centre_species_range_*.csv': {
             'title': 'Change in centre of species range table',
             'genre': 'DataGenreClimateChangeMetric',
             'mimetype': 'text/csv',
