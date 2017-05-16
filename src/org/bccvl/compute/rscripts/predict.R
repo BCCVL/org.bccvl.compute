@@ -182,7 +182,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, data_types, resamplingflag)
 
         # generate occurrence probability change for future and current projections
-        changefilepath = bccvl.get_filepath("metric_occur_prob_change_", 
+        changefilepath = bccvl.get_filepath("prob_change_", 
                                             projection.name, 
                                             species, 
                                             outputdir=outdir, 
@@ -191,7 +191,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         bccvl.generateOccurrenceProbChangeMetric(proj_rasters, changefilepath)
 
         # generate species range change metric and summary
-        changefilepath = bccvl.get_filepath("metric_species_range_change_", 
+        changefilepath = bccvl.get_filepath("range_change_", 
                                             projection.name, 
                                             species, 
                                             outputdir=outdir, 
@@ -200,7 +200,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         bccvl.generateSpeciesRangeChangeMetric(proj_rasters, projection.threshold, changefilepath)
 
         # Generate the Centre of Species Range metric
-        changefilepath = bccvl.get_filepath("metric_centre_species_range_", 
+        changefilepath = bccvl.get_filepath("centre_species_range_", 
                                             projection.name, 
                                             species, 
                                             outputdir=outdir, 

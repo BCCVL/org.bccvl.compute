@@ -11,7 +11,7 @@
       <min>0</min>
     </field>
     <field name="pa_strategy" type="zope.schema.Choice" form:mode="z3c.form.interfaces.IForm:hidden">
-      <default>sre</default>
+      <default>random</default>
       <description>strategy to generate pseudo-absence points: random; SRE (in sites with contrasting conditions to presences); disk (within a minimum and maximum distance from presences)</description>
       <required>True</required>
       <title>pseudo-absence strategy</title>
