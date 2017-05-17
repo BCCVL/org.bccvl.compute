@@ -102,13 +102,13 @@ OUTPUTS = {
         },
         'proj_*.png': {
             'title': 'Future Projection graph',
-            'genre': 'DataGenreFP',
+            'genre': 'DataGenreFP_GRAPH',
             'mimetype': 'image/png',
             'order': 2
         },
         '*/proj_*/proj_*.png': {
             'title': 'Future Projection graph',
-            'genre': 'DataGenreFP',
+            'genre': 'DataGenreFP_GRAPH',
             'mimetype': 'image/png',
             'order': 2
         },
@@ -121,25 +121,25 @@ OUTPUTS = {
         },
         'prob_change_*.tif': {
             'title': 'Change in probability map',
-            'genre': 'DataGenreClimateChangeMetric',
+            'genre': 'DataGenreClimateChangeMetricMap',
             'mimetype': 'image/geotiff',
             "order": 4
         },
         '*/proj_*/prob_change_*.tif': {
             'title': 'Change in probability map',
-            'genre': 'DataGenreClimateChangeMetric',
+            'genre': 'DataGenreClimateChangeMetricMap',
             'mimetype': 'image/geotiff',
             "order": 4
         },
         'range_change_*.tif': {
             'title': 'Change in species range map',
-            'genre': 'DataGenreClimateChangeMetric',
+            'genre': 'DataGenreClimateChangeMetricMap',
             'mimetype': 'image/geotiff',
             "order": 5
         },
         '*/proj_*/range_change_*.tif': {
             'title': 'Change in species range map',
-            'genre': 'DataGenreClimateChangeMetric',
+            'genre': 'DataGenreClimateChangeMetricMap',
             'mimetype': 'image/geotiff',
             "order": 5
         },
