@@ -95,89 +95,101 @@ OUTPUTS = {
             'order': 1
         },
         "*/proj_*/proj_*.tif": {
-            "title": "Future Projection map",
-            "genre": "DataGenreFP",
-            "mimetype": "image/geotiff",
+            "title": 'Future Projection map',
+            "genre": 'DataGenreFP',
+            "mimetype": 'image/geotiff',
             "order": 1
+        },
+        'proj_*_unconstraint.tif': {
+            'title': 'Future Projection map',
+            'genre': 'DataGenreFP_ENVLOP',
+            'mimetype': 'image/geotiff',
+            'order': 2
+        },
+        "*/proj_*/proj_*_unconstraint.tif": {
+            "title": "Future Projection map",
+            "genre": "DataGenreFP_ENVLOP",
+            "mimetype": "image/geotiff",
+            "order": 2
         },
         'proj_*.png': {
             'title': 'Future Projection graph',
             'genre': 'DataGenreFP_GRAPH',
             'mimetype': 'image/png',
-            'order': 2
+            'order': 3
         },
         '*/proj_*/proj_*.png': {
             'title': 'Future Projection graph',
             'genre': 'DataGenreFP_GRAPH',
             'mimetype': 'image/png',
-            'order': 2
+            'order': 3
         },
         # Biomod projection output
         '*/proj_*/proj_*_ClampingMask.tif': {
             "title": "Clamping Mask",
             "genre": "DataGenreClampingMask",
             "mimetype": "image/geotiff",
-            "order": 3
+            "order": 4
         },
         'prob_change_*.tif': {
             'title': 'Change in probability map',
             'genre': 'DataGenreClimateChangeMetricMap',
             'mimetype': 'image/geotiff',
-            "order": 4
+            "order": 5
         },
         '*/proj_*/prob_change_*.tif': {
             'title': 'Change in probability map',
             'genre': 'DataGenreClimateChangeMetricMap',
             'mimetype': 'image/geotiff',
-            "order": 4
+            "order": 5
         },
         'range_change_*.tif': {
             'title': 'Change in species range map',
             'genre': 'DataGenreClimateChangeMetricMap',
             'mimetype': 'image/geotiff',
-            "order": 5
+            "order": 6
         },
         '*/proj_*/range_change_*.tif': {
             'title': 'Change in species range map',
             'genre': 'DataGenreClimateChangeMetricMap',
             'mimetype': 'image/geotiff',
-            "order": 5
+            "order": 6
         },
         'range_change_*.csv': {
             'title': 'Change in species range table',
             'genre': 'DataGenreClimateChangeMetric',
             'mimetype': 'text/csv',
-            "order": 6
+            "order": 7
         },
         '*/proj_*/range_change_*.csv': {
             'title': 'Change in species range table',
             'genre': 'DataGenreClimateChangeMetric',
             'mimetype': 'text/csv',
-            "order": 6
+            "order": 7
         },
         'centre_species_range_*.csv': {
             'title': 'Change in centre of species range table',
             'genre': 'DataGenreClimateChangeMetric',
             'mimetype': 'text/csv',
-            "order": 7
+            "order": 8
         },
         '*/proj_*/centre_species_range_*.csv': {
             'title': 'Change in centre of species range table',
             'genre': 'DataGenreClimateChangeMetric',
             'mimetype': 'text/csv',
-            "order": 7
+            "order": 8
         },
         '*.R': {
             'title': 'Job Script',
             'genre': 'JobScript',
             'mimetype': 'text/x-r',
-            'order': 8
+            'order': 9
         },
         '*.Rout': {
             "title": "Log file",
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
-            "order": 9
+            "order": 10
         }, 
         "params.json": {
             "title": "Input parameters",

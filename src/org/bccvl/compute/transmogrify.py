@@ -109,7 +109,7 @@ class ResultSource(object):
                 addSpeciesInfo(bccvlmd, self.context)
             if genre == 'DataGenreEnsembleResult':
                 bccvlmd['resolution'] = self.context.job_params['resolution']
-            elif genre == 'DataGenreFP':
+            elif genre in ('DataGenreFP', 'DataGenreFP_ENVLOP'):
                 addLayersUsedInfo(bccvlmd, self.context)
                 bccvlmd['resolution'] = self.context.job_params['resolution']
                 addSpeciesInfo(bccvlmd, self.context)
