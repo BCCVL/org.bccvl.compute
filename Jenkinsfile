@@ -25,7 +25,7 @@ node('docker') {
                         // install test runner
                         sh '. ${VIRTUALENV}/bin/activate; pip install pytest pytest-cov'
                         // run tests
-                        sh(script: '. ${VIRTUALENV}/bin/activate; pytest -v --junit=junit.xml --cov-report=xml --cov=org.bccvl.compute',
+                        sh(script: '. ${VIRTUALENV}/bin/activate; pytest -v --junitxml=junit.xml --cov-report=xml --cov=org.bccvl.compute',
                            returnStatus: true)
 
                         // capture result
