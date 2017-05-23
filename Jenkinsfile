@@ -1,6 +1,6 @@
 
 
-if (env.BRANCH_NAME == 'feature/master_docker') {
+if (env.BRANCH_NAME == 'master') {
 
     stage('Checkout') {
         // clean git clone, but don't fail in case it doesn't exist yet
