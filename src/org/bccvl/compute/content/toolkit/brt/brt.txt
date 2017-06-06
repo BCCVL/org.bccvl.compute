@@ -7,18 +7,22 @@
             "skip": true
         },
         "results.html": {
-            "skip": true            
-        },        
+            "skip": true
+        },
         "*proj_current*.tif": {
             "title": "Projection to current climate",
             "genre": "DataGenreCP",
             "mimetype": "image/geotiff",
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             "order": 1
         },
         "*proj_current*_unconstraint.tif": {
             "title": "Projection to current climate",
             "genre": "DataGenreCP_ENVLOP",
             "mimetype": "image/geotiff",
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             "order": 2
         },
         "proj_current_*.png": {
@@ -26,7 +30,7 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 3
-        },        
+        },
         "pseudo_absences.csv": {
             "title": "Generated pseudo-absence points",
             "genre": "DataGenreSpeciesAbsence",
@@ -50,7 +54,7 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 7
-        },        
+        },
         "biomod2_like_VariableImportance.csv": {
             "title": "Variable importance table",
             "genre": "DataGenreSDMEval",
@@ -74,31 +78,31 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 11
-        },        
+        },
         "brt-presence-absence-hist.png": {
             "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 12
-        },        
+        },
         "brt-TPR-TNR.png": {
             "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 13
-        },        
+        },
         "brt-error-rates.png": {
             "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 14
-        },        
+        },
         "brt-ROC.png": {
             "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 15
-        },        
+        },
         "brt-loss-functions.png": {
             "title": "Loss functions plot",
             "genre": "DataGenreSDMEval",
@@ -110,7 +114,7 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 17
-        },        
+        },
         "brt-loss-intervals.png": {
             "title": "Loss function intervals",
             "genre": "DataGenreSDMEval",
@@ -122,13 +126,13 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 19
-        },        
+        },
         "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
             "mimetype": "text/x-r",
             "order": 20
-        },     
+        },
         "dismo.eval.object.RData": {
             "title": "R ModelEvaluation object",
             "genre": "DataGenreSDMEval",

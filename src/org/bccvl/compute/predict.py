@@ -82,130 +82,159 @@ def generate_project_script():
 
 # TODO: maybe allow tal expressions or regexp match parameters to create more meaningful titles?
 # FIXME: which projection get's which metadata? (GCM, emsc, scale, year)
-OUTPUTS = {
-    'files': {
-        "Rplots.pdf": {
-            "skip": True
-        },    
-        # Dismo projection output
-        'proj_*.tif': {
-            'title': 'Future Projection map',
-            'genre': 'DataGenreFP',
-            'mimetype': 'image/geotiff',
-            'order': 1
+def get_output(algorithm):
+    if algorithm == 'maxent':
+        layer = 'projection_suitablity'
+        dtype = 'Continuous'
+    elif algorithm in ('circles', 'convhull', 'voronoihull'):
+        layer = 'projection_binary'
+        dtype = 'Discrete'
+    else: 
+        layer = 'projection_probability'
+        dtype = 'Continuous'
+
+    return {
+        'files': {
+            "Rplots.pdf": {
+                "skip": True
+            },
+            # Dismo projection output
+            'proj_*.tif': {
+                'title': 'Future Projection map',
+                'genre': 'DataGenreFP',
+                'layer': layer,
+                'data_type': dtype,
+                'mimetype': 'image/geotiff',
+                'order': 1
+            },
+            '*/proj_*/proj_*.tif': {
+                "title": 'Future Projection map',
+                "genre": 'DataGenreFP',
+                'layer': layer,
+                'data_type': dtype,
+                "mimetype": 'image/geotiff',
+                "order": 1
+            },
+            'proj_*_unconstraint.tif': {
+                'title': 'Future Projection map',
+                'genre': 'DataGenreFP_ENVLOP',
+                'layer': layer,
+                'data_type': dtype,
+                'mimetype': 'image/geotiff',
+                'order': 2
+            },
+            '*/proj_*/proj_*_unconstraint.tif': {
+                "title": "Future Projection map",
+                "genre": "DataGenreFP_ENVLOP",
+                'layer': layer,
+                'data_type': dtype,            
+                "mimetype": "image/geotiff",
+                "order": 2
+            },
+            'proj_*.png': {
+                'title': 'Future Projection graph',
+                'genre': 'DataGenreFP_GRAPH',
+                'mimetype': 'image/png',
+                'order': 3
+            },
+            '*/proj_*/proj_*.png': {
+                'title': 'Future Projection graph',
+                'genre': 'DataGenreFP_GRAPH',
+                'mimetype': 'image/png',
+                'order': 3
+            },
+            # Biomod projection output
+            '*/proj_*/proj_*_ClampingMask.tif': {
+                "title": "Clamping Mask",
+                "genre": "DataGenreClampingMask",
+                "mimetype": "image/geotiff",
+                "layer": "clamping_mask",
+                "data_type": "Discrete",
+                "order": 4
+            },
+            'prob_change_*.tif': {
+                'title': 'Change in probability map',
+                'genre': 'DataGenreClimateChangeMetricMap',
+                'layer': 'probability_difference',
+                'data_type': 'Continuous',
+                'mimetype': 'image/geotiff',
+                "order": 5
+            },
+            '*/proj_*/prob_change_*.tif': {
+                'title': 'Change in probability map',
+                'genre': 'DataGenreClimateChangeMetricMap',
+                'layer': 'probability_difference',
+                'data_type': 'Continuous',
+                'mimetype': 'image/geotiff',
+                "order": 5
+            },
+            'range_change_*.tif': {
+                'title': 'Change in species range map',
+                'genre': 'DataGenreClimateChangeMetricMap',
+                'layer': 'range_change',
+                "data_type": "Discrete",
+                'mimetype': 'image/geotiff',
+                "order": 6
+            },
+            '*/proj_*/range_change_*.tif': {
+                'title': 'Change in species range map',
+                'genre': 'DataGenreClimateChangeMetricMap',
+                'layer': 'range_change',
+                "data_type": "Discrete",
+                'mimetype': 'image/geotiff',
+                "order": 6
+            },
+            'range_change_*.csv': {
+                'title': 'Change in species range table',
+                'genre': 'DataGenreClimateChangeMetric',
+                'mimetype': 'text/csv',
+                "order": 7
+            },
+            '*/proj_*/range_change_*.csv': {
+                'title': 'Change in species range table',
+                'genre': 'DataGenreClimateChangeMetric',
+                'mimetype': 'text/csv',
+                "order": 7
+            },
+            'centre_species_range_*.csv': {
+                'title': 'Change in centre of species range table',
+                'genre': 'DataGenreClimateChangeMetric',
+                'mimetype': 'text/csv',
+                "order": 8
+            },
+            '*/proj_*/centre_species_range_*.csv': {
+                'title': 'Change in centre of species range table',
+                'genre': 'DataGenreClimateChangeMetric',
+                'mimetype': 'text/csv',
+                "order": 8
+            },
+            '*.R': {
+                'title': 'Job Script',
+                'genre': 'JobScript',
+                'mimetype': 'text/x-r',
+                'order': 9
+            },
+            '*.Rout': {
+                "title": "Log file",
+                "genre": "DataGenreLog",
+                "mimetype": "text/x-r-transcript",
+                "order": 10
+            },
+            "params.json": {
+                "title": "Input parameters",
+                "genre": "InputParams",
+                "mimetype": "text/x-r-transcript",
+                "order": 100
+            }
         },
-        "*/proj_*/proj_*.tif": {
-            "title": 'Future Projection map',
-            "genre": 'DataGenreFP',
-            "mimetype": 'image/geotiff',
-            "order": 1
+        'archives': {
+            # 'results.html.zip': {
+            #     'files': ['results.html', 'AUC.png'],
+            #     'title': 'Accuracy measures report as zip',
+            #     'type': 'eval',
+            #     'format': 'zip',
         },
-        'proj_*_unconstraint.tif': {
-            'title': 'Future Projection map',
-            'genre': 'DataGenreFP_ENVLOP',
-            'mimetype': 'image/geotiff',
-            'order': 2
-        },
-        "*/proj_*/proj_*_unconstraint.tif": {
-            "title": "Future Projection map",
-            "genre": "DataGenreFP_ENVLOP",
-            "mimetype": "image/geotiff",
-            "order": 2
-        },
-        'proj_*.png': {
-            'title': 'Future Projection graph',
-            'genre': 'DataGenreFP_GRAPH',
-            'mimetype': 'image/png',
-            'order': 3
-        },
-        '*/proj_*/proj_*.png': {
-            'title': 'Future Projection graph',
-            'genre': 'DataGenreFP_GRAPH',
-            'mimetype': 'image/png',
-            'order': 3
-        },
-        # Biomod projection output
-        '*/proj_*/proj_*_ClampingMask.tif': {
-            "title": "Clamping Mask",
-            "genre": "DataGenreClampingMask",
-            "mimetype": "image/geotiff",
-            "order": 4
-        },
-        'prob_change_*.tif': {
-            'title': 'Change in probability map',
-            'genre': 'DataGenreClimateChangeMetricMap',
-            'mimetype': 'image/geotiff',
-            "order": 5
-        },
-        '*/proj_*/prob_change_*.tif': {
-            'title': 'Change in probability map',
-            'genre': 'DataGenreClimateChangeMetricMap',
-            'mimetype': 'image/geotiff',
-            "order": 5
-        },
-        'range_change_*.tif': {
-            'title': 'Change in species range map',
-            'genre': 'DataGenreClimateChangeMetricMap',
-            'mimetype': 'image/geotiff',
-            "order": 6
-        },
-        '*/proj_*/range_change_*.tif': {
-            'title': 'Change in species range map',
-            'genre': 'DataGenreClimateChangeMetricMap',
-            'mimetype': 'image/geotiff',
-            "order": 6
-        },
-        'range_change_*.csv': {
-            'title': 'Change in species range table',
-            'genre': 'DataGenreClimateChangeMetric',
-            'mimetype': 'text/csv',
-            "order": 7
-        },
-        '*/proj_*/range_change_*.csv': {
-            'title': 'Change in species range table',
-            'genre': 'DataGenreClimateChangeMetric',
-            'mimetype': 'text/csv',
-            "order": 7
-        },
-        'centre_species_range_*.csv': {
-            'title': 'Change in centre of species range table',
-            'genre': 'DataGenreClimateChangeMetric',
-            'mimetype': 'text/csv',
-            "order": 8
-        },
-        '*/proj_*/centre_species_range_*.csv': {
-            'title': 'Change in centre of species range table',
-            'genre': 'DataGenreClimateChangeMetric',
-            'mimetype': 'text/csv',
-            "order": 8
-        },
-        '*.R': {
-            'title': 'Job Script',
-            'genre': 'JobScript',
-            'mimetype': 'text/x-r',
-            'order': 9
-        },
-        '*.Rout': {
-            "title": "Log file",
-            "genre": "DataGenreLog",
-            "mimetype": "text/x-r-transcript",
-            "order": 10
-        }, 
-        "params.json": {
-            "title": "Input parameters",
-            "genre": "InputParams",
-            "mimetype": "text/x-r-transcript",
-            "order": 100
-        }
-    },
-    'archives': {
-        # 'results.html.zip': {
-        #     'files': ['results.html', 'AUC.png'],
-        #     'title': 'Accuracy measures report as zip',
-        #     'type': 'eval',
-        #     'format': 'zip',
-    },
-}
+    }
 
 
 @provider(IComputeMethod)
@@ -242,7 +271,7 @@ def execute(result, func):
     ### add result infos
     params['result'] = {
         'results_dir': get_results_dir(result, result.REQUEST),
-        'outputs': OUTPUTS
+        'outputs': get_output(result.job_params['function'])
     }
     params['worker']['script'] = {
         'name': 'projection.R',
