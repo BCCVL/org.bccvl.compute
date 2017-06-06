@@ -134,24 +134,28 @@ OUTPUTS = {
         'prob_change_*.tif': {
             'title': 'Change in probability map',
             'genre': 'DataGenreClimateChangeMetricMap',
+            'layer': 'probability_difference',
             'mimetype': 'image/geotiff',
             "order": 5
         },
         '*/proj_*/prob_change_*.tif': {
             'title': 'Change in probability map',
             'genre': 'DataGenreClimateChangeMetricMap',
+            'layer': 'probability_difference',
             'mimetype': 'image/geotiff',
             "order": 5
         },
         'range_change_*.tif': {
             'title': 'Change in species range map',
             'genre': 'DataGenreClimateChangeMetricMap',
+            'layer': 'range_change',
             'mimetype': 'image/geotiff',
             "order": 6
         },
         '*/proj_*/range_change_*.tif': {
             'title': 'Change in species range map',
             'genre': 'DataGenreClimateChangeMetricMap',
+            'layer': 'range_change',
             'mimetype': 'image/geotiff',
             "order": 6
         },
