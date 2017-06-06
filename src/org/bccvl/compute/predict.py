@@ -137,6 +137,7 @@ OUTPUTS = {
             'title': 'Change in probability map',
             'genre': 'DataGenreClimateChangeMetricMap',
             'layer': 'probability_difference',
+            'data_type': 'Continuous',
             'mimetype': 'image/geotiff',
             "order": 5
         },
@@ -144,6 +145,7 @@ OUTPUTS = {
             'title': 'Change in probability map',
             'genre': 'DataGenreClimateChangeMetricMap',
             'layer': 'probability_difference',
+            'data_type': 'Continuous',
             'mimetype': 'image/geotiff',
             "order": 5
         },
@@ -151,6 +153,7 @@ OUTPUTS = {
             'title': 'Change in species range map',
             'genre': 'DataGenreClimateChangeMetricMap',
             'layer': 'range_change',
+            "data_type": "Discrete",
             'mimetype': 'image/geotiff',
             "order": 6
         },
@@ -158,6 +161,7 @@ OUTPUTS = {
             'title': 'Change in species range map',
             'genre': 'DataGenreClimateChangeMetricMap',
             'layer': 'range_change',
+            "data_type": "Discrete",
             'mimetype': 'image/geotiff',
             "order": 6
         },
