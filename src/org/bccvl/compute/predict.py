@@ -86,7 +86,7 @@ OUTPUTS = {
     'files': {
         "Rplots.pdf": {
             "skip": True
-        },    
+        },
         # Dismo projection output
         'proj_*.tif': {
             'title': 'Future Projection map',
@@ -129,6 +129,8 @@ OUTPUTS = {
             "title": "Clamping Mask",
             "genre": "DataGenreClampingMask",
             "mimetype": "image/geotiff",
+            "layer": "clamping_mask",
+            "data_type": "Discrete",
             "order": 4
         },
         'prob_change_*.tif': {
@@ -194,7 +196,7 @@ OUTPUTS = {
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
             "order": 10
-        }, 
+        },
         "params.json": {
             "title": "Input parameters",
             "genre": "InputParams",

@@ -10,12 +10,16 @@
             "title": "Projection to current",
             "genre": "DataGenreCP",
             "mimetype": "image/geotiff",
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             "order": 1
-        },        
+        },
         "*/proj_current/proj_current*_unconstraint.tif": {
             "title": "Projection to current",
             "genre": "DataGenreCP_ENVLOP",
             "mimetype": "image/geotiff",
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             "order": 2
         },
         "proj_current_*.png": {
@@ -28,6 +32,8 @@
             "title": "Clamping Mask",
             "genre": "DataGenreClampingMask",
             "mimetype": "image/geotiff",
+            "layer": "clamping_mask",
+            "data_type": "Discrete",
             "order": 4
         },
         "pseudo_absences.csv": {
@@ -41,7 +47,7 @@
             "genre": "DataGenreSpeciesOccurEnv",
             "mimetype": "text/csv",
             "order": 6
-        },        
+        },
         "absence_environmental.csv": {
             "title": "Absence points with environmental data",
             "genre": "DataGenreSpeciesAbsenceEnv",
@@ -131,7 +137,7 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 21
-        },        
+        },
         "*/models/bccvl/*_MAXENT_outputs/maxentResults.csv": {
             "title": "Maxent Thresholds",
             "genre": "DataGenreSDMEval",
@@ -189,6 +195,6 @@
             "genre": "DataGenreSDMEval",
             "mimetype": "application/zip",
             "order": 33
-        }        
+        }
     }
 }
