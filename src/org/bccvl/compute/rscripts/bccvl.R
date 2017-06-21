@@ -559,6 +559,15 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
     return(rasterstack)
 }
 
+# Remove raster object and its associated raster files if any
+bccvl.remove.rasterObject <- function(rasterObject) {
+    tmp_filename = filename(rasterObject)
+    rm(rasterObject)
+    if (tmp_filename != '') {
+        file.remove(tmp_filename, extension(tmp_filename, '.gri'))
+    }
+}
+
 # geographically constrained modelling
 bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHull) {
 
@@ -615,10 +624,13 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
         occurconstrained = NULL
     }
 
-    # Mask the rasterstack (and make sure it is a RasterStack)   
-    # Give a named temp filename in the work dir
-    grifilename = paste(bccvl.env$workdir, basename(tempfile(fileext = '.grd')), sep="/")
-    geoconstrained <- stack(mask(rasterstack, parsedgeojson, filename = grifilename))
+    # Mask the rasterstack (and make sure it is a RasterStack)
+    # Crop the raster to the extent of the constraint region before masking
+    cropped_rasterstack <- crop(rasterstack, extent(parsedgeojson), filename = rasterTmpFile())
+    geoconstrained <- stack(mask(cropped_rasterstack, parsedgeojson, filename = rasterTmpFile()))
+
+    # Remove cropped rasterstack and associated raster files (i.e. grd and gri)
+    bccvl.remove.rasterObject(cropped_rasterstack)
     
     # Return the masked raster stack and constrained occurrence points
     mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
