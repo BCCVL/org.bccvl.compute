@@ -136,9 +136,9 @@ if (!all(enviro.data.type=="continuous")) {
 
     # save output
     bccvl.saveModelProjection(model.proj, projection.name, occur.species)
-    
+
     # evaluate model
     if (!is.null(absen)) {
         bccvl.saveDISMOModelEvaluation('bioclim', model.sdm, occur, absen)
     }
-} # end if continuous
+}

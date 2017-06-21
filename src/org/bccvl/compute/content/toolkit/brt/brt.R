@@ -196,17 +196,28 @@ model.sdm <- gbm.step(
 
 #save out the model object
 bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
+
 # NOTE the order of arguments in the predict function for brt; this is because
 # the function is defined outside of the dismo package
 # predict for CURRENT climate scenario
-model.proj = predict(current.climate.scenario, model.sdm, n.trees=model.sdm$gbm.call$best.trees, type="response")
-bccvl.saveModelProjection(model.proj, projection.name, occur.species)
-# evaluate model
-bccvl.saveDISMOModelEvaluation('brt', model.sdm, occur, absen)
 
 # Do projection over current climate scenario without constraint
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
     model.proj = predict(current.climate.scenario.orig, model.sdm, n.trees=model.sdm$gbm.call$best.trees, type="response")
+
+    # remove the current.climate.scenario to release disk space
+    bccvl.remove.rasterObject(current.climate.scenario.orig)
+
     # save output
     bccvl.saveModelProjection(model.proj, projection.name, occur.species, filename_ext="unconstraint")
 }
+
+model.proj = predict(current.climate.scenario, model.sdm, n.trees=model.sdm$gbm.call$best.trees, type="response")
+
+# remove the current.climate.scenario to release disk space
+bccvl.remove.rasterObject(current.climate.scenario)
+
+bccvl.saveModelProjection(model.proj, projection.name, occur.species)
+
+# evaluate model
+bccvl.saveDISMOModelEvaluation('brt', model.sdm, occur, absen)

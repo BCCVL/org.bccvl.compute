@@ -111,15 +111,24 @@ if (!all(enviro.data.type=="continuous")) {
     model.sdm = circles(p=occur, lonlat=TRUE)
     # save out the model object
     bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
-    # predict for given climate scenario
-    model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
-    # save output
-    bccvl.saveModelProjection(model.proj, projection.name, occur.species)
 
     # Do projection over current climate scenario without constraint
     if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
         model.proj = predict(model.sdm, current.climate.scenario.orig, tails=opt.tails)
+
+        # remove the current.climate.scenario to release disk space
+        bccvl.remove.rasterObject(current.climate.scenario.orig)
+
         # save output
         bccvl.saveModelProjection(model.proj, projection.name, occur.species, filename_ext="unconstraint")
     }
-} # end if continuous
+
+    # predict for given climate scenario
+    model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
+
+    # remove the current.climate.scenario to release disk space
+    bccvl.remove.rasterObject(current.climate.scenario)
+
+    # save output
+    bccvl.saveModelProjection(model.proj, projection.name, occur.species)
+}
