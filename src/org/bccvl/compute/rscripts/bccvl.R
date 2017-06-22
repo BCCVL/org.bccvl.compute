@@ -559,13 +559,15 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
     return(rasterstack)
 }
 
-# Remove raster object and its associated raster files if any
+# Remove raster object and its associated raster files (i.e. grd and gri) if any
 bccvl.remove.rasterObject <- function(rasterObject) {
-    tmp_filename = filename(rasterObject)
-    rm(rasterObject)
-    if (tmp_filename != '') {
-        file.remove(tmp_filename, extension(tmp_filename, '.gri'))
+    raster_filenames = raster_to_filenames(rasterObject, unique = TRUE)
+    for (fname in raster_filenames) {
+        if (extension(fname)  == '.grd') {
+            file.remove(fname, extension(fname, '.gri'))
+        }
     }
+    rm(rasterObject)
 }
 
 # geographically constrained modelling
@@ -627,7 +629,11 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
     # Mask the rasterstack (and make sure it is a RasterStack)
     # Crop the raster to the extent of the constraint region before masking
     cropped_rasterstack <- crop(rasterstack, extent(parsedgeojson), filename = rasterTmpFile())
-    geoconstrained <- stack(mask(cropped_rasterstack, parsedgeojson, filename = rasterTmpFile()))
+
+    # save the constrained raster in work directory instead of raster temporary directory as 
+    # predict.R clears the raster temp files.
+    envraster_filename = paste(bccvl.env$workdir, basename(tempfile(fileext = ".grd")), sep="/")
+    geoconstrained <- stack(mask(cropped_rasterstack, parsedgeojson, filename = envraster_filename))
 
     # Remove cropped rasterstack and associated raster files (i.e. grd and gri)
     bccvl.remove.rasterObject(cropped_rasterstack)
