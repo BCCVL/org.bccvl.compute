@@ -243,6 +243,21 @@ bccvl.species.read <- function(filename, month_filter=NULL) {
     }
 }
 
+bccvl.data.transform <- function(data, climate.data)
+{
+    if (!is.null(data) & !compareCRS(data, climate.data, verbatim=TRUE)) {
+        sp <- SpatialPoints(data)
+        if (is.na(crs(sp))) {
+            crs(sp) <- '+init=epsg:4326'
+        }
+
+        newdata <- as.data.frame(spTransform(sp, crs(climate.data)))
+        names(newdata) <- c("lon", "lat")
+        return(newdata)
+    }
+    return(data)
+}
+
 # BIOMOD_FormatingData(resp.var, expl.var, resp.xy = NULL, resp.name = NULL, eval.resp.var = NULL,
 #   eval.expl.var = NULL, eval.resp.xy = NULL, PA.nb.rep = 0, PA.nb.absences = 1000, PA.strategy = 'random',
 #   PA.dist.min = 0, PA.dist.max = NULL, PA.sre.quant = 0.025, PA.table = NULL, na.rm = TRUE)
@@ -293,12 +308,11 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
 
     # Ensure occurrence and absence datasets are in same projection system as climate.
     if (!is.null(climate.data)) {
-        if (!is.null(absen) & !compareCRS(absen, climate.data, verbatim=TRUE)) {
-            absen <- spTransform(absen, crs(climate.data))
+        if (!is.null(absen) & nrow(absen) > 0) {
+            absen <- bccvl.data.transform(absen, climate.data)
         }
-
-        if (!is.null(occur) & !compareCRS(occur, climate.data, verbatim=TRUE)) {
-            occur <- spTransform(occur, crs(climate.data))
+        if (!is.null(occur) & nrow(occur) > 0) {
+            occur <- bccvl.data.transform(occur, climate.data)
         }
     }
 
