@@ -292,12 +292,12 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
     }
 
     # Ensure occurrence and absence datasets are in same projection system as climate.
-    if (!climate.data) {
-        if (absen & !compareCRS(absen, climate.data, verbatim=TRUE)) {
+    if (!is.null(climate.data)) {
+        if (!is.null(absen) & !compareCRS(absen, climate.data, verbatim=TRUE)) {
             absen <- spTransform(absen, crs(climate.data))
         }
 
-        if (occur & !compareCRS(occur, climate.data, verbatim=TRUE)) {
+        if (!is.null(occur) & !compareCRS(occur, climate.data, verbatim=TRUE)) {
             occur <- spTransform(occur, crs(climate.data))
         }
     }
