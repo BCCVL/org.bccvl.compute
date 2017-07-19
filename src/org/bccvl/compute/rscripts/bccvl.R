@@ -304,15 +304,10 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         absen = bccvl.species.read(absen.filename)
         # keep only lon and lat columns
         absen = absen[c("lon","lat")]
-    }
 
-    # Ensure occurrence and absence datasets are in same projection system as climate.
-    if (!is.null(climate.data)) {
-        if (!is.null(absen) & nrow(absen) > 0) {
+        # Ensure true absence dataset is in same projection system as climate.
+        if (!is.null(climate.data) & !is.null(absen) & nrow(absen) > 0) {
             absen <- bccvl.data.transform(absen, climate.data)
-        }
-        if (!is.null(occur) & nrow(occur) > 0) {
-            occur <- bccvl.data.transform(occur, climate.data)
         }
     }
 
