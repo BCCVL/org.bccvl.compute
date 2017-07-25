@@ -14,7 +14,7 @@
             "data_type": "Continuous",
             "order": 1
         },
-        "*proj_current*_unconstraint.tif": {
+        "*/proj_current/proj_current_*_unconstraint.tif": {
             "title": "Projection to current climate",
             "genre": "DataGenreCP_ENVLOP",
             "mimetype": "image/geotiff",

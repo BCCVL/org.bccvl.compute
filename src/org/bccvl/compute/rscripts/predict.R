@@ -150,7 +150,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
             }
         }
 
-        # remove the environment dataset to release disk space
+        # remove the associated raster files (grd, gri) to release disk space
         bccvl.remove.rasterObject(predictors)
 
         # create output folder
