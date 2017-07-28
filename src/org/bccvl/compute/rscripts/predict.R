@@ -58,6 +58,10 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                               predictors,
                               tails=opt.tails,
                               ext=opt.ext)
+
+        # remove the environment dataset to release disk space
+        bccvl.remove.rasterObject(predictors)
+
         tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
     } else if (inherits(model.obj, "gbm")) {
         # brt package)
@@ -65,6 +69,10 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                               model.obj,
                               n.trees=model.obj$gbm.call$best.trees,
                               type="response")
+
+        # remove the environment dataset to release disk space
+        bccvl.remove.rasterObject(predictors)
+
         tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
     } else if (inherits(model.obj, "BIOMOD.models.out")) {
         # For biomod we process the raster in blocks to avoid creating an unnecessary large number of temporary raster files.
@@ -141,6 +149,9 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                 removeTmpFiles(0)
             }
         }
+
+        # remove the associated raster files (grd, gri) to release disk space
+        bccvl.remove.rasterObject(predictors)
 
         # create output folder
         outdir = file.path(bccvl.env$outputdir,
@@ -231,10 +242,10 @@ if (tolower(file_ext(modelfile)) == "zip") {
 # TODO:should be loaded straigt from bccvl.params$sdms[1]
 model.obj <- bccvl.getModelObject(modelfile)
 
-# use folder name of first dataset to generate name for projection output
-projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species, enviro.data.constraints)
-
 # Do projection without any constraint only if there is constraint.
 if (!is.null(enviro.data.constraints)) {
     projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species, enviro.data.constraints, constraint_type="unconstraint")
 }
+
+# use folder name of first dataset to generate name for projection output
+projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species, enviro.data.constraints)

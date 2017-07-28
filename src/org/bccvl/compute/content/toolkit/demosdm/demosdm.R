@@ -216,6 +216,10 @@ model.proj <-
                       keep.in.memory = opt.biomod.keep.in.memory,
                       output.format = opt.biomod.output.format,
                       on_0_1000 = FALSE)
+
+# remove the environmental dataset to release disk space
+bccvl.remove.rasterObject(current.climate.scenario)
+
 # convert projection output from grd to gtiff
 bccvl.grdtogtiff(file.path(getwd(),
                            biomod.species.name,
@@ -269,6 +273,10 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                               predictors,
                               tails=opt.tails,
                               ext=opt.ext)
+
+        # remove the environmental dataset to release disk space
+        bccvl.remove.rasterObject(predictors)
+
         bccvl.saveModelProjection(model.proj, projection.name, species)
     } else if (inherits(model.obj, "gbm")) {
         # brt package)
@@ -276,6 +284,9 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                               model.obj,
                               n.trees=model.obj$gbm.call$best.trees,
                               type="response")
+        # remove the environmental dataset to release disk space
+        bccvl.remove.rasterObject(predictors)
+
         bccvl.saveModelProjection(model.proj, projection.name, species)
     } else if (inherits(model.obj, "BIOMOD.models.out")) {
         # expect additional model data in input folder.
@@ -307,6 +318,10 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                                         keep.in.memory=opt.biomod.keep.in.memory,
                                         output.format=opt.biomod.output.format,
                                         on_0_1000=FALSE)
+
+        # remove the environmental dataset to release disk space
+        bccvl.remove.rasterObject(predictors)
+
         # save projection to output folder
         # move proj_folder
         projinput <- file.path(getwd(),

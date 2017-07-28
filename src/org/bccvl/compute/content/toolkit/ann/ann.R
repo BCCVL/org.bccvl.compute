@@ -207,38 +207,6 @@ bccvl.VIPplot(method="ann", data1=data1, pdf=TRUE,
 # TODO: get species name into this somehow -> requires archive generation on input to do the same
 bccvl.save(model.sdm, name="model.object.RData")
 
-# predict for current climate scenario
-# TODO: would I want to use saveObj here again?
-model.proj <-
-    BIOMOD_Projection(modeling.output     = model.sdm,
-                      new.env             = current.climate.scenario,
-                      proj.name           = projection.name,  #basename(enviro.data.current), {{ species }}
-                      xy.new.env          = biomod.xy.new.env,
-                      selected.models     = biomod.selected.models,
-                      binary.meth         = biomod.binary.meth,
-                      filtered.meth       = biomod.filtered.meth,
-                      #compress            = biomod.compress,
-                      build.clamping.mask = biomod.build.clamping.mask,
-                      silent              = opt.biomod.silent,
-                      do.stack            = opt.biomod.do.stack,
-                      keep.in.memory      = opt.biomod.keep.in.memory,
-                      output.format       = opt.biomod.output.format,
-                      on_0_1000           = FALSE)
-
-
-# convert projection output from grd to gtiff
-# TODO: get proj4string in here somewhere and use in grdtogtiff
-bccvl.grdtogtiff(file.path(getwd(),
-                           biomod.species.name,
-                           paste("proj", projection.name, sep="_")))
-
-# output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
-# evaluate model
-loaded.model = BIOMOD_LoadModels(model.sdm, models="ANN") # load model
-bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)
-
-# save the projection
-bccvl.saveProjection(model.proj, biomod.species.name)
 
 # Do projection over current climate scenario without constraint
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
@@ -257,6 +225,10 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
                           keep.in.memory      = opt.biomod.keep.in.memory,
                           output.format       = opt.biomod.output.format,
                           on_0_1000           = FALSE)
+
+    # remove the current.climate.scenario to release disk space
+    bccvl.remove.rasterObject(current.climate.scenario.orig)
+
     # convert projection output from grd to gtiff
     bccvl.grdtogtiff(file.path(getwd(),
                                biomod.species.name,
@@ -265,4 +237,40 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
 
     # save the projection
     bccvl.saveProjection(model.proj, biomod.species.name, filename_ext="unconstraint")
+
+
+# predict for current climate scenario
+# TODO: would I want to use saveObj here again?
+model.proj <-
+    BIOMOD_Projection(modeling.output     = model.sdm,
+                      new.env             = current.climate.scenario,
+                      proj.name           = projection.name,  #basename(enviro.data.current), {{ species }}
+                      xy.new.env          = biomod.xy.new.env,
+                      selected.models     = biomod.selected.models,
+                      binary.meth         = biomod.binary.meth,
+                      filtered.meth       = biomod.filtered.meth,
+                      #compress            = biomod.compress,
+                      build.clamping.mask = biomod.build.clamping.mask,
+                      silent              = opt.biomod.silent,
+                      do.stack            = opt.biomod.do.stack,
+                      keep.in.memory      = opt.biomod.keep.in.memory,
+                      output.format       = opt.biomod.output.format,
+                      on_0_1000           = FALSE)
+
+# remove the current.climate.scenario to release disk space
+bccvl.remove.rasterObject(current.climate.scenario)
+
+# convert projection output from grd to gtiff
+# TODO: get proj4string in here somewhere and use in grdtogtiff
+bccvl.grdtogtiff(file.path(getwd(),
+                           biomod.species.name,
+                           paste("proj", projection.name, sep="_")))
+
+# output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
+# evaluate model
+loaded.model = BIOMOD_LoadModels(model.sdm, models="ANN") # load model
+bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)
+
+# save the projection
+bccvl.saveProjection(model.proj, biomod.species.name)
 }

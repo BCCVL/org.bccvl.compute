@@ -234,34 +234,7 @@ bccvl.VIPplot(method="gam", data1=data1, pdf=TRUE,
 # model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
 #save out the model object
 bccvl.save(model.sdm, name="model.object.RData")
-# predict for current climate scenario
-model.proj <-
-    BIOMOD_Projection(modeling.output=model.sdm,
-                      new.env=current.climate.scenario,
-                      proj.name  = projection.name,  #basename(enviro.data.current), {{ species }}
-                      xy.new.env = biomod.xy.new.env,
-                      selected.models = biomod.selected.models,
-                      binary.meth = biomod.binary.meth,
-                      filtered.meth = biomod.filtered.meth,
-                      #compress = biomod.compress,
-                      build.clamping.mask = biomod.build.clamping.mask,
-                      silent = opt.biomod.silent,
-                      do.stack = opt.biomod.do.stack,
-                      keep.in.memory = opt.biomod.keep.in.memory,
-                      output.format = opt.biomod.output.format,
-                      on_0_1000 = FALSE)
-# convert projection output from grd to gtiff
-bccvl.grdtogtiff(file.path(getwd(),
-                           biomod.species.name,
-                           paste("proj", projection.name, sep="_")))
 
-
-# output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
-loaded.model = BIOMOD_LoadModels(model.sdm, models="GAM")
-bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)    # save output
-
-# save the projection
-bccvl.saveProjection(model.proj, biomod.species.name)
 
 # Do projection over current climate scenario without constraint
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
@@ -280,6 +253,10 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
                           keep.in.memory      = opt.biomod.keep.in.memory,
                           output.format       = opt.biomod.output.format,
                           on_0_1000           = FALSE)
+
+    # remove the current.climate.scenario to release disk space
+    bccvl.remove.rasterObject(current.climate.scenario.orig)
+
     # convert projection output from grd to gtiff
     bccvl.grdtogtiff(file.path(getwd(),
                                biomod.species.name,
@@ -289,3 +266,36 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
     # save the projection
     bccvl.saveProjection(model.proj, biomod.species.name, filename_ext="unconstraint")
 }
+
+# predict for current climate scenario
+model.proj <-
+    BIOMOD_Projection(modeling.output=model.sdm,
+                      new.env=current.climate.scenario,
+                      proj.name  = projection.name,  #basename(enviro.data.current), {{ species }}
+                      xy.new.env = biomod.xy.new.env,
+                      selected.models = biomod.selected.models,
+                      binary.meth = biomod.binary.meth,
+                      filtered.meth = biomod.filtered.meth,
+                      #compress = biomod.compress,
+                      build.clamping.mask = biomod.build.clamping.mask,
+                      silent = opt.biomod.silent,
+                      do.stack = opt.biomod.do.stack,
+                      keep.in.memory = opt.biomod.keep.in.memory,
+                      output.format = opt.biomod.output.format,
+                      on_0_1000 = FALSE)
+
+# remove the current.climate.scenario to release disk space
+bccvl.remove.rasterObject(current.climate.scenario)
+
+# convert projection output from grd to gtiff
+bccvl.grdtogtiff(file.path(getwd(),
+                           biomod.species.name,
+                           paste("proj", projection.name, sep="_")))
+
+
+# output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
+loaded.model = BIOMOD_LoadModels(model.sdm, models="GAM")
+bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)    # save output
+
+# save the projection
+bccvl.saveProjection(model.proj, biomod.species.name)

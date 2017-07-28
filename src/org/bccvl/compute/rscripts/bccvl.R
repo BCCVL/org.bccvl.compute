@@ -243,6 +243,21 @@ bccvl.species.read <- function(filename, month_filter=NULL) {
     }
 }
 
+bccvl.data.transform <- function(data, climate.data)
+{
+    if (!is.null(data) & !compareCRS(data, climate.data, verbatim=TRUE)) {
+        sp <- SpatialPoints(data)
+        if (is.na(crs(sp))) {
+            crs(sp) <- '+init=epsg:4326'
+        }
+
+        newdata <- as.data.frame(spTransform(sp, crs(climate.data)))
+        names(newdata) <- c("lon", "lat")
+        return(newdata)
+    }
+    return(data)
+}
+
 # BIOMOD_FormatingData(resp.var, expl.var, resp.xy = NULL, resp.name = NULL, eval.resp.var = NULL,
 #   eval.expl.var = NULL, eval.resp.xy = NULL, PA.nb.rep = 0, PA.nb.absences = 1000, PA.strategy = 'random',
 #   PA.dist.min = 0, PA.dist.max = NULL, PA.sre.quant = 0.025, PA.table = NULL, na.rm = TRUE)
@@ -289,7 +304,13 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         absen = bccvl.species.read(absen.filename)
         # keep only lon and lat columns
         absen = absen[c("lon","lat")]
+
+        # Ensure true absence dataset is in same projection system as climate.
+        if (!is.null(climate.data) & !is.null(absen) & nrow(absen) > 0) {
+            absen <- bccvl.data.transform(absen, climate.data)
+        }
     }
+
 
     # Initialise parameters to default value if not specified
     if (is.null(pseudo.absen.strategy)) {
@@ -559,6 +580,17 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag) {
     return(rasterstack)
 }
 
+# Remove raster object and its associated raster files (i.e. grd and gri) if any
+bccvl.remove.rasterObject <- function(rasterObject) {
+    raster_filenames = raster_to_filenames(rasterObject, unique = TRUE)
+    for (fname in raster_filenames) {
+        if (extension(fname)  == '.grd') {
+            file.remove(fname, extension(fname, '.gri'))
+        }
+    }
+    rm(rasterObject)
+}
+
 # geographically constrained modelling
 bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHull) {
 
@@ -615,10 +647,17 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
         occurconstrained = NULL
     }
 
-    # Mask the rasterstack (and make sure it is a RasterStack)   
-    # Give a named temp filename in the work dir
-    grifilename = paste(bccvl.env$workdir, basename(tempfile(fileext = '.grd')), sep="/")
-    geoconstrained <- stack(mask(rasterstack, parsedgeojson, filename = grifilename))
+    # Mask the rasterstack (and make sure it is a RasterStack)
+    # Crop the raster to the extent of the constraint region before masking
+    cropped_rasterstack <- crop(rasterstack, extent(parsedgeojson), filename = rasterTmpFile())
+
+    # save the constrained raster in work directory instead of raster temporary directory as 
+    # predict.R clears the raster temp files.
+    envraster_filename = paste(bccvl.env$workdir, basename(tempfile(fileext = ".grd")), sep="/")
+    geoconstrained <- stack(mask(cropped_rasterstack, parsedgeojson, filename = envraster_filename))
+
+    # Remove cropped rasterstack and associated raster files (i.e. grd and gri)
+    bccvl.remove.rasterObject(cropped_rasterstack)
     
     # Return the masked raster stack and constrained occurrence points
     mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
