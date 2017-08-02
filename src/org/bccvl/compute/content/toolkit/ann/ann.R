@@ -237,7 +237,7 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
 
     # save the projection
     bccvl.saveProjection(model.proj, biomod.species.name, filename_ext="unconstraint")
-
+}
 
 # predict for current climate scenario
 # TODO: would I want to use saveObj here again?
@@ -273,4 +273,3 @@ bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)
 
 # save the projection
 bccvl.saveProjection(model.proj, biomod.species.name)
-}
