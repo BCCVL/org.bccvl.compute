@@ -143,7 +143,7 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
 pa_ratio = bccvl.params$pa_ratio
 pa_number_point = 0
 if (pa_ratio > 0) {
-  pa_number_point = floor(pa_ratio * nrow(occur))
+  pa_number_point = bccvl.params$pa_maxent_background_points
 }
 
 ###run the models and store models
