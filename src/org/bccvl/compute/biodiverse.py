@@ -65,10 +65,10 @@ def generate_biodiverse_script():
 OUTPUTS = {
     'files': {
         '*ENDW_SINGLE.tif': {
-            "skip": true
+            "skip": True
         },
         '*REDUNDANCY_SET1.tif': {
-            "skip": true
+            "skip": True
         },
         '*.plout': {
             "title": "Log file",
