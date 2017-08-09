@@ -6,7 +6,7 @@
     <fieldset name="Background Points"
               label="Background Point Configuration"
               description="Configure your background points. &lt;a href='https://support.bccvl.org.au/support/solutions/articles/6000127043-absence-data' target='_blank'>Read More ...&lt;/a>">
-      <field name="pa_maxent_background_points" type="zope.schema.Decimal">
+      <field name="pa_maxent_background_points" type="zope.schema.Int">
         <default>10000</default>
         <description>Number of background points.</description>
         <required>True</required>
