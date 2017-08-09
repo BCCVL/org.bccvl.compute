@@ -139,12 +139,8 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
   occur <- constrainedResults$occur
 }
 
-# Determine the number of pseudo absence points from pa_ratio
-pa_ratio = bccvl.params$pa_ratio
-pa_number_point = 0
-if (pa_ratio > 0) {
-  pa_number_point = bccvl.params$pa_maxent_background_points
-}
+# Get the number of background points
+pa_number_point = bccvl.params$pa_maxent_background_points
 
 ###run the models and store models
 ############### BIOMOD2 Models ###############
