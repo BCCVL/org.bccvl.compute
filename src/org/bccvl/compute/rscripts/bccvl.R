@@ -331,6 +331,9 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
     if (pseudo.absen.strategy == 'none' | nrow(absen) >=  pseudo.absen.points) {
         pseudo.absen.rep = 0
         cat("No pseudo absence point is generated.")
+
+        # Set the number of pa to number of true absence points
+        pseudo.absen.points = nrow(absen)
     }    
 
     # Generate background data as pseudo absence points

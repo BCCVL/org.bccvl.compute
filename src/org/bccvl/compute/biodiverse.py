@@ -64,6 +64,12 @@ def generate_biodiverse_script():
 
 OUTPUTS = {
     'files': {
+        '*ENDW_SINGLE.tif': {
+            "skip": True
+        },
+        '*REDUNDANCY_SET1.tif': {
+            "skip": True
+        },
         '*.plout': {
             "title": "Log file",
             "genre": "DataGenreLog",
