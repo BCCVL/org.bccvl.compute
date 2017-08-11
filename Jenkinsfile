@@ -24,17 +24,12 @@ if (env.BRANCH_NAME == 'master') {
 
 } else {
 
-  node('docker') {
-    echo sh(returnStdout: true, script: 'env')
-  }
-
-    def downstream = build(
-        //job: "../bccvl_buildout/${java.net.URLEncoder.encode(env.BRANCH_NAME)}",
-        job: "../bccvl_buildout/${java.net.URLEncoder.encode('feature/develop_docker')}",
-        wait: true,
-        propagate: true
-    )
-
+  def downstream = build(
+      //job: "../bccvl_buildout/${java.net.URLEncoder.encode(env.BRANCH_NAME)}",
+      job: "../bccvl_buildout/${java.net.URLEncoder.encode('feature/develop_docker')}",
+      wait: true,
+      propagate: true
+  )
 
 }
 
