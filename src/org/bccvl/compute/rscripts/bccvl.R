@@ -632,7 +632,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
         # Otherwise, actual constraint is the convex-hull polygon.
         if (generateCHull) {
             chcoords <- occurSP@coords[chull(occurSP@coords),]
-            chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords)), ID=1)), proj4string=crs(parsedgeojson))
+            chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords, hole=FALSE)), ID=1)), proj4string=crs(parsedgeojson))
             if (!is.null(rawgeojson)) {
                 parsedgeojson <- intersect(parsedgeojson, chullPolygon)
             }
@@ -640,6 +640,10 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
                 parsedgeojson <- chullPolygon
             }
         }
+
+        # Add a small buffer of width 1-resolution cell. This is to fix the issue 
+        # with missing env values along the boundary of the polygon. 
+        parsedgeojson <- gBuffer(parsedgeojson, width=max(res(rasterstack@layers[[1]])))
 
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
         occurconstrained <- as.data.frame(occurSPconstrained)
