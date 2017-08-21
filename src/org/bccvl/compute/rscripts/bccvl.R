@@ -594,8 +594,23 @@ bccvl.remove.rasterObject <- function(rasterObject) {
     rm(rasterObject)
 }
 
+bccvl.sp.transform <- function(data, climate.data)
+{
+    sp <- SpatialPoints(data)
+    if (is.na(crs(sp))) {
+        crs(sp) <- '+init=epsg:4326'
+    }
+
+    # project to the same crs as climate data
+    if (!compareCRS(sp, climate.data, verbatim=TRUE)) {
+        sp <- spTransform(sp, crs(climate.data))
+    }
+    return(sp)
+}
+
+
 # geographically constrained modelling
-bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHull) {
+bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojson, generateCHull) {
 
     if (is.null(rawgeojson) & !generateCHull) {
         return(list("raster" = rasterstack, "occur" = occur))
@@ -649,6 +664,26 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
         occurconstrained <- as.data.frame(occurSPconstrained)
         # rest of scripts expects names "lon", "lat" and not "x", "y"
         names(occurconstrained) <- c("lon", "lat")
+
+        # constraint the true absence points if available
+        if (!is.null(absenFilename)) {        
+            # read absence points from file
+            absen = bccvl.species.read(absenFilename)
+            # keep only lon and lat columns
+            absen = absen[c("lon","lat")]
+
+            # Ensure true absence dataset is in same projection system as climate 1st.
+            if (!is.null(absen) & nrow(absen) > 0) {
+                absenSP <- bccvl.sp.transform(absen, rasterstack)
+                absenSPconstrained <- absenSP[!is.na(over(absenSP, parsedgeojson))]
+
+                # project it back to epsg:4326 for saving as a csv file
+                absenSPconstrained <- spTransform(absenSPconstrained, CRS('+init=epsg:4326'))
+                absen <- as.data.frame(absenSPconstrained)
+                names(absen) <- c("lon", "lat")
+                write.csv(absen, file=absenFilename, row.names=FALSE)
+            }
+        }
     }
     else {
         occurconstrained = NULL

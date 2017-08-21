@@ -63,7 +63,7 @@ occur = occur[c("lon","lat")]
 
 # geographically constrained modelling
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints, enviro.data.generateCHall);
+  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, absen.data, enviro.data.constraints, enviro.data.generateCHall);
   
   # Save a copy of the climate dataset
   current.climate.scenario.orig <- current.climate.scenario      

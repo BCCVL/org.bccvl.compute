@@ -121,7 +121,7 @@ occur = occur[c("lon","lat")]
 
 # geographically constrained modelling
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints, enviro.data.generateCHall);
+  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, absen.data, enviro.data.constraints, enviro.data.generateCHall);
   current.climate.scenario <- constrainedResults$raster
   occur <- constrainedResults$occur
 }
@@ -260,7 +260,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario, futuredata)
     # geographically constrained modelling
     if (!is.null(enviro.data.constraints || enviro.data.generateCHall)) {
-      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, enviro.data.constraints, enviro.data.generateCHall);
+      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, NULL, enviro.data.constraints, enviro.data.generateCHall);
       predictors <- constrainedResults$raster
     }
     

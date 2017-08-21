@@ -42,7 +42,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
       # TODO: we have to be careful here, as the raster package may create a lot of temporary data here when we constrain input data, and run a projection
       # actual problem: ... the mask call in geoconstrained generates a whole lot of temporary gri/grd files. these are then fed into biomod (only maxent?). when biomod does it's thing, it again generates a lot of temporary raster files, which quickly fills up the disk  
       # solution: https://r-forge.r-project.org/forum/forum.php?max_rows=25&style=nested&offset=12&forum_id=995&group_id=302 ... split up predictors into small areas ... project each one... combine the mosaic result at the end... might even speed up projection as it is less disc intense
-      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, constraint_geojson, enviro.data.generateCHall);
+      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, NULL, constraint_geojson, enviro.data.generateCHall);
       predictors <- constrainedResults$raster
         
     }
