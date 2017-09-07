@@ -15,7 +15,7 @@
             "order": 1
         },
         "*/proj_current/proj_current*_unconstraint.tif": {
-            "title": "Projection to current",
+            "title": "Projection to current - unconstraint",
             "genre": "DataGenreCP_ENVLOP",
             "mimetype": "image/geotiff",
             "layer": "projection_probability",
@@ -28,121 +28,127 @@
             "mimetype": "image/png",
             "order": 3
         },
+        "proj_current_*_unconstraint.png": {
+            "title": "Projection plot - unconstraint",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 4
+        },
         "*/proj_current/proj_current_ClampingMask.tif": {
             "title": "Clamping Mask",
             "genre": "DataGenreClampingMask",
             "mimetype": "image/geotiff",
             "layer": "clamping_mask",
             "data_type": "Discrete",
-            "order": 4
+            "order": 5
         },
         "pseudo_absences.csv": {
             "title": "Pseudo Absence Points",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
-            "order": 5
+            "order": 6
         },
         "occurrence_environmental.csv": {
             "title": "Occurrence points with environmental data",
             "genre": "DataGenreSpeciesOccurEnv",
             "mimetype": "text/csv",
-            "order": 6
+            "order": 7
         },
         "absence_environmental.csv": {
             "title": "Absence points with environmental data",
             "genre": "DataGenreSpeciesAbsenceEnv",
             "mimetype": "text/csv",
-            "order": 7
+            "order": 8
         },
         "vip_plot.png": {
             "title": "Variable Importance plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 8
+            "order": 9
         },
         "mean_response_curves*.png": {
             "title": "Mean Response Curves",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 9
+            "order": 10
         },
         "biomod2.modelEvaluation.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 10
+            "order": 11
         },
         "combined.Full.modelEvaluation.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 11
+            "order": 12
         },
         "Full-ppp.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 12
+            "order": 13
         },
         "Full-occurrence_absence_hist.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 13
+            "order": 14
         },
         "Full-occurence_absence_pdf.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 14
+            "order": 15
         },
         "Full-true_and_false_posivite_rates.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 15
+            "order": 16
         },
         "Full-error.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 16
+            "order": 17
         },
         "Full-roc.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 17
+            "order": 18
         },
         "Full-tradeoffs.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 18
+            "order": 19
         },
         "evaluation.summary.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 19
+            "order": 20
         },
         "Full-intervals.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 20
+            "order": 21
         },
         "evaluation.performance.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 21
+            "order": 22
         },
         "*/models/bccvl/*_MAXENT_outputs/maxentResults.csv": {
             "title": "Maxent Thresholds",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 22
+            "order": 23
         },
         "*.R": {
             "title": "Job Script",
