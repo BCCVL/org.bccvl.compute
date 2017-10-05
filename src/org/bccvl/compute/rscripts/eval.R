@@ -695,6 +695,9 @@ bccvl.savePdf <- function(..., filename, aspdf, outputdir=bccvl.env$outputdir)
 
 
 # A special R function for variable importance plots based on biomod2 fitted model outcomes
+
+# TODO: data1 passed in here may encode pseudo absence as NA ... we should convert that to 0
+# TODO: could use checks for covars != NA in data1
 bccvl.VIPplot <- function(fittedmodel=NULL, 
                          method=c("glm",,"cta","gam","ann", "rf", "gbm", "mars", "maxent"),  
                          cor.method=c("pearson","spearman"),
@@ -731,6 +734,8 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
   # (8) filename to be saved without the file extension.
   # 
 
+  data1$y.data[is.na(data1$y.data)] <- 0
+  
  # extract the root of filenames used by biomod to save model results
  filenames <- dir(this.dir)
  #loc <- regexpr("_RUN[[:digit:]]", filenames[1])
@@ -757,9 +762,9 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    # head(all.data); dim(all.data)
    rescaled.glm <- glm(fittedmodel$formula, data=all.data, family=binomial)
 
-   scaled = cbind(coef(rescaled.glm), confint(rescaled.glm))
+   scaled = as.data.frame(cbind(coef(rescaled.glm), confint(rescaled.glm)))
    scaled = scaled[-1,]
-   raw = cbind(coef(fittedmodel), confint(fittedmodel))
+   raw = as.data.frame(cbind(coef(fittedmodel), confint(fittedmodel)))
    raw = raw[-1,]
 
    #  variable importance plot in terms of relative effect size
@@ -791,8 +796,11 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    #  the heatmap in terms of correlation among predictor variables
    rescdata = rescaled.glm$data[,-1]
 
-   if(cor.method=="pearson")  xx = cor(rescdata)  
-   if(cor.method=="spearman") xx = cor(rescdata, method="spearman")
+   if("spearman" %in% cor.method) {
+       xx = cor(rescdata, method="spearman")
+   } else if("pearson" %in% cor.method)  {
+       xx = cor(rescdata)
+   }
 
    lower_tri <- xx
    lower_tri[upper.tri(lower_tri)] <- NA
@@ -813,14 +821,15 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    # e.g., the AIC score of a predictor variable representing the information loss 
    # if this variable is not included in the selected model.
 
-   nd = dim(data1)[2]  
+   nd = dim(data1)[2]
+
    RespV1 = data1[,1]; subdata1 = data1[,2:nd]
    glm.all = glm(formula = RespV1 ~ ., family = binomial, data = subdata1)
 
    Xaic = NULL
    for (i in 1:(nd-1))
    {
-      subdf = subdata1[,-i]
+      subdf = subdata1[,-i, drop=FALSE]
       glm.one = glm(formula = RespV1 ~ . , family = binomial, data = subdf)
       Xaic = c(Xaic,AIC(glm.one)) 
    }
