@@ -61,6 +61,7 @@ brt.keep.fold.models = FALSE #Logical. keep the fold models from cross valiation
 brt.keep.fold.vector = TRUE #Logical. allows the vector defining fold membership to be kept
 brt.keep.fold.fit = FALSE #Logical. allows the predicted values for observations from cross-validation to be kept
 projection.name = "current"
+species_algo_str = sprintf("%s_brt", occur.species) 
 
 # model accuracy statistics
 # these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R
@@ -155,7 +156,8 @@ biomod2.data = bccvl.biomod2.formatData(absen.filename   = absen.data,
                                   pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
                                   climate.data           = current.climate.scenario,
                                   occur                  = occur,
-                                  species.name           = occur.species)
+                                  species.name           = occur.species,
+                                  species_algo_str       = species_algo_str)
 
 # Extract occurrence and absence data
 coord = cbind(biomod2.data@coord, biomod2.data@data.env.var)
@@ -195,7 +197,7 @@ model.sdm <- gbm.step(
         keep.fold.fit = brt.keep.fold.fit)
 
 #save out the model object
-bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
+bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
 
 # NOTE the order of arguments in the predict function for brt; this is because
 # the function is defined outside of the dismo package
@@ -209,7 +211,7 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
     bccvl.remove.rasterObject(current.climate.scenario.orig)
 
     # save output
-    bccvl.saveModelProjection(model.proj, projection.name, occur.species, filename_ext="unconstraint")
+    bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str, filename_ext="unconstraint")
 }
 
 model.proj = predict(current.climate.scenario, model.sdm, n.trees=model.sdm$gbm.call$best.trees, type="response")
@@ -217,7 +219,7 @@ model.proj = predict(current.climate.scenario, model.sdm, n.trees=model.sdm$gbm.
 # remove the current.climate.scenario to release disk space
 bccvl.remove.rasterObject(current.climate.scenario)
 
-bccvl.saveModelProjection(model.proj, projection.name, occur.species)
+bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
 
 # evaluate model
-bccvl.saveDISMOModelEvaluation('brt', model.sdm, occur, absen)
+bccvl.saveDISMOModelEvaluation('brt', model.sdm, occur, absen, occur.species)

@@ -15,6 +15,7 @@
 
 sdm.species = bccvl.params$species_distribution_models$species
 sdm.model.file = bccvl.params$species_distribution_models$filename
+sdm.algorithm = bccvl.params$'function'
 sdm.projections.files = lapply(bccvl.params$sdm_projections, function(x) x$filename)
 projection.name = bccvl.params$projection_name
 projection.threshold = ifelse(is.null(bccvl.params$threshold), 0.5, bccvl.params$threshold)
@@ -31,6 +32,7 @@ future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x
 future.climate.data.type = lapply(bccvl.params$future_climate_datasets, function(x) x$type)
 #layer names for the current environmental layers used
 future.climate.data.layer = lapply(bccvl.params$future_climate_datasets, function(x) x$layer)
+species_algo_str = paste(sdm.species, sdm.algorithm, sep="_")
 
 # constraint_type: null for protjection with constraint, and  "unconstraint" for projection without constraint.
 projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species, constraint_geojson, constraint_type=NULL) {
@@ -62,7 +64,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # remove the environment dataset to release disk space
         bccvl.remove.rasterObject(predictors)
 
-        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
+        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, species_algo_str, filename_ext=constraint_type)
     } else if (inherits(model.obj, "gbm")) {
         # brt package)
         model.proj <- predict(predictors,
@@ -73,7 +75,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # remove the environment dataset to release disk space
         bccvl.remove.rasterObject(predictors)
 
-        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
+        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, species_algo_str, filename_ext=constraint_type)
     } else if (inherits(model.obj, "BIOMOD.models.out")) {
         # For biomod we process the raster in blocks to avoid creating an unnecessary large number of temporary raster files.
 
@@ -135,12 +137,12 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                 # convert projection output and clamping mask to geotiff
                 # Set the nodatavalue explicitly to fix an issue with unrecognised default nodatavalue with gdal.
                 # Shall be removed when gdal bug is fixed in gdal 2.1.3.
-                bccvl.grdtogtiff(proj_folder, noDataValue=-4294967296)
+                bccvl.grdtogtiff(proj_folder, algorithm=sdm.algorithm, noDataValue=-4294967296)
 
                 # collect geotiff file names for 
                 projections = c(projections,
                                 file.path(proj_folder,
-                                          paste("proj_", block_name, "_", model.obj@sp.name, ".tif", sep="")))
+                                          paste("proj_", block_name, "_", model.obj@sp.name, "_", sdm.algorithm, ".tif", sep="")))
                 clampings = c(clampings,
                               file.path(proj_folder,
                                         paste("proj_", block_name,"_ClampingMask", ".tif", sep="")))
@@ -230,6 +232,11 @@ if (tolower(file_ext(modelfile)) == "zip") {
     # as the basename(zip) in the same folder as the zip
     modeldir = dirname(modelfile)
     modelfile = file_path_sans_ext(basename(modelfile))
+
+    # rename model object file to match one that is inside the zip file from SDM
+    if (modelfile == 'model.object.RData') {
+        modelfile = bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData")
+    }
     modelfile = file.path(modeldir, modelfile)
     # we'll have to change wd so that biomod can load data from model subfolders'
     setwd(modeldir)

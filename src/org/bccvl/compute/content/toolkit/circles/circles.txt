@@ -37,25 +37,25 @@
             "mimetype": "image/png",
             "order": 4
         },
-        "pseudo_absences.csv": {
+        "pseudo_absences_*.csv": {
             "title": "Generated pseudo-absence points",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
             "order": 5
         },
-        "occurrence_environmental.csv": {
+        "occurrence_environmental_*.csv": {
             "title": "Occurrence points with environmental data",
             "genre": "DataGenreSpeciesOccurEnv",
             "mimetype": "text/csv",
             "order": 6
         },
-        "absence_environmental.csv": {
+        "absence_environmental_*.csv": {
             "title": "Absence points with environmental data",
             "genre": "DataGenreSpeciesAbsenceEnv",
             "mimetype": "text/csv",
             "order": 7
         },
-        "*_response.png": {
+        "*_response_*.png": {
             "title": "Marginal Response Curve",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
@@ -145,7 +145,7 @@
             "mimetype": "application/x-r-data",
             "order": 22
         },
-        "*.model.object.RData": {
+        "model.object_*.RData": {
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
             "mimetype": "application/x-r-data",

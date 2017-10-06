@@ -258,6 +258,11 @@ bccvl.data.transform <- function(data, climate.data)
     return(data)
 }
 
+bccvl.format.outfilename <- function(filename, id_str, ext)
+{
+    return(sprintf("%s_%s.%s", filename, id_str, ext))
+}
+
 # BIOMOD_FormatingData(resp.var, expl.var, resp.xy = NULL, resp.name = NULL, eval.resp.var = NULL,
 #   eval.expl.var = NULL, eval.resp.xy = NULL, PA.nb.rep = 0, PA.nb.absences = 1000, PA.strategy = 'random',
 #   PA.dist.min = 0, PA.dist.max = NULL, PA.sre.quant = 0.025, PA.table = NULL, na.rm = TRUE)
@@ -292,7 +297,8 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                                   occur=NULL,
                                   species.name=NULL,
                                   save.pseudo.absen=TRUE,
-                                  generate.background.data=FALSE) {
+                                  generate.background.data=FALSE,
+                                  species_algo_str=NULL) {
 
     # Read true absence point if available.
     if (is.null(absen.filename)) {        
@@ -375,26 +381,29 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                              PA.sre.quant = pseudo.absen.sre.quant)
 
     # Save the pseudo absence points generated to file
+    pa_filename = bccvl.format.outfilename(filename="pseudo_absences", id_str=species_algo_str, ext="csv")
+    absenv_filename = bccvl.format.outfilename(filename="absence_environmental", id_str=species_algo_str, ext="csv")
+    occenv_filename = bccvl.format.outfilename(filename="occurrence_environmental", id_str=species_algo_str, ext="csv")
     if (pseudo.absen.rep != 0) {
         pseudoAbsen = myBiomodData@coord[c(which(is.na(myBiomodData@data.species))), c('lon', 'lat')]
         if (save.pseudo.absen & nrow(pseudoAbsen) > 0) {
-            bccvl.write.csv(pseudoAbsen, 'pseudo_absences.csv', rownames = FALSE)
+            bccvl.write.csv(pseudoAbsen, pa_filename, rownames = FALSE)
         }
 
         # save the pseudo absence points with environmental variables
-        bccvl.merge.save(climate.data, pseudoAbsen, species.name, "absence_environmental.csv")        
+        bccvl.merge.save(climate.data, pseudoAbsen, species.name, absenv_filename)        
     }
     else if (nrow(absen) > 0) {
         # save background data generated
         if (generate.background.data) {
-            bccvl.write.csv(absen, 'pseudo_absences.csv', rownames = FALSE)
+            bccvl.write.csv(absen, pa_filename, rownames = FALSE)
         }
         # save the true absence points with environmental variables
-        bccvl.merge.save(climate.data, absen, species.name, "absence_environmental.csv")
+        bccvl.merge.save(climate.data, absen, species.name, absenv_filename)
     }
 
     # save the occurrence datasets with environmental variables
-    bccvl.merge.save(climate.data, occur, species.name, "occurrence_environmental.csv")
+    bccvl.merge.save(climate.data, occur, species.name, occenv_filename)
 
     return(myBiomodData)
 }
@@ -817,12 +826,12 @@ bccvl.generateCentreOfGravityMetric <- function(projfiles, outfilename) {
 
 
 # function to save projection output raster
-bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
+bccvl.saveModelProjection <- function(model.obj, projection.name, species, species_algo_str, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
     ## save projections under biomod2 compatible name:
     ##  proj_name_species.tif
     ##  only useful for dismo outputs
 
-    filename = bccvl.get_filepath("proj", projection.name, species, outputdir, filename_ext, "tif")
+    filename = bccvl.get_filepath("proj", projection.name, species_algo_str, outputdir, filename_ext, "tif")
     writeRaster(model.obj, filename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
 
     # TODO: can we merge this bit with bccvl.saveProjection in eval.R ?
@@ -830,7 +839,7 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
     # TODO: replace this with bccvl.saveProjectionImage when levelplot works properly.
     #bccvl.saveProjectionImage(filename, projection.name, species, outputdir=outputdir)
 
-    pngfilename = bccvl.get_filepath("proj", projection.name, species, outputdir, filename_ext, "png")
+    pngfilename = bccvl.get_filepath("proj", projection.name, species_algo_str, outputdir, filename_ext, "png")
     png(pngfilename)
     title = paste(species, projection.name, "projections", sep=" ")
     plot(model.obj, xlab="latitude", ylab="longtitude", main=title)
@@ -858,7 +867,7 @@ bccvl.getModelObject <- function(model.file=bccvl.env$inputmodel) {
 
 # convert all .gri/.grd found in folder to gtiff
 # TODO: extend to handle other grid file formats, e.g. .asc
-bccvl.grdtogtiff <- function(folder, filename_ext=NULL, noDataValue=NULL) {
+bccvl.grdtogtiff <- function(folder, algorithm, filename_ext=NULL, noDataValue=NULL) {
     grdfiles <- list.files(path=folder,
                            pattern="^.*\\.grd")
     for (grdfile in grdfiles) {
@@ -881,9 +890,9 @@ bccvl.grdtogtiff <- function(folder, filename_ext=NULL, noDataValue=NULL) {
         }
 
         # write raster as geotiff
-        basename = grdname
+        basename = paste(grdname, algorithm, sep="_")
         if (!is.null(filename_ext)) {
-            basename = paste(grdname, filename_ext, sep="_")
+            basename = paste(grdname, algorithm, filename_ext, sep="_")
         }
         filename = file.path(folder, paste(basename, 'tif', sep="."))
 

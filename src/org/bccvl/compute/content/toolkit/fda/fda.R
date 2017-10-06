@@ -56,7 +56,7 @@ biomod.modeling.id = bccvl.params$modeling_id #character, the ID (=name) of mode
 # EMG Need to test whether a NULL values counts as an argument
 biomod.species.name = occur.species # used for various path and file name generation
 projection.name = "current"  #basename(enviro.data.current)
-
+species_algo_str = sprintf("%s_fda", occur.species)
 
 # model-specific arguments to create a biomod model
 model.options.fda <- list(
@@ -170,7 +170,8 @@ model.data = bccvl.biomod2.formatData(absen.filename     = absen.data,
                                   pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
                                   climate.data           = current.climate.scenario,
                                   occur                  = occur,
-                                  species.name           = biomod.species.name)
+                                  species.name           = biomod.species.name,
+                                  species_algo_str       = species_algo_str)
 
 # 2. Define the model options
 model.options <- BIOMOD_ModelingOptions(FDA = model.options.fda)
@@ -192,7 +193,7 @@ model.sdm <-
                     )
 
 #save out the model object
-bccvl.save(model.sdm, name="model.object.RData")
+bccvl.save(model.sdm, name=bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
 
 # Do projection over current climate scenario without constraint
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
@@ -219,10 +220,11 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
     bccvl.grdtogtiff(file.path(getwd(),
                                biomod.species.name,
                                paste("proj", projection.name, sep="_")), 
+                     algorithm="fda",
                      filename_ext="unconstraint")
 
     # save the projection
-    bccvl.saveProjection(model.proj, biomod.species.name, filename_ext="unconstraint")
+    bccvl.saveProjection(model.proj, species_algo_str, filename_ext="unconstraint")
 }
 
 # predict for current climate scenario
@@ -248,12 +250,13 @@ bccvl.remove.rasterObject(current.climate.scenario)
 # convert projection output from grd to gtiff
 bccvl.grdtogtiff(file.path(getwd(),
                            biomod.species.name,
-                           paste("proj", projection.name, sep="_")))
+                           paste("proj", projection.name, sep="_")),
+                 algorithm="fda")
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
 # evaluate model
 loaded.model = BIOMOD_LoadModels(model.sdm, models="FDA") # load model
-bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm)
+bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm, species_algo_str)
 
 # save the projection
-bccvl.saveProjection(model.proj, biomod.species.name)
+bccvl.saveProjection(model.proj, species_algo_str)

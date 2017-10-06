@@ -37,37 +37,37 @@
             "mimetype": "image/png",
             "order": 4
         },
-        "pseudo_absences.csv": {
+        "pseudo_absences_*.csv": {
             "title": "Generated pseudo-absence points",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
             "order": 5
         },
-        "occurrence_environmental.csv": {
+        "occurrence_environmental_*.csv": {
             "title": "Occurrence points with environmental data",
             "genre": "DataGenreSpeciesOccurEnv",
             "mimetype": "text/csv",
             "order": 6
         },
-        "absence_environmental.csv": {
+        "absence_environmental_*.csv": {
             "title": "Absence points with environmental data",
             "genre": "DataGenreSpeciesAbsenceEnv",
             "mimetype": "text/csv",
             "order": 7
         },
-        "*_response.png": {
+        "*_response_*.png": {
             "title": "Marginal Response Curve",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 8
         },
-        "biomod2_like_VariableImportance.csv": {
+        "biomod2_like_VariableImportance_*.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 9
         },
-        "maxent_like_VariableImportance.csv": {
+        "maxent_like_VariableImportance_*.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
@@ -85,7 +85,7 @@
             "mimetype": "image/png",
             "order": 12
         },
-        "Full-occurrence_absence_hist.png": {
+        "Full-occurrence_absence_hist_*.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
@@ -97,19 +97,19 @@
             "mimetype": "image/png",
             "order": 14
         },
-        "bioclim-error.png": {
+        "bioclim-error_*.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 15
         },
-        "bioclim-roc.png": {
+        "bioclim-roc_*.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 16
         },
-        "bioclim-tradeoffs.png": {
+        "bioclim-tradeoffs_*.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
@@ -121,7 +121,7 @@
             "mimetype": "text/csv",
             "order": 18
         },
-        "bioclim-intervals.png": {
+        "bioclim-intervals_*.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
@@ -145,7 +145,7 @@
             "mimetype": "application/x-r-data",
             "order": 31
         },
-        "*.model.object.RData": {
+        "model.object_*.RData": {
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
             "mimetype": "application/x-r-data",

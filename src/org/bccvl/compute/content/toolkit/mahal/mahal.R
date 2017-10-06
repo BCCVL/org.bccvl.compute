@@ -42,6 +42,7 @@ enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
 opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right tail of the percentile distribution ("both", "low", "high"
 opt.ext = NULL #an optional extent object to limit the prediction to a sub-region of 'x'
 projection.name = "current"
+species_algo_str = sprintf("%s_mahal", occur.species)
 
 
 # model accuracy statistics
@@ -87,7 +88,8 @@ biomod2.data = bccvl.biomod2.formatData(absen.filename   = absen.data,
                                   pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
                                   climate.data           = current.climate.scenario,
                                   occur                  = occur,
-                                  species.name           = occur.species)
+                                  species.name           = occur.species,
+                                  species_algo_str       = species_algo_str)
 
 # Extract occurrence and absence data
 coord = cbind(biomod2.data@coord, biomod2.data@data.env.var)
@@ -116,7 +118,7 @@ if (!all(enviro.data.type=="continuous")) {
     # run mahal with matrix of enviro data
     model.sdm = mahal(x=current.climate.scenario, p=occur[,c("lon", "lat")], error = bccvl.err.null)
     # save out the model object
-    bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
+    bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
  
     # Do projection over current climate scenario without constraint
     if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
@@ -126,7 +128,7 @@ if (!all(enviro.data.type=="continuous")) {
         bccvl.remove.rasterObject(current.climate.scenario.orig)
 
         # save output
-        bccvl.saveModelProjection(model.proj, projection.name, occur.species, filename_ext="unconstraint")
+        bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str, filename_ext="unconstraint")
     }
 
     # predict for given climate scenario
@@ -136,9 +138,5 @@ if (!all(enviro.data.type=="continuous")) {
     bccvl.remove.rasterObject(current.climate.scenario)
 
     # save output
-    bccvl.saveModelProjection(model.proj, projection.name, occur.species)
-    # evaluate model
-    if (!is.null(absen)) {
-        bccvl.evaluate.model('mahal', model.sdm, occur, absen)
-    }
+    bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
 }

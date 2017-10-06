@@ -57,6 +57,7 @@ biomod.modeling.id = bccvl.params$modeling_id  #character, the ID (=name) of mod
 # EMG Need to test whether a NULL values counts as an argument
 biomod.species.name = occur.species # used for various path and file name generation
 projection.name = "current"  #basename(enviro.data.current)
+species_algo_str = sprintf("%s_maxent", occur.species)
 
 # model-specific arguments to create a biomod model
 model.options.maxent <- list(
@@ -177,7 +178,9 @@ model.data = bccvl.biomod2.formatData(absen.filename     = absen.data,
                                   pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
                                   climate.data           = current.climate.scenario,
                                   occur                  = occur,
-                                  species.name           = biomod.species.name)
+                                  species.name           = biomod.species.name,
+                                  generate.background.data = TRUE,                # Generate background data as pseudo absence data
+                                  species_algo_str       = species_algo_str)
 
 # 2. Define the model options
 model.options <- BIOMOD_ModelingOptions(MAXENT = model.options.maxent)
@@ -199,7 +202,7 @@ model.sdm <-
                     )
 # model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
 #save out the model object
-bccvl.save(model.sdm, name="model.object.RData")
+bccvl.save(model.sdm, name=bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
 # predict for current climate scenario
 model.proj <-
     BIOMOD_Projection(modeling.output=model.sdm,
@@ -223,15 +226,16 @@ bccvl.remove.rasterObject(current.climate.scenario)
 # convert projection output from grd to gtiff
 bccvl.grdtogtiff(file.path(getwd(),
                            biomod.species.name,
-                           paste("proj", projection.name, sep="_")))
+                           paste("proj", projection.name, sep="_")),
+                 algorithm="maxent")
 
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
 loaded.model = BIOMOD_LoadModels(model.sdm, models="MAXENT")
-bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm) 	# save output
+bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm, species_algo_str) 	# save output
 
 # save the projection
-bccvl.saveProjection(model.proj, biomod.species.name)
+bccvl.saveProjection(model.proj, biomod.species.name, species_algo_str)
 
 
 #============================================================================================
@@ -277,7 +281,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # remove the environmental dataset to release disk space
         bccvl.remove.rasterObject(predictors)
 
-        bccvl.saveModelProjection(model.proj, projection.name, species)
+        bccvl.saveModelProjection(model.proj, projection.name, species, species_algo_str)
     } else if (inherits(model.obj, "gbm")) {
         # brt package)
         model.proj <- predict(predictors,
@@ -287,7 +291,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # remove the environmental dataset to release disk space
         bccvl.remove.rasterObject(predictors)
 
-        bccvl.saveModelProjection(model.proj, projection.name, species)
+        bccvl.saveModelProjection(model.proj, projection.name, species, species_algo_str)
     } else if (inherits(model.obj, "BIOMOD.models.out")) {
         # expect additional model data in input folder.
         # for biomod to find it we'll have to change wd
