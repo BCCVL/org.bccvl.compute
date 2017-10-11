@@ -184,7 +184,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                        format="GTiff")
 
         # save projection as png as well
-        bccvl.saveProjectionImage(tiffilepath, projection.name, biomod.species.name, outputdir=outdir, filename_ext=constraint_type)
+        bccvl.saveProjectionImage(tiffilepath, projection.name, biomod.species.name, species_algo_str, outputdir=outdir, filename_ext=constraint_type)
     }
 
     # Compute metrics only for unconstraint projection.

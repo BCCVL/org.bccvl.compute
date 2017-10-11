@@ -738,7 +738,7 @@ bccvl.plotProjection <- function(inputfile, main) {
                 at=my.labs.at)))
 }
 
-# function to genrate a filename for the specified file type and extension.
+# function to generate a filename for the specified file type and extension.
 bccvl.get_filepath <- function(file_type, projection_name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL, file_ext='tif') {
     if (is.null(filename_ext)) {
         basename = paste(file_type, projection_name, species, sep="_")
@@ -750,8 +750,8 @@ bccvl.get_filepath <- function(file_type, projection_name, species, outputdir=bc
 }
 
 # function to save projection as png image
-bccvl.saveProjectionImage <- function(inputfile, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
-    filename = bccvl.get_filepath("proj", projection.name, species, outputdir, filename_ext, "png")
+bccvl.saveProjectionImage <- function(inputfile, projection.name, species, species_algo_str, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
+    filename = bccvl.get_filepath("proj", projection.name, species_algo_str, outputdir, filename_ext, "png")
     png(filename)
     title = paste(species, projection.name, "projections", sep=" ")
     plot(raster(inputfile), main=title, xlab='longitude', ylab='latitude')
@@ -836,9 +836,6 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, speci
 
     # TODO: can we merge this bit with bccvl.saveProjection in eval.R ?
     # Save as image as well
-    # TODO: replace this with bccvl.saveProjectionImage when levelplot works properly.
-    #bccvl.saveProjectionImage(filename, projection.name, species, outputdir=outputdir)
-
     pngfilename = bccvl.get_filepath("proj", projection.name, species_algo_str, outputdir, filename_ext, "png")
     png(pngfilename)
     title = paste(species, projection.name, "projections", sep=" ")
