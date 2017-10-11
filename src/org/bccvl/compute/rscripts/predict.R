@@ -141,9 +141,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                 # convert projection output and clamping mask to geotiff
                 # Set the nodatavalue explicitly to fix an issue with unrecognised default nodatavalue with gdal.
                 # Shall be removed when gdal bug is fixed in gdal 2.1.3.
-                bccvl.grdtogtiff(proj_folder, 
-                                 algorithm=ifelse(is.null(mm.subset), sdm.algorithm, sprintf("%s_%s", sdm.algorithm, mm.subset)),
-                                 noDataValue=-4294967296)
+                bccvl.grdtogtiff(proj_folder, algorithm=sdm.algorithm, noDataValue=-4294967296)
 
                 # collect geotiff file names for 
                 projections = c(projections,
@@ -173,13 +171,13 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         if (biomod.build.clamping.mask) {
             mosaic_rasters(clampings,
                            file.path(outdir,
-                                     paste("proj_", projection.name, "_ClampingMask", filename_ext, ".tif", sep="")),
+                                     paste("proj_", projection.name, "_ClampingMask_", species_algo_str, filename_ext, ".tif", sep="")),
                            co=c("COMPRESS=LZW", "TILED=YES"),
                            format="GTiff")
         }
 
         tiffilepath = file.path(outdir,
-                                 paste("proj_", projection.name, "_", biomod.species.name, filename_ext, ".tif", sep=""))
+                                 paste("proj_", projection.name, "_", species_algo_str, filename_ext, ".tif", sep=""))
         mosaic_rasters(projections, 
                        tiffilepath,
                        co=c("COMPRESS=LZW", "TILED=YES"),
