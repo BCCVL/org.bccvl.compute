@@ -43,6 +43,10 @@ opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right
 opt.ext = NULL #an optional extent object to limit the prediction to a sub-region of 'x'
 projection.name = "current"
 species_algo_str = sprintf("%s_domain", occur.species)
+species_algo_str = ifelse(is.null(bccvl.params$subset), 
+                          sprintf("%s_domain", occur.species), 
+                          sprintf("%s_domain_%s", occur.species, bccvl.params$subset))
+
 
 
 # model accuracy statistics

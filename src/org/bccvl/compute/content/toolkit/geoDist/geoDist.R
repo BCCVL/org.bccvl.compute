@@ -42,7 +42,10 @@ enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
 opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right tail of the percentile distribution ("both", "low", "high"
 opt.ext = NULL #an optional extent object to limit the prediction to a sub-region of 'x'
 projection.name = "current"
-species_algo_str = sprintf("%s_geoDist", occur.species)
+species_algo_str = ifelse(is.null(bccvl.params$subset), 
+                          sprintf("%s_geoDist", occur.species), 
+                          sprintf("%s_geoDist_%s", occur.species, bccvl.params$subset))
+
 
 # model accuracy statistics
 # these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R

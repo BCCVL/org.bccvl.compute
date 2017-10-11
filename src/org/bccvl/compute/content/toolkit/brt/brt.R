@@ -61,7 +61,10 @@ brt.keep.fold.models = FALSE #Logical. keep the fold models from cross valiation
 brt.keep.fold.vector = TRUE #Logical. allows the vector defining fold membership to be kept
 brt.keep.fold.fit = FALSE #Logical. allows the predicted values for observations from cross-validation to be kept
 projection.name = "current"
-species_algo_str = sprintf("%s_brt", occur.species) 
+species_algo_str = ifelse(is.null(bccvl.params$subset), 
+                          sprintf("%s_brt", occur.species), 
+                          sprintf("%s_brt_%s", occur.species, bccvl.params$subset))
+
 
 # model accuracy statistics
 # these are available from dismo::evaluate.R NOT originally implemented in biomod2::Evaluate.models.R

@@ -32,7 +32,11 @@ future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x
 future.climate.data.type = lapply(bccvl.params$future_climate_datasets, function(x) x$type)
 #layer names for the current environmental layers used
 future.climate.data.layer = lapply(bccvl.params$future_climate_datasets, function(x) x$layer)
-species_algo_str = paste(sdm.species, sdm.algorithm, sep="_")
+mm.subset = bccvl.params$subset
+species_algo_str = ifelse(is.null(mm.subset), 
+                          sprintf("%s_%s", sdm.species, sdm.algorithm), 
+                          sprintf("%s_%s_%s", sdm.species, sdm.algorithm, mm.subset))
+
 
 # constraint_type: null for protjection with constraint, and  "unconstraint" for projection without constraint.
 projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species, constraint_geojson, constraint_type=NULL) {
@@ -137,7 +141,9 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                 # convert projection output and clamping mask to geotiff
                 # Set the nodatavalue explicitly to fix an issue with unrecognised default nodatavalue with gdal.
                 # Shall be removed when gdal bug is fixed in gdal 2.1.3.
-                bccvl.grdtogtiff(proj_folder, algorithm=sdm.algorithm, noDataValue=-4294967296)
+                bccvl.grdtogtiff(proj_folder, 
+                                 algorithm=ifelse(is.null(mm.subset), sdm.algorithm, sprintf("%s_%s", sdm.algorithm, mm.subset))
+                                 noDataValue=-4294967296)
 
                 # collect geotiff file names for 
                 projections = c(projections,
@@ -197,7 +203,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # generate occurrence probability change for future and current projections
         changefilepath = bccvl.get_filepath("prob_change_", 
                                             projection.name, 
-                                            species, 
+                                            species_algo_str, 
                                             outputdir=outdir, 
                                             filename_ext=constraint_type,
                                             file_ext="tif")
@@ -206,7 +212,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # generate species range change metric and summary
         changefilepath = bccvl.get_filepath("range_change_", 
                                             projection.name, 
-                                            species, 
+                                            species_algo_str, 
                                             outputdir=outdir, 
                                             filename_ext=constraint_type,
                                             file_ext="tif")
@@ -215,7 +221,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # Generate the Centre of Species Range metric
         changefilepath = bccvl.get_filepath("centre_species_range_", 
                                             projection.name, 
-                                            species, 
+                                            species_algo_str, 
                                             outputdir=outdir, 
                                             filename_ext=constraint_type,
                                             file_ext="csv")

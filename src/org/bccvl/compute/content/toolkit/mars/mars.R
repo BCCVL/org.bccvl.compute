@@ -57,6 +57,9 @@ biomod.modeling.id = bccvl.params$modeling_id  #character, the ID (=name) of mod
 biomod.species.name = occur.species # used for various path and file name generation
 projection.name = "current"  #basename(enviro.data.current)
 species_algo_str = sprintf("%s_mars", occur.species)
+species_algo_str = ifelse(is.null(bccvl.params$subset), 
+                          sprintf("%s_mars", occur.species), 
+                          sprintf("%s_mars_%s", occur.species, bccvl.params$subset))
 
 # model-specific arguments to create a biomod model
 model.options.mars <- list(
@@ -225,7 +228,7 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
     bccvl.grdtogtiff(file.path(getwd(),
                                biomod.species.name,
                                paste("proj", projection.name, sep="_")), 
-                     algorithm="mars",
+                     algorithm=ifelse(is.null(bccvl.params$subset), "mars", sprintf("mars_%s", bccvl.params$subset)),
                      filename_ext="unconstraint")
 
     # save the projection
@@ -256,7 +259,7 @@ bccvl.remove.rasterObject(current.climate.scenario)
 bccvl.grdtogtiff(file.path(getwd(),
                            biomod.species.name,
                            paste("proj", projection.name, sep="_")),
-                 algorithm="mars")
+                 algorithm=ifelse(is.null(bccvl.params$subset), "mars", sprintf("mars_%s", bccvl.params$subset)))
 
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
