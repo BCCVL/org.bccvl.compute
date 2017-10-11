@@ -142,7 +142,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                 # Set the nodatavalue explicitly to fix an issue with unrecognised default nodatavalue with gdal.
                 # Shall be removed when gdal bug is fixed in gdal 2.1.3.
                 bccvl.grdtogtiff(proj_folder, 
-                                 algorithm=ifelse(is.null(mm.subset), sdm.algorithm, sprintf("%s_%s", sdm.algorithm, mm.subset))
+                                 algorithm=ifelse(is.null(mm.subset), sdm.algorithm, sprintf("%s_%s", sdm.algorithm, mm.subset)),
                                  noDataValue=-4294967296)
 
                 # collect geotiff file names for 
