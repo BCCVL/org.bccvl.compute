@@ -249,7 +249,6 @@ $bd->rename_labels (remap => $remap);
 #  add to as needed, possibly using args later on
 my $calculations = [qw/
     calc_endemism_whole
-    calc_redundancy
     calc_rarity_whole
 /];
 
