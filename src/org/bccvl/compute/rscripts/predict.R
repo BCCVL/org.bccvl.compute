@@ -236,11 +236,6 @@ if (tolower(file_ext(modelfile)) == "zip") {
     # as the basename(zip) in the same folder as the zip
     modeldir = dirname(modelfile)
     modelfile = file_path_sans_ext(basename(modelfile))
-
-    # rename model object file to match one that is inside the zip file from SDM
-    if (modelfile == 'model.object.RData') {
-        modelfile = bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData")
-    }
     modelfile = file.path(modeldir, modelfile)
     # we'll have to change wd so that biomod can load data from model subfolders'
     setwd(modeldir)
