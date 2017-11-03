@@ -202,7 +202,7 @@ model.sdm <-
                     )
 # model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
 #save out the model object
-bccvl.save(model.sdm, name=bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
+bccvl.save(model.sdm, name="model.object.RData")
 # predict for current climate scenario
 model.proj <-
     BIOMOD_Projection(modeling.output=model.sdm,

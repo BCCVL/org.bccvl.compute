@@ -209,7 +209,7 @@ bccvl.VIPplot(method="ann", data1=data1, pdf=TRUE,
 #save out the model object
 # TODO: biomod stores the model already in species/species.bccvl.models.out
 # TODO: get species name into this somehow -> requires archive generation on input to do the same
-bccvl.save(model.sdm, name=bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
+bccvl.save(model.sdm, name="model.object.RData")
 
 
 # Do projection over current climate scenario without constraint

@@ -183,7 +183,7 @@
     },
     "archives": {
         "model.object.RData.zip": {
-            "files": ["model.object_*.RData",
+            "files": ["model.object.RData",
                       "*/*.bccvl.models.out",
                       "*/.BIOMOD_DATA/bccvl/*",
                       "*/models/bccvl/*",
