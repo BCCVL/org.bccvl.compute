@@ -110,7 +110,7 @@ sub apply_threshold {
                         $allsame = -1;
                         next;
                     }
-                    my $newval = $val >= $threshold ? 1 : 0;
+                    my $newval = $val >= $threshold ? $val : 0;
                     $row->[$col_i] = $newval;
                     if (not defined($allsame)) {
                         $allsame = $newval ;
