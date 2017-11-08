@@ -42,6 +42,11 @@ enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
 opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right tail of the percentile distribution ("both", "low", "high"
 opt.ext = NULL #an optional extent object to limit the prediction to a sub-region of 'x'
 projection.name = "current"
+species_algo_str = sprintf("%s_domain", occur.species)
+species_algo_str = ifelse(is.null(bccvl.params$subset), 
+                          sprintf("%s_domain", occur.species), 
+                          sprintf("%s_domain_%s", occur.species, bccvl.params$subset))
+
 
 
 # model accuracy statistics
@@ -63,7 +68,7 @@ occur = occur[c("lon","lat")]
 
 # geographically constrained modelling
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints, enviro.data.generateCHall);
+  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, absen.data, enviro.data.constraints, enviro.data.generateCHall);
 
   # Save a copy of the climate dataset
   current.climate.scenario.orig <- current.climate.scenario  
@@ -87,7 +92,8 @@ biomod2.data = bccvl.biomod2.formatData(absen.filename   = absen.data,
                                   pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
                                   climate.data           = current.climate.scenario,
                                   occur                  = occur,
-                                  species.name           = occur.species)
+                                  species.name           = occur.species,
+                                  species_algo_str       = species_algo_str)
 
 # Extract occurrence and absence data
 coord = cbind(biomod2.data@coord, biomod2.data@data.env.var)
@@ -114,7 +120,7 @@ if (!all(enviro.data.type=="continuous")) {
     # run domain with matrix of enviro data
     model.sdm = domain(x=occur[,names(current.climate.scenario), drop=FALSE])
     # save out the model object
-    bccvl.save(model.sdm, paste(occur.species, "model.object.RData", sep="."))
+    bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
 
     # Do projection over current climate scenario without constraint
     if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
@@ -124,7 +130,7 @@ if (!all(enviro.data.type=="continuous")) {
         bccvl.remove.rasterObject(current.climate.scenario.orig)
 
         # save output
-        bccvl.saveModelProjection(model.proj, projection.name, occur.species, filename_ext="unconstraint")
+        bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str, filename_ext="unconstraint")
     }    
 
     # predict for given climate scenario
@@ -134,10 +140,5 @@ if (!all(enviro.data.type=="continuous")) {
     bccvl.remove.rasterObject(current.climate.scenario)
 
     # save output
-    bccvl.saveModelProjection(model.proj, projection.name, occur.species)
-
-    # evaluate model
-    if (!is.null(absen)) {
-        bccvl.evaluate.model('domain', model.sdm, occur, absen)
-    }
+    bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
 }

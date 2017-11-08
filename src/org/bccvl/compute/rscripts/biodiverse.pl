@@ -110,7 +110,7 @@ sub apply_threshold {
                         $allsame = -1;
                         next;
                     }
-                    my $newval = $val >= $threshold ? 1 : 0;
+                    my $newval = $val >= $threshold ? $val : 0;
                     $row->[$col_i] = $newval;
                     if (not defined($allsame)) {
                         $allsame = $newval ;
@@ -249,7 +249,6 @@ $bd->rename_labels (remap => $remap);
 #  add to as needed, possibly using args later on
 my $calculations = [qw/
     calc_endemism_whole
-    calc_redundancy
     calc_rarity_whole
 /];
 

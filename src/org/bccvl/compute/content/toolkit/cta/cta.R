@@ -56,6 +56,10 @@ biomod.modeling.id = bccvl.params$modeling_id # bccvl.params$species  #character
 # EMG Need to test whether a NULL values counts as an argument
 biomod.species.name = occur.species # used for various path and file name generation
 projection.name = "current"  #basename(enviro.data.current)
+species_algo_str = ifelse(is.null(bccvl.params$subset), 
+                          sprintf("%s_cta", occur.species), 
+                          sprintf("%s_cta_%s", occur.species, bccvl.params$subset))
+
 
 # model-specific arguments to create a biomod model
 model.options.cta <- list(
@@ -113,7 +117,7 @@ occur = occur[c("lon","lat")]
 
 # geographically constrained modelling
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, enviro.data.constraints, enviro.data.generateCHall);
+  constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, absen.data, enviro.data.constraints, enviro.data.generateCHall);
 
   # Save a copy of the climate dataset  
   current.climate.scenario.orig <- current.climate.scenario    
@@ -196,7 +200,8 @@ model.data = bccvl.biomod2.formatData(absen.filename     = absen.data,
                                   pseudo.absen.sre.quant = bccvl.params$pa_sre_quant,
                                   climate.data           = current.climate.scenario,
                                   occur                  = occur,
-                                  species.name           = biomod.species.name)
+                                  species.name           = biomod.species.name,
+                                  species_algo_str       = species_algo_str)
 
 # 2. Define the model options
 model.options <- BIOMOD_ModelingOptions(CTA = model.options.cta)
@@ -222,7 +227,7 @@ x.data <- attr(model.data,"data.env.var")
 y.data <- attr(model.data,"data.species")
 data1 = data.frame(y.data,x.data)
 bccvl.VIPplot(method="cta", data1=data1, pdf=TRUE, 
-              filename='vip_plot', 
+              filename=paste('vip_plot', species_algo_str, sep="_"), 
               this.dir=paste(biomod.species.name, "/models/bccvl", sep=""))
 
 #save out the model object
@@ -253,10 +258,11 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
     bccvl.grdtogtiff(file.path(getwd(),
                                biomod.species.name,
                                paste("proj", projection.name, sep="_")), 
+                     algorithm=ifelse(is.null(bccvl.params$subset), "cta", sprintf("cta_%s", bccvl.params$subset)), 
                      filename_ext="unconstraint")
 
     # save the projection
-    bccvl.saveProjection(model.proj, biomod.species.name, filename_ext="unconstraint")
+    bccvl.saveProjection(model.proj, species_algo_str, filename_ext="unconstraint")
 }
 
 # predict for current climate scenario
@@ -282,12 +288,13 @@ bccvl.remove.rasterObject(current.climate.scenario)
 # convert projection output from grd to gtiff
 bccvl.grdtogtiff(file.path(getwd(),
                            biomod.species.name,
-                           paste("proj", projection.name, sep="_")))
+                           paste("proj", projection.name, sep="_")),
+                 algorithm=ifelse(is.null(bccvl.params$subset), "cta", sprintf("cta_%s", bccvl.params$subset)))
 
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
 loaded.model = BIOMOD_LoadModels(model.sdm, models="CTA") # load model
-bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm) 	# save output
+bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm, species_algo_str) 	# save output
 
 # save the projection
-bccvl.saveProjection(model.proj, biomod.species.name)
+bccvl.saveProjection(model.proj, species_algo_str)

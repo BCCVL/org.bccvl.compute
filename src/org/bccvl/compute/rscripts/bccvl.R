@@ -258,6 +258,11 @@ bccvl.data.transform <- function(data, climate.data)
     return(data)
 }
 
+bccvl.format.outfilename <- function(filename, id_str, ext)
+{
+    return(sprintf("%s_%s.%s", filename, id_str, ext))
+}
+
 # BIOMOD_FormatingData(resp.var, expl.var, resp.xy = NULL, resp.name = NULL, eval.resp.var = NULL,
 #   eval.expl.var = NULL, eval.resp.xy = NULL, PA.nb.rep = 0, PA.nb.absences = 1000, PA.strategy = 'random',
 #   PA.dist.min = 0, PA.dist.max = NULL, PA.sre.quant = 0.025, PA.table = NULL, na.rm = TRUE)
@@ -292,7 +297,8 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                                   occur=NULL,
                                   species.name=NULL,
                                   save.pseudo.absen=TRUE,
-                                  generate.background.data=FALSE) {
+                                  generate.background.data=FALSE,
+                                  species_algo_str=NULL) {
 
     # Read true absence point if available.
     if (is.null(absen.filename)) {        
@@ -375,26 +381,29 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                              PA.sre.quant = pseudo.absen.sre.quant)
 
     # Save the pseudo absence points generated to file
+    pa_filename = bccvl.format.outfilename(filename="pseudo_absences", id_str=species_algo_str, ext="csv")
+    absenv_filename = bccvl.format.outfilename(filename="absence_environmental", id_str=species_algo_str, ext="csv")
+    occenv_filename = bccvl.format.outfilename(filename="occurrence_environmental", id_str=species_algo_str, ext="csv")
     if (pseudo.absen.rep != 0) {
         pseudoAbsen = myBiomodData@coord[c(which(is.na(myBiomodData@data.species))), c('lon', 'lat')]
         if (save.pseudo.absen & nrow(pseudoAbsen) > 0) {
-            bccvl.write.csv(pseudoAbsen, 'pseudo_absences.csv', rownames = FALSE)
+            bccvl.write.csv(pseudoAbsen, pa_filename, rownames = FALSE)
         }
 
         # save the pseudo absence points with environmental variables
-        bccvl.merge.save(climate.data, pseudoAbsen, species.name, "absence_environmental.csv")        
+        bccvl.merge.save(climate.data, pseudoAbsen, species.name, absenv_filename)        
     }
     else if (nrow(absen) > 0) {
         # save background data generated
         if (generate.background.data) {
-            bccvl.write.csv(absen, 'pseudo_absences.csv', rownames = FALSE)
+            bccvl.write.csv(absen, pa_filename, rownames = FALSE)
         }
         # save the true absence points with environmental variables
-        bccvl.merge.save(climate.data, absen, species.name, "absence_environmental.csv")
+        bccvl.merge.save(climate.data, absen, species.name, absenv_filename)
     }
 
     # save the occurrence datasets with environmental variables
-    bccvl.merge.save(climate.data, occur, species.name, "occurrence_environmental.csv")
+    bccvl.merge.save(climate.data, occur, species.name, occenv_filename)
 
     return(myBiomodData)
 }
@@ -594,8 +603,23 @@ bccvl.remove.rasterObject <- function(rasterObject) {
     rm(rasterObject)
 }
 
+bccvl.sp.transform <- function(data, climate.data)
+{
+    sp <- SpatialPoints(data)
+    if (is.na(crs(sp))) {
+        crs(sp) <- '+init=epsg:4326'
+    }
+
+    # project to the same crs as climate data
+    if (!compareCRS(sp, climate.data, verbatim=TRUE)) {
+        sp <- spTransform(sp, crs(climate.data))
+    }
+    return(sp)
+}
+
+
 # geographically constrained modelling
-bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHull) {
+bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojson, generateCHull) {
 
     if (is.null(rawgeojson) & !generateCHull) {
         return(list("raster" = rasterstack, "occur" = occur))
@@ -632,7 +656,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
         # Otherwise, actual constraint is the convex-hull polygon.
         if (generateCHull) {
             chcoords <- occurSP@coords[chull(occurSP@coords),]
-            chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords)), ID=1)), proj4string=crs(parsedgeojson))
+            chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords, hole=FALSE)), ID=1)), proj4string=crs(parsedgeojson))
             if (!is.null(rawgeojson)) {
                 parsedgeojson <- intersect(parsedgeojson, chullPolygon)
             }
@@ -641,10 +665,34 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, rawgeojson, generateCHu
             }
         }
 
+        # Add a small buffer of width 1-resolution cell. This is to fix the issue 
+        # with missing env values along the boundary of the polygon. 
+        parsedgeojson <- gBuffer(parsedgeojson, width=max(res(rasterstack@layers[[1]])))
+
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
         occurconstrained <- as.data.frame(occurSPconstrained)
         # rest of scripts expects names "lon", "lat" and not "x", "y"
         names(occurconstrained) <- c("lon", "lat")
+
+        # constraint the true absence points if available
+        if (!is.null(absenFilename)) {        
+            # read absence points from file
+            absen = bccvl.species.read(absenFilename)
+            # keep only lon and lat columns
+            absen = absen[c("lon","lat")]
+
+            # Ensure true absence dataset is in same projection system as climate 1st.
+            if (!is.null(absen) & nrow(absen) > 0) {
+                absenSP <- bccvl.sp.transform(absen, rasterstack)
+                absenSPconstrained <- absenSP[!is.na(over(absenSP, parsedgeojson))]
+
+                # project it back to epsg:4326 for saving as a csv file
+                absenSPconstrained <- spTransform(absenSPconstrained, CRS('+init=epsg:4326'))
+                absen <- as.data.frame(absenSPconstrained)
+                names(absen) <- c("lon", "lat")
+                write.csv(absen, file=absenFilename, row.names=FALSE)
+            }
+        }
     }
     else {
         occurconstrained = NULL
@@ -690,7 +738,7 @@ bccvl.plotProjection <- function(inputfile, main) {
                 at=my.labs.at)))
 }
 
-# function to genrate a filename for the specified file type and extension.
+# function to generate a filename for the specified file type and extension.
 bccvl.get_filepath <- function(file_type, projection_name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL, file_ext='tif') {
     if (is.null(filename_ext)) {
         basename = paste(file_type, projection_name, species, sep="_")
@@ -702,8 +750,8 @@ bccvl.get_filepath <- function(file_type, projection_name, species, outputdir=bc
 }
 
 # function to save projection as png image
-bccvl.saveProjectionImage <- function(inputfile, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
-    filename = bccvl.get_filepath("proj", projection.name, species, outputdir, filename_ext, "png")
+bccvl.saveProjectionImage <- function(inputfile, projection.name, species, species_algo_str, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
+    filename = bccvl.get_filepath("proj", projection.name, species_algo_str, outputdir, filename_ext, "png")
     png(filename)
     title = paste(species, projection.name, "projections", sep=" ")
     plot(raster(inputfile), main=title, xlab='longitude', ylab='latitude')
@@ -778,20 +826,17 @@ bccvl.generateCentreOfGravityMetric <- function(projfiles, outfilename) {
 
 
 # function to save projection output raster
-bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
+bccvl.saveModelProjection <- function(model.obj, projection.name, species, species_algo_str, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
     ## save projections under biomod2 compatible name:
     ##  proj_name_species.tif
     ##  only useful for dismo outputs
 
-    filename = bccvl.get_filepath("proj", projection.name, species, outputdir, filename_ext, "tif")
+    filename = bccvl.get_filepath("proj", projection.name, species_algo_str, outputdir, filename_ext, "tif")
     writeRaster(model.obj, filename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
 
     # TODO: can we merge this bit with bccvl.saveProjection in eval.R ?
     # Save as image as well
-    # TODO: replace this with bccvl.saveProjectionImage when levelplot works properly.
-    #bccvl.saveProjectionImage(filename, projection.name, species, outputdir=outputdir)
-
-    pngfilename = bccvl.get_filepath("proj", projection.name, species, outputdir, filename_ext, "png")
+    pngfilename = bccvl.get_filepath("proj", projection.name, species_algo_str, outputdir, filename_ext, "png")
     png(pngfilename)
     title = paste(species, projection.name, "projections", sep=" ")
     plot(model.obj, xlab="latitude", ylab="longtitude", main=title)
@@ -819,7 +864,7 @@ bccvl.getModelObject <- function(model.file=bccvl.env$inputmodel) {
 
 # convert all .gri/.grd found in folder to gtiff
 # TODO: extend to handle other grid file formats, e.g. .asc
-bccvl.grdtogtiff <- function(folder, filename_ext=NULL, noDataValue=NULL) {
+bccvl.grdtogtiff <- function(folder, algorithm, filename_ext=NULL, noDataValue=NULL) {
     grdfiles <- list.files(path=folder,
                            pattern="^.*\\.grd")
     for (grdfile in grdfiles) {
@@ -842,9 +887,9 @@ bccvl.grdtogtiff <- function(folder, filename_ext=NULL, noDataValue=NULL) {
         }
 
         # write raster as geotiff
-        basename = grdname
+        basename = paste(grdname, algorithm, sep="_")
         if (!is.null(filename_ext)) {
-            basename = paste(grdname, filename_ext, sep="_")
+            basename = paste(grdname, algorithm, filename_ext, sep="_")
         }
         filename = file.path(folder, paste(basename, 'tif', sep="."))
 
@@ -975,3 +1020,150 @@ family_from_string <- function(s)
     }
     return (do.call(what=f, args=args))
 }
+
+#' Grid Information from Geographic (lat lon) Projections
+#' 
+#' Since spatial grids in geographic projections do not have equal area or
+#' perimeters, \code{grid.info} extracts perimeter & area related information
+#' for latitudinal bands with differing longitudinal widths. \cr\cr Outputs
+#' lengths are in m using Vincenty's equation (\code{distance})and areas in m2.
+#' Surface areas are calculated summing surface areas of spherical polygons as
+#' estimated using l'Huiller's formula.
+#' 
+#' 
+#' @param lats is a vector of latitudes representing the midpoint of grid cells
+#' @param cellsize is a single value (assuming square cells) or a two value
+#' vector (rectangular cells) representing the height (latitude) and width
+#' (longitude) of the cells
+#' @param r is a single value representing the radius of the globe in m.
+#' Default is for the WGS84 elipsoid
+#' @return a data.frame listing: \item{lat}{the latitude representing the
+#' midpoint of the cell} \item{top}{length of the top of the cell (m)}
+#' \item{bottom}{length of the bottom of the cell (m)} \item{side}{length of
+#' the side of the cell (m)} \item{diagnal}{length of the diagnals of the cell
+#' (m)} \item{area}{area of the cell (m2)}
+#' @author Jeremy VanDerWal \email{jjvanderwal@@gmail.com}
+#' @references information on l'Huiller's formula
+#' \url{http://williams.best.vwh.net/avform.htm for more info)} code for
+#' estimating area of polygon on sphere was modified from
+#' \url{http://forum.worldwindcentral.com/showthread.php?t=20724}
+#' @examples
+#' 
+#' #show output for latitudes from -87.5 to 87.5 at 5 degree intervals
+#' grid.info(lats=seq(-87.5,87.5,5), 5)
+#' 
+#' @export 
+# This is a fix for SDM tool grid.info function due to floating point operation.
+grid.info <- function(lats,cellsize,r=6378137) {
+    r2 = r^2 #radius of earth
+    ###need checks to ensure lats will not go beyond 90 & -90
+    if (length(cellsize)==1) cellsize=rep(cellsize,2) #ensure cellsize is defined for both lat & lon
+    out = data.frame(lat=lats) #setup the output dataframe
+    toplats = lats+(0.5*cellsize[1]); bottomlats = lats-(0.5*cellsize[1]) #define the top and bottom lats
+    check = range(c(toplats,bottomlats),na.rm=TRUE); if (-90.00001>check[1] | 90.00001<check[2]) stop('latitudes must be between -90 & 90 inclusively')
+    out$top = distance(toplats,rep(0,length(lats)),toplats,rep(cellsize[2],length(lats)))$distance
+    out$bottom = distance(bottomlats,rep(0,length(lats)),bottomlats,rep(cellsize[2],length(lats)))$distance
+    out$side = distance(toplats,rep(0,length(lats)),bottomlats,rep(0,length(lats)))$distance
+    out$diagnal = distance(toplats,rep(0,length(lats)),bottomlats,rep(cellsize[2],length(lats)))$distance
+    #calculate area of a spherical triangle using spherical excess associated by knowing distances
+    #tan(E/4) = sqrt(tan(s/2)*tan((s-a)/2)*tan((s-b)/2)*tan((s-c)/2))
+    #where a, b, c = sides of spherical triangle
+    #s = (a + b + c)/2
+    #from CRC Standard Mathematical Tables
+    #calculate excess based on  l'Huiller's formula (http://williams.best.vwh.net/avform.htm for more info)
+    #code modified from (http://forum.worldwindcentral.com/showthread.php?t=20724)
+    excess = function(lam1,lam2,beta1,beta2){ #calculate excess... inputs are in radians
+        haversine = function(y) { (1-cos(y))/2 }
+        cosB1 = cos(beta1); cosB2 = cos(beta2)
+        hav1 = haversine(beta2-beta1) + cosB1*cosB2*haversine(lam2-lam1)
+        aa = 2 * asin(sqrt(hav1)); bb = 0.5*pi - beta2; cc = 0.5*pi - beta1
+        ss = 0.5*(aa+bb+cc)
+        tt = tan(ss/2)*tan((ss-aa)/2)*tan((ss-bb)/2)*tan((ss-cc)/2)
+        return(abs(4*atan(sqrt(abs(tt)))))      
+    }
+    if (any(bottomlats==-90)) { pos = which(bottomlats==-90); bottomlats[pos] = -bottomlats[pos]; toplats[pos] = -toplats[pos]} #ensure no -90 bottom lats
+    out$area = excess(lam1=0,lam2=cellsize[2]*pi/180,toplats*pi/180,toplats*pi/180)
+    out$area = abs(out$area-excess(lam1=0,lam2=cellsize[2]*pi/180,bottomlats*pi/180,bottomlats*pi/180))*r2
+    return(out)
+}
+
+#' Vincenty Direct Calculation of Distance and Direction
+#' 
+#' \code{distance} estimates the distance given a starting & ending latitude
+#' and longitude. \cr \cr For general information on Vincenty's formula, see
+#' e.g., \url{http://en.wikipedia.org/wiki/Vincenty's_formulae}. It states: \cr
+#' \emph{Vincenty's formulae are two related iterative methods used in geodesy
+#' to calculate the distance between two points on the surface of an spheroid,
+#' developed by Thaddeus Vincenty in 1975. They are based on the assumption
+#' that the figure of the Earth is an oblate spheroid, and hence are more
+#' accurate than methods such as great-circle distance which assume a spherical
+#' Earth.} \cr \cr \bold{Note:} this method assumes a locations are lat & lon
+#' given in WGS 84.\cr\cr Direction, if requested, is the the initial bearing
+#' (sometimes referred to as forward azimuth) for which one would follow as a
+#' straight line along a great-circle arc from start to finish.\cr \cr
+#' \bold{Note:} this will fail if there are NA's in the data.
+#' 
+#' 
+#' @param lat1 a single value or vector of values representing latitude in
+#' decimal degrees from -90 to 90 degrees. Alternatively, a data.frame or
+#' matrix can be used here with each column representing lat1, lon1, lat2, lon2
+#' (in that order).
+#' @param lon1 a single value or vector of values representing longitude in
+#' decimal degrees from -180 to 180 degrees. If NULL, lat1 is assumed to be a
+#' matrix or data.frame.
+#' @param lat2 a single value or vector of values representing latitude in
+#' decimal degrees from -90 to 90 degrees. If NULL, lat1 is assumed to be a
+#' matrix or data.frame.
+#' @param lon2 a single value or vector of values representing longitude in
+#' decimal degrees from -180 to 180 degrees. If NULL, lat1 is assumed to be a
+#' matrix or data.frame.
+#' @param bearing boolean value as to calculate the direction as well as the
+#' distance.
+#' @return Returns a data.frame with: \item{lon1}{the original longitude}
+#' \item{lat1}{the original latitude} \item{lon2}{the destination longitude}
+#' \item{lat2}{the destination latitude} \item{distance}{the distance used}
+#' \item{bearing}{if requested, the bearing between the two points}
+#' @author Jeremy VanDerWal \email{jjvanderwal@@gmail.com}
+#' @seealso \code{\link{destination}}
+#' @references Vincenty, T. 1975. Direct and Inverse Solutions of Geodesics on
+#' the Ellipsoid with application of Nested Equations. Survey Review, vol XXII
+#' no 176. \url{http://www.ngs.noaa.gov/PUBS_LIB/inverse.pdf}
+#' @source The source code for the distance algorithm here was modified from
+#' \url{http://www.movable-type.co.uk/scripts/latlong-vincenty.html}.\cr \cr
+#' Distances were validated against Geoscience Australia calculations
+#' (\url{http://www.ga.gov.au/geodesy/datums/vincenty_inverse.jsp}).\cr \cr
+#' Bearings were from multiple sources including
+#' \url{http://williams.best.vwh.net/avform.htm#Crs}.
+#' @examples
+#' 
+#' 
+#' #get the distance of 1 degree longitude at each 5 degrees latitude from -90 to 90
+#' distance(lat1=seq(-90,90,5),lon1=rep(0,37),lat2=seq(-90,90,5),lon2=rep(1,37),bearing=TRUE)
+#'  
+#' 
+#' @export 
+#' @useDynLib SDMTools Dist
+# This is a fix for SDM tool distance function due to floating point operation.
+distance = function(lat1, lon1=NULL, lat2=NULL, lon2=NULL, bearing=FALSE) {
+    if (is.data.frame(lat1) | is.matrix(lat1)) { #if input is matrix or data.frame... break it out to individual vectors
+        lat1 = as.matrix(lat1); if (ncol(lat1)!=4) stop('incorrect lat/lon inputs... must be matrix with 4 columns or 4 vectors')
+        lon2=lat1[,4]; lat2=lat1[,3]; lon1=lat1[,2]; lat1=lat1[,1] #break out individual columns
+    } else if (!is.null(lat2) & !is.null(lon1) & !is.null(lon2)) {
+        if (!all(c(length(lat2),length(lon1),length(lon2))==length(lat1))) stop('inputs must all be of same length')
+    } else { stop('inappropriate inputs... see helpfile') }
+    if (any(c(lon1,lon2) < -180.00001) | any(c(lon1,lon2) > 180.00001)) stop('lon must be decimal degrees between -180 & 180')
+    if (any(c(lat1,lat2) < -90.00001) | any(c(lat1,lat2) > 90.00001)) stop('lat must be decimal degrees between -90 & 90')
+    #cycle through and output the new data
+    out = data.frame(lat1=lat1,lon1=lon1,lat2=lat2,lon2=lon2)
+    out$distance = round(.Call('Dist',out$lat1,out$lon1,out$lat2,out$lon2,PACKAGE='SDMTools'),2) #round to the nearest mm
+    if (bearing) { #if requested, calculate bearing
+        lat1=lat1*pi/180;lat2=lat2*pi/180;lon1=lon1*pi/180;lon2=lon2*pi/180 #convert to radians
+        brng = atan2(sin(lon2-lon1)*cos(lat2),cos(lat1)*sin(lat2)-sin(lat1)*cos(lat2)*cos(lon1-lon2)) #estimate bearing
+        out$bearing = ((brng*180/pi)+360)%%360 #convert to bearing in degrees
+    }
+    #return the output
+    return(out)
+}
+
+assignInNamespace("grid.info",grid.info, ns="SDMTools")
+assignInNamespace("distance",distance, ns="SDMTools")

@@ -15,6 +15,7 @@
 
 sdm.species = bccvl.params$species_distribution_models$species
 sdm.model.file = bccvl.params$species_distribution_models$filename
+sdm.algorithm = bccvl.params$'function'
 sdm.projections.files = lapply(bccvl.params$sdm_projections, function(x) x$filename)
 projection.name = bccvl.params$projection_name
 projection.threshold = ifelse(is.null(bccvl.params$threshold), 0.5, bccvl.params$threshold)
@@ -31,6 +32,11 @@ future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x
 future.climate.data.type = lapply(bccvl.params$future_climate_datasets, function(x) x$type)
 #layer names for the current environmental layers used
 future.climate.data.layer = lapply(bccvl.params$future_climate_datasets, function(x) x$layer)
+mm.subset = bccvl.params$subset
+species_algo_str = ifelse(is.null(mm.subset), 
+                          sprintf("%s_%s", sdm.species, sdm.algorithm), 
+                          sprintf("%s_%s_%s", sdm.species, sdm.algorithm, mm.subset))
+
 
 # constraint_type: null for protjection with constraint, and  "unconstraint" for projection without constraint.
 projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species, constraint_geojson, constraint_type=NULL) {
@@ -42,7 +48,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
       # TODO: we have to be careful here, as the raster package may create a lot of temporary data here when we constrain input data, and run a projection
       # actual problem: ... the mask call in geoconstrained generates a whole lot of temporary gri/grd files. these are then fed into biomod (only maxent?). when biomod does it's thing, it again generates a lot of temporary raster files, which quickly fills up the disk  
       # solution: https://r-forge.r-project.org/forum/forum.php?max_rows=25&style=nested&offset=12&forum_id=995&group_id=302 ... split up predictors into small areas ... project each one... combine the mosaic result at the end... might even speed up projection as it is less disc intense
-      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, constraint_geojson, enviro.data.generateCHall);
+      constrainedResults = bccvl.sdm.geoconstrained(predictors, NULL, NULL, constraint_geojson, enviro.data.generateCHall);
       predictors <- constrainedResults$raster
         
     }
@@ -62,7 +68,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # remove the environment dataset to release disk space
         bccvl.remove.rasterObject(predictors)
 
-        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
+        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, species_algo_str, filename_ext=constraint_type)
     } else if (inherits(model.obj, "gbm")) {
         # brt package)
         model.proj <- predict(predictors,
@@ -73,7 +79,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # remove the environment dataset to release disk space
         bccvl.remove.rasterObject(predictors)
 
-        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, filename_ext=constraint_type)
+        tiffilepath <- bccvl.saveModelProjection(model.proj, projection.name, species, species_algo_str, filename_ext=constraint_type)
     } else if (inherits(model.obj, "BIOMOD.models.out")) {
         # For biomod we process the raster in blocks to avoid creating an unnecessary large number of temporary raster files.
 
@@ -135,12 +141,12 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                 # convert projection output and clamping mask to geotiff
                 # Set the nodatavalue explicitly to fix an issue with unrecognised default nodatavalue with gdal.
                 # Shall be removed when gdal bug is fixed in gdal 2.1.3.
-                bccvl.grdtogtiff(proj_folder, noDataValue=-4294967296)
+                bccvl.grdtogtiff(proj_folder, algorithm=sdm.algorithm, noDataValue=-4294967296)
 
                 # collect geotiff file names for 
                 projections = c(projections,
                                 file.path(proj_folder,
-                                          paste("proj_", block_name, "_", model.obj@sp.name, ".tif", sep="")))
+                                          paste("proj_", block_name, "_", model.obj@sp.name, "_", sdm.algorithm, ".tif", sep="")))
                 clampings = c(clampings,
                               file.path(proj_folder,
                                         paste("proj_", block_name,"_ClampingMask", ".tif", sep="")))
@@ -165,20 +171,20 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         if (biomod.build.clamping.mask) {
             mosaic_rasters(clampings,
                            file.path(outdir,
-                                     paste("proj_", projection.name, "_ClampingMask", filename_ext, ".tif", sep="")),
+                                     paste("proj_", projection.name, "_ClampingMask_", species_algo_str, filename_ext, ".tif", sep="")),
                            co=c("COMPRESS=LZW", "TILED=YES"),
                            format="GTiff")
         }
 
         tiffilepath = file.path(outdir,
-                                 paste("proj_", projection.name, "_", biomod.species.name, filename_ext, ".tif", sep=""))
+                                 paste("proj_", projection.name, "_", species_algo_str, filename_ext, ".tif", sep=""))
         mosaic_rasters(projections, 
                        tiffilepath,
                        co=c("COMPRESS=LZW", "TILED=YES"),
                        format="GTiff")
 
         # save projection as png as well
-        bccvl.saveProjectionImage(tiffilepath, projection.name, biomod.species.name, outputdir=outdir, filename_ext=constraint_type)
+        bccvl.saveProjectionImage(tiffilepath, projection.name, biomod.species.name, species_algo_str, outputdir=outdir, filename_ext=constraint_type)
     }
 
     # Compute metrics only for unconstraint projection.
@@ -195,7 +201,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # generate occurrence probability change for future and current projections
         changefilepath = bccvl.get_filepath("prob_change_", 
                                             projection.name, 
-                                            species, 
+                                            species_algo_str, 
                                             outputdir=outdir, 
                                             filename_ext=constraint_type,
                                             file_ext="tif")
@@ -204,7 +210,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # generate species range change metric and summary
         changefilepath = bccvl.get_filepath("range_change_", 
                                             projection.name, 
-                                            species, 
+                                            species_algo_str, 
                                             outputdir=outdir, 
                                             filename_ext=constraint_type,
                                             file_ext="tif")
@@ -213,7 +219,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # Generate the Centre of Species Range metric
         changefilepath = bccvl.get_filepath("centre_species_range_", 
                                             projection.name, 
-                                            species, 
+                                            species_algo_str, 
                                             outputdir=outdir, 
                                             filename_ext=constraint_type,
                                             file_ext="csv")

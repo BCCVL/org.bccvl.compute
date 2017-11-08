@@ -10,18 +10,21 @@
 ### 1: Functions to save SDM outputs
 #########################################################################
 
-bccvl.saveModelEvaluation <- function(out.evaluation, out.stats, out.lossfunction){
-  bccvl.write.csv(data.frame(out.evaluation), name = "Evaluation data.csv")
-  bccvl.write.csv(data.frame(out.stats), name = "Evaluation statistics.csv")
-  bccvl.write.csv(data.frame(out.lossfunction), name = "Loss function intervals table.csv")
+bccvl.saveModelEvaluation <- function(out.evaluation, out.stats, out.lossfunction, species_algo_str){
+  bccvl.write.csv(data.frame(out.evaluation), 
+                  name = paste0(paste("Evaluation-data", species_algo_str, sep="_"), ".csv"))
+  bccvl.write.csv(data.frame(out.stats), 
+                  name = paste0(paste("Evaluation-statistics", species_algo_str, sep="_"), ".csv"))
+  bccvl.write.csv(data.frame(out.lossfunction), 
+                  name = paste0(paste("Loss-function-intervals-table", species_algo_str, sep="_"), ".csv"))
   }
 
-bccvl.saveProjection <- function(proj.model, species, filename_ext=NULL) {
+bccvl.saveProjection <- function(proj.model, species_algo_str, filename_ext=NULL) {
   if (!is.null(filename_ext)) {
-    basename = paste("proj", 'current', species, filename_ext, sep="_")
+    basename = paste("proj", 'current', species_algo_str, filename_ext, sep="_")
   }
   else {
-    basename = paste("proj", 'current', species, sep="_")
+    basename = paste("proj", 'current', species_algo_str, sep="_")
   }
   png(file=file.path(bccvl.env$outputdir, paste(basename, 'png', sep=".")))
   plot(proj.model, on_0_1000=FALSE)
@@ -35,7 +38,7 @@ bccvl.saveProjection <- function(proj.model, species, filename_ext=NULL) {
 absmean <- function(x) abs(mean(x, na.rm=T))
 absdiff <- function(x) abs(diff(x, na.rm=T))
 
-performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
+performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.plot=T) {
   library(gridExtra)
   
   # AIM: Calculate 2D measures of predictive performance for any
@@ -297,7 +300,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     
     # Create Presence/absence density plot across threshold probability values
     temp2 <- data.frame(list(pred=pred, obs=obs))
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence-absence-plot.png", make.plot)), width=480, height=480)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence-absence-plot_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g1 <- ggplot(temp2, aes(x=pred, fill=factor(obs))) + 
       geom_density(stat="density", alpha=0.5) + 
       labs(title="Presence/absence density plot \nacross threshold probability values", x="\nThreshold probability value", y="Density\n") + 
@@ -308,7 +311,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create Presence/absence histogram across threshold probability values
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence-absence-hist.png", make.plot)), width=480, height=480)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence-absence-hist_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g2 <- ggplot(temp2, aes(x=pred, fill=factor(obs)))  + 
       geom_histogram(position="dodge", alpha = 0.5) +
       labs(title="Presence/absence histogram \nacross threshold probability values", x="\nThreshold probability value", y="Count\n") +
@@ -319,7 +322,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create TPR-TNR plot
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-TPR-TNR.png", make.plot)), width=480, height=480)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-TPR-TNR_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g3 <- ggplot(errs[errs$measure %in% c("tpr", "tnr"), ], 
                  aes(x=tpv, y=value, colour=measure)) + 
       geom_line(size=1.2) + 
@@ -332,7 +335,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create Error rates plot: shows the values of four different error rates across the range of threshold probability values
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-error-rates.png", make.plot)), width=480, height=480)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-error-rates_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g4 <- ggplot(errs[errs$measure %in% c("fpr", "fnr", "fdr", "fors"), ], 
                  aes(x=tpv, y=value, colour=measure, linetype=measure)) + 
       geom_line(size=1.2) + 
@@ -346,7 +349,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     dev.off()
     
     # Create ROC plot 
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-ROC.png", make.plot)), width=480, height=480)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-ROC_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g5 <- ggplot(temp, aes(x=fpr, y=tpr)) + 
       geom_line(size=1.2) + 
       ylim(0,1) +
@@ -374,7 +377,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     eval.stats <- t(stats.table) # transpose table
     
      # Create Loss function plot: shows the values of different loss functions across the range of threshold probability values
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-functions.png", make.plot)), width=480, height=480)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-functions_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g6 <- ggplot(errs[errs$measure %in% rev(c("L.diag", "L.pred", "L.all", "L.eq.diag")), ], 
                  aes(x=tpv, y=value, colour=measure)) + 
       geom_line(size=1.2) + 
@@ -388,7 +391,7 @@ performance.2D <- function(obs, pred, make.plot="bccvl", kill.plot=T) {
     
     # Create Loss functions-intervals plot within 5% of the best value
     rangeperf$type.of.loss <- factor(rangeperf$type.of.loss, levels=(c("diag", "pred", "all", "eq.diag")))
-    png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-intervals.png", make.plot)), width=480, height=480)
+    png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-intervals_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g7 <- ggplot(rangeperf, aes(x=type.of.loss, y=best, ymin=lower, ymax=upper, colour=type.of.loss)) + 
       geom_pointrange(size=1.2) + 
       geom_line(size=1.2) +
@@ -410,7 +413,7 @@ dev.save <- function(fileroot, ext=".pdf") {
   if (ext==".eps") {dev.copy2eps(file=paste(fileroot,ext,sep="."))} else {dev.copy2pdf(file=paste(fileroot,"pdf",sep="."))}
 }
 
-bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
+bccvl.createMarginalResponseCurves <- function(out.model, model.name, species_algo_str) {
   # Get the enviromental variables and values used to create the model
   if (model.name == "brt") {
     model.values = matrix(out.model$data$x, ncol=length(out.model$var.names))
@@ -436,7 +439,7 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
     # plot 18 response curves per page
     curvesPerPage = 6*3       # No of rows X No of columns
     for (i in 0:((ncol(mean.values)-1)/curvesPerPage)) {
-        png(file=file.path(bccvl.env$outputdir, paste("p", i,"_response.png", sep="")), width=700, height=900)
+        png(file=file.path(bccvl.env$outputdir, paste("p", i, "_response_", species_algo_str, ".png", sep="")), width=700, height=900)
         par(mfrow = c(6,3)) # No of rows X No of columns
 
         # Allow each environmental variable to vary, keeping other variable values at average, and predict suitability
@@ -460,13 +463,13 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name) {
         dev.off()
     }
   } else {
-    write(paste(species, ": Cannot create response curves from", model.name, "object", sep=" "), stdout())
+    write(paste(species_algo_str, ": Cannot create response curves from", model.name, "object", sep=" "), stdout())
   }
 }
 
 # function to calculate variable importance values for dismo models based on biomod2's correlation between predictions
 # i.e., hold all but one predictor variable to its actual values, resample that one predictor and recalculate model predictions
-bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples) {
+bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples, species_algo_str) {
   # EMG num_samples should be same as biomod.VarImport arg set in
   # 01.init.args.model.current.R
   
@@ -515,7 +518,7 @@ bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples) {
     # calculate mean variable importance, normalize to percentages, and write results
     varimpt.out[,num_samples+1] = round(rowMeans(varimpt.out, na.rm=TRUE), digits=3)
     varimpt.out[,num_samples+2] = round((varimpt.out[,num_samples+1]/sum(varimpt.out[,num_samples+1]))*100, digits=0)
-    bccvl.write.csv(varimpt.out, name="biomod2_like_VariableImportance.csv")
+    bccvl.write.csv(varimpt.out, name=sprintf("biomod2_like_VariableImportance_%s.csv", species_algo_str))
   } else {
     write(paste(species, ": Cannot calculate variable importance for ", model.name, "object", sep=" "), stdout())
   }
@@ -524,7 +527,7 @@ bccvl.calculateVariableImpt <- function(out.model, model.name, num_samples) {
 # function to calculate variable importance values for dismo models based on Maxent's decrease in AUC
 # i.e., hold all but one predictor variable to its original values, resample that one predictor and recalculate model AUC
 bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
-                                              model.name, occur, bkgd) {
+                                              model.name, occur, bkgd, species_algo_str) {
   # get the enviromental variables and values used to create the model
   # EMG this is duplicated from above, should be able to combine or find an easier way to determine
   if (model.name == "brt") {
@@ -583,7 +586,7 @@ bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
       }
     }
     permvarimpt.out[,"percent"] = round((permvarimpt.out[,"change.auc"]/sum(permvarimpt.out[,"change.auc"]))*100, digits=0)
-    bccvl.write.csv(permvarimpt.out, name="maxent_like_VariableImportance.csv")
+    bccvl.write.csv(permvarimpt.out, name=sprintf("maxent_like_VariableImportance_%s.csv", species_algo_str))
   } else {
     write(paste(species, ": Cannot calculate maxent-like variable importance for ", model.name, "object", sep=" "), stdout())
   }
@@ -595,7 +598,9 @@ bccvl.calculatePermutationVarImpt <- function(out.model, model.eval,
 
 ### Evaluation of 'dismo' models and save outputs
 
-bccvl.saveDISMOModelEvaluation <- function(model.name, model.obj, occur, bkgd) {
+bccvl.saveDISMOModelEvaluation <- function(model.name, model.obj, occur, bkgd, species.name) {
+  species_algo_str = paste(species.name, model.name, sep="_")
+
   # evaluate model using dismo's evaluate
   if (model.name == "brt") {
     model.eval = dismo::evaluate(p=occur, a=bkgd, model=model.obj, n.trees=model.obj$gbm.call$best.trees, type="response")
@@ -607,17 +612,17 @@ bccvl.saveDISMOModelEvaluation <- function(model.name, model.obj, occur, bkgd) {
   model.obs = c(rep(1, length(model.eval@presence)), rep(0, length(model.eval@absence)))
   
   # Call the evaluation script
-  res = performance.2D(model.obs, model.fit, make.plot=model.name, kill.plot=F)
-  bccvl.saveModelEvaluation(res$performance, res$stats, res$loss.summary)
+  res = performance.2D(model.obs, model.fit, species_algo_str, make.plot="dismo", kill.plot=F)
+  bccvl.saveModelEvaluation(res$performance, res$stats, res$loss.summary, species_algo_str)
   
   # Create response curves
-  bccvl.createMarginalResponseCurves(model.obj, model.name)
+  bccvl.createMarginalResponseCurves(model.obj, model.name, species_algo_str)
   
   # Calculate variable importance (like biomod2, using correlations between predictions)
-  bccvl.calculateVariableImpt(model.obj, model.name, 3)
+  bccvl.calculateVariableImpt(model.obj, model.name, 3, species_algo_str)
   
   # Calculate variable importance (like maxent, using decrease in AUC)
-  bccvl.calculatePermutationVarImpt(model.obj, model.eval, model.name, occur, bkgd)
+  bccvl.calculatePermutationVarImpt(model.obj, model.eval, model.name, occur, bkgd, species_algo_str)
   
   # Create HTML file with accuracy measures
   # bccvl.generateHTML()
@@ -625,7 +630,7 @@ bccvl.saveDISMOModelEvaluation <- function(model.name, model.obj, occur, bkgd) {
 
 ### Evaluation of 'biomod2' models and save outputs
 
-bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
+bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model, species_algo_str) {
 
   evaluation = get_evaluations(biomod.model)
 
@@ -649,14 +654,15 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model) {
       next
     }
 
-    res = performance.2D(obs, model_predictions / 1000, make.plot=model_name, kill.plot=F)
-    bccvl.saveModelEvaluation(res$performance, res$stats, res$loss.summary)
+    res = performance.2D(obs, model_predictions / 1000, species_algo_str, make.plot=model_name, kill.plot=F)
+    bccvl.saveModelEvaluation(res$performance, res$stats, res$loss.summary, species_algo_str)
     
     # get and save the variable importance estimates
     variableImpt = get_variables_importance(biomod.model)
     if (!is.na(variableImpt)) {
       #EMG Note this will throw a warning message if variables (array) are returned
-      bccvl.write.csv(variableImpt, name=paste("variableImportance", model_name, "csv", sep="."))
+      bccvl.write.csv(variableImpt, 
+                      name=paste("variableImportance", model_name, species_algo_str, "csv", sep="."))
     } else {
       message("VarImport argument not specified during model creation!")
       #EMG must create the model with the arg "VarImport" != 0
@@ -695,6 +701,9 @@ bccvl.savePdf <- function(..., filename, aspdf, outputdir=bccvl.env$outputdir)
 
 
 # A special R function for variable importance plots based on biomod2 fitted model outcomes
+
+# TODO: data1 passed in here may encode pseudo absence as NA ... we should convert that to 0
+# TODO: could use checks for covars != NA in data1
 bccvl.VIPplot <- function(fittedmodel=NULL, 
                          method=c("glm",,"cta","gam","ann", "rf", "gbm", "mars", "maxent"),  
                          cor.method=c("pearson","spearman"),
@@ -731,6 +740,8 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
   # (8) filename to be saved without the file extension.
   # 
 
+  data1$y.data[is.na(data1$y.data)] <- 0
+  
  # extract the root of filenames used by biomod to save model results
  filenames <- dir(this.dir)
  #loc <- regexpr("_RUN[[:digit:]]", filenames[1])
@@ -757,9 +768,9 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    # head(all.data); dim(all.data)
    rescaled.glm <- glm(fittedmodel$formula, data=all.data, family=binomial)
 
-   scaled = cbind(coef(rescaled.glm), confint(rescaled.glm))
+   scaled = as.data.frame(cbind(coef(rescaled.glm), confint(rescaled.glm)))
    scaled = scaled[-1,]
-   raw = cbind(coef(fittedmodel), confint(fittedmodel))
+   raw = as.data.frame(cbind(coef(fittedmodel), confint(fittedmodel)))
    raw = raw[-1,]
 
    #  variable importance plot in terms of relative effect size
@@ -791,8 +802,11 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    #  the heatmap in terms of correlation among predictor variables
    rescdata = rescaled.glm$data[,-1]
 
-   if(cor.method=="pearson")  xx = cor(rescdata)  
-   if(cor.method=="spearman") xx = cor(rescdata, method="spearman")
+   if("spearman" %in% cor.method) {
+       xx = cor(rescdata, method="spearman")
+   } else if("pearson" %in% cor.method)  {
+       xx = cor(rescdata)
+   }
 
    lower_tri <- xx
    lower_tri[upper.tri(lower_tri)] <- NA
@@ -813,14 +827,15 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    # e.g., the AIC score of a predictor variable representing the information loss 
    # if this variable is not included in the selected model.
 
-   nd = dim(data1)[2]  
+   nd = dim(data1)[2]
+
    RespV1 = data1[,1]; subdata1 = data1[,2:nd]
    glm.all = glm(formula = RespV1 ~ ., family = binomial, data = subdata1)
 
    Xaic = NULL
    for (i in 1:(nd-1))
    {
-      subdf = subdata1[,-i]
+      subdf = subdata1[,-i, drop=FALSE]
       glm.one = glm(formula = RespV1 ~ . , family = binomial, data = subdf)
       Xaic = c(Xaic,AIC(glm.one)) 
    }

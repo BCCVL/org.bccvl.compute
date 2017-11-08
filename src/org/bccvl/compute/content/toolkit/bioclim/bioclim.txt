@@ -18,7 +18,7 @@
             "order": 1
         },
         "*proj_current*_unconstraint.tif": {
-            "title": "Projection to current climate",
+            "title": "Projection to current climate - unconstraint",
             "genre": "DataGenreCP_ENVLOP",
             "mimetype": "image/geotiff",
             "layer": "projection_probability",
@@ -31,125 +31,131 @@
             "mimetype": "image/png",
             "order": 3
         },
-        "pseudo_absences.csv": {
+        "proj_current_*_unconstraint.png": {
+            "title": "Projection plot - unconstraint",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 4
+        },        
+        "pseudo_absences_*.csv": {
             "title": "Generated pseudo-absence points",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
-            "order": 4
+            "order": 5
         },
-        "occurrence_environmental.csv": {
+        "occurrence_environmental_*.csv": {
             "title": "Occurrence points with environmental data",
             "genre": "DataGenreSpeciesOccurEnv",
             "mimetype": "text/csv",
-            "order": 5
+            "order": 6
         },
-        "absence_environmental.csv": {
+        "absence_environmental_*.csv": {
             "title": "Absence points with environmental data",
             "genre": "DataGenreSpeciesAbsenceEnv",
             "mimetype": "text/csv",
-            "order": 6
+            "order": 7
         },
-        "*_response.png": {
+        "*_response_*.png": {
             "title": "Marginal Response Curve",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 7
-        },
-        "biomod2_like_VariableImportance.csv": {
-            "title": "Variable importance table",
-            "genre": "DataGenreSDMEval",
-            "mimetype": "text/csv",
             "order": 8
         },
-        "maxent_like_VariableImportance.csv": {
+        "biomod2_like_VariableImportance_*.csv": {
             "title": "Variable importance table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 9
         },
-        "Evaluation statistics.csv": {
-            "title": "Model accuracy statistics",
+        "maxent_like_VariableImportance_*.csv": {
+            "title": "Variable importance table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 10
         },
-        "bioclim-presence-absence-plot.png": {
-            "title": "Presence/absence density plot",
+        "Evaluation-statistics_*.csv": {
+            "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
-            "mimetype": "image/png",
+            "mimetype": "text/csv",
             "order": 11
         },
-        "bioclim-presence-absence-hist.png": {
-            "title": "Presence/absence histogram",
+        "bioclim-presence-absence-plot_*.png": {
+            "title": "Presence/absence density plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 12
         },
-        "bioclim-TPR-TNR.png": {
-            "title": "Sensitivity/Specificity plot",
+        "bioclim-presence-absence-hist_*.png": {
+            "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 13
         },
-        "bioclim-error-rates.png": {
-            "title": "Error rates plot",
+        "bioclim-TPR-TNR_*.png": {
+            "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 14
         },
-        "bioclim-ROC.png": {
-            "title": "ROC plot",
+        "bioclim-error-rates_*.png": {
+            "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 15
         },
-        "bioclim-loss-functions.png": {
-            "title": "Loss functions plot",
+        "bioclim-ROC_*.png": {
+            "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 16
         },
-        "Loss function intervals table.csv": {
+        "bioclim-loss-functions_*.png": {
+            "title": "Loss functions plot",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 17
+        },
+        "Loss-function-intervals-table_*.csv": {
             "title": "Loss functions table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 17
+            "order": 18
         },
-        "bioclim-loss-intervals.png": {
+        "bioclim-loss-intervals_*.png": {
             "title": "Loss functions intervals",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 18
+            "order": 19
         },
-        "Evaluation data.csv": {
+        "Evaluation-data_*.csv": {
             "title": "Model evaluation data",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 19
+            "order": 20
         },
         "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
             "mimetype": "text/x-r",
-            "order": 20
+            "order": 21
         },
         "dismo.eval.object.RData": {
             "title": "R ModelEvaluation object",
             "genre": "DataGenreSDMEval",
             "mimetype": "application/x-r-data",
-            "order": 21
+            "order": 22
         },
-        "*.model.object.RData": {
+        "model.object_*.RData": {
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
             "mimetype": "application/x-r-data",
-            "order": 22
+            "order": 23
         },
         "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
-            "order": 23
+            "order": 24
         },
         "*.csv": {
             "title": "Model accuracy statistics",

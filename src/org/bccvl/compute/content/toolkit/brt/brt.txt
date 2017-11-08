@@ -18,7 +18,7 @@
             "order": 1
         },
         "*proj_current*_unconstraint.tif": {
-            "title": "Projection to current climate",
+            "title": "Projection to current climate - unconstraint",
             "genre": "DataGenreCP_ENVLOP",
             "mimetype": "image/geotiff",
             "layer": "projection_probability",
@@ -31,125 +31,131 @@
             "mimetype": "image/png",
             "order": 3
         },
-        "pseudo_absences.csv": {
+        "proj_current_*_unconstraint.png": {
+            "title": "Projection plot - unconstraint",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 4
+        },        
+        "pseudo_absences_*.csv": {
             "title": "Generated pseudo-absence points",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
-            "order": 4
+            "order": 5
         },
-        "occurrence_environmental.csv": {
+        "occurrence_environmental_*.csv": {
             "title": "Occurrence points with environmental data",
             "genre": "DataGenreSpeciesOccurEnv",
             "mimetype": "text/csv",
-            "order": 5
+            "order": 6
         },
-        "absence_environmental.csv": {
+        "absence_environmental_*.csv": {
             "title": "Absence points with environmental data",
             "genre": "DataGenreSpeciesAbsenceEnv",
             "mimetype": "text/csv",
-            "order": 6
+            "order": 7
         },
-        "*_response.png": {
+        "*_response_*.png": {
             "title": "Marginal response curve",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 7
-        },
-        "biomod2_like_VariableImportance.csv": {
-            "title": "Variable importance table",
-            "genre": "DataGenreSDMEval",
-            "mimetype": "text/csv",
             "order": 8
         },
-        "maxent_like_VariableImportance.csv": {
+        "biomod2_like_VariableImportance_*.csv": {
             "title": "Variable importance table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 9
         },
-        "Evaluation statistics.csv": {
-            "title": "Model accuracy statistics",
+        "maxent_like_VariableImportance_*.csv": {
+            "title": "Variable importance table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
             "order": 10
         },
-        "brt-presence-absence-plot.png": {
-            "title": "Presence/absence density plot",
+        "Evaluation-statistics_*.csv": {
+            "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",
-            "mimetype": "image/png",
+            "mimetype": "text/csv",
             "order": 11
         },
-        "brt-presence-absence-hist.png": {
-            "title": "Presence/absence histogram",
+        "brt-presence-absence-plot_*.png": {
+            "title": "Presence/absence density plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 12
         },
-        "brt-TPR-TNR.png": {
-            "title": "Sensitivity/Specificity plot",
+        "brt-presence-absence-hist_*.png": {
+            "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 13
         },
-        "brt-error-rates.png": {
-            "title": "Error rates plot",
+        "brt-TPR-TNR_*.png": {
+            "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 14
         },
-        "brt-ROC.png": {
-            "title": "ROC plot",
+        "brt-error-rates_*.png": {
+            "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 15
         },
-        "brt-loss-functions.png": {
-            "title": "Loss functions plot",
+        "brt-ROC_*.png": {
+            "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 16
         },
-        "Loss function intervals table.csv": {
+        "brt-loss-functions_*.png": {
+            "title": "Loss functions plot",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 17
+        },
+        "Loss-function-intervals-table_*.csv": {
             "title": "Loss function table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 17
+            "order": 18
         },
-        "brt-loss-intervals.png": {
+        "brt-loss-intervals_*.png": {
             "title": "Loss function intervals",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 18
+            "order": 19
         },
-        "Evaluation data.csv": {
+        "Evaluation-data_*.csv": {
             "title": "Model evaluation data",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 19
+            "order": 20
         },
         "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
             "mimetype": "text/x-r",
-            "order": 20
+            "order": 21
         },
         "dismo.eval.object.RData": {
             "title": "R ModelEvaluation object",
             "genre": "DataGenreSDMEval",
             "mimetype": "application/x-r-data",
-            "order": 21
+            "order": 22
         },
-        "*.model.object.RData": {
+        "model.object_*.RData": {
             "title": "R SDM Model object",
             "genre": "DataGenreSDMModel",
             "mimetype": "application/x-r-data",
-            "order": 22
+            "order": 23
         },
         "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
-            "order": 23
+            "order": 24
         },
         "*.csv": {
             "title": "Model accuracy statistics",
