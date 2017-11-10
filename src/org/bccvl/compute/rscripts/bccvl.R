@@ -300,24 +300,6 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                                   generate.background.data=FALSE,
                                   species_algo_str=NULL) {
 
-    # Read true absence point if available.
-    if (is.null(absen.filename)) {        
-        # create an empty data frame for bkgd points
-        absen = data.frame(lon=numeric(0), lat=numeric(0))
-    }
-    else {
-        # read absence points from file
-        absen = bccvl.species.read(absen.filename)
-        # keep only lon and lat columns
-        absen = absen[c("lon","lat")]
-
-        # Ensure true absence dataset is in same projection system as climate.
-        if (!is.null(climate.data) & !is.null(absen) & nrow(absen) > 0) {
-            absen <- bccvl.data.transform(absen, climate.data)
-        }
-    }
-
-
     # Initialise parameters to default value if not specified
     if (is.null(pseudo.absen.strategy)) {
         pseudo.absen.strategy = 'random'
@@ -329,18 +311,30 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         pseudo.absen.sre.quant = 0.025
     }
 
-    # Check if we need to generate pseudo absence point here.
-    # as BIOMOD_FormatingData() cannot handle it properly if
-    # number of true absence points is more than absence
-    # point required.
-    pseudo.absen.rep = 1
-    if (pseudo.absen.strategy == 'none' | nrow(absen) >=  pseudo.absen.points) {
-        pseudo.absen.rep = 0
-        cat("No pseudo absence point is generated.")
+    # Read true absence point if available.
+    if (is.null(absen.filename)) {        
+        # create an empty data frame for bkgd points
+        absen = data.frame(lon=numeric(0), lat=numeric(0))
+        # To generate pseudo=absence points
+        pseudo.absen.rep = 1
+    }
+    else {
+        # read absence points from file
+        absen = bccvl.species.read(absen.filename)
+        # keep only lon and lat columns
+        absen = absen[c("lon","lat")]
 
-        # Set the number of pa to number of true absence points
+        # Ensure true absence dataset is in same projection system as climate.
+        if (!is.null(climate.data) & !is.null(absen) & nrow(absen) > 0) {
+            absen <- bccvl.data.transform(absen, climate.data)
+        }
+
+        # Do not generate pseudo absence point when true absence points are available
+        pseudo.absen.rep = 0
+        pseudo.absen.strategy = 'none'
         pseudo.absen.points = nrow(absen)
-    }    
+        cat("No pseudo absence point is generated.")
+    }
 
     # Generate background data as pseudo absence points
     if (pseudo.absen.strategy != 'none' & generate.background.data) {
@@ -395,10 +389,10 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
     }
     else if (nrow(absen) > 0) {
         # save background data generated
-        if (generate.background.data) {
+        if (is.null(absen.filename)) {
             bccvl.write.csv(absen, pa_filename, rownames = FALSE)
         }
-        # save the true absence points with environmental variables
+        # save the true absence points/background points with environmental variables
         bccvl.merge.save(climate.data, absen, species.name, absenv_filename)
     }
 
