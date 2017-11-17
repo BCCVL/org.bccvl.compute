@@ -104,6 +104,7 @@ sub apply_threshold {
                 my $row = $block->[$row_i];
                 for(my $col_i = 0; $col_i < @{$row}; $col_i++) {
                     my $val = $row->[$col_i];
+                    # Fixme: Potential error due to floating point number comparison.
                     if (defined($nodata) && $val == $nodata) {
                         # leave nodata points unchanged
                         # if we have nodata, we assume there are at least a few point set.
@@ -112,6 +113,7 @@ sub apply_threshold {
                     }
 
                     # BCCVL-103: Change value below threshold to nodata value
+                    # This should be done here.
                     my $newval = $val >= $threshold ? $val : $nodata;
                     $row->[$col_i] = $newval;
 
