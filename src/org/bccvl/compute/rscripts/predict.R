@@ -187,8 +187,8 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         bccvl.saveProjectionImage(tiffilepath, projection.name, biomod.species.name, species_algo_str, outputdir=outdir, filename_ext=constraint_type)
     }
 
-    # Compute metrics only for unconstraint projection.
-    if (length(sdm.projections.files) > 0 && !is.null(constraint_type)) {
+    # Compute metrics only for constraint projection only.
+    if (length(sdm.projections.files) > 0 && is.null(constraint_type)) {
         # get the correct sdm projection file
         sdm_projection_file = sdm.projections.files[[1]]
 
@@ -248,11 +248,6 @@ if (tolower(file_ext(modelfile)) == "zip") {
 # load model
 # TODO:should be loaded straigt from bccvl.params$sdms[1]
 model.obj <- bccvl.getModelObject(modelfile)
-
-# Do projection without any constraint only if there is constraint.
-if (!is.null(enviro.data.constraints)) {
-    projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species, enviro.data.constraints, constraint_type="unconstraint")
-}
 
 # use folder name of first dataset to generate name for projection output
 projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species, enviro.data.constraints)
