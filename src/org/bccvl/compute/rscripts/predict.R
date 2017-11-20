@@ -38,7 +38,7 @@ species_algo_str = ifelse(is.null(mm.subset),
                           sprintf("%s_%s_%s", sdm.species, sdm.algorithm, mm.subset))
 
 
-# constraint_type: null for protjection with constraint, and  "unconstraint" for projection without constraint.
+# constraint_type: null for projection with constraint, and  "unconstraint" for projection without constraint.
 projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species, constraint_geojson, constraint_type=NULL) {
     future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, datalayername, resamplingflag=enviro.data.resampling)
     # filter out unused layers from future.climate.scenario
@@ -196,7 +196,8 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         data_types = list("continuous", "continuous")
         filenames = list(tiffilepath, sdm_projection_file)
         resamplingflag = ifelse(res(raster(tiffilepath))[1] >= res(raster(sdm_projection_file))[1], 'highest', 'lowest')
-        proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, data_types, resamplingflag)
+        proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, data_types, resamplingflag, 
+                                                                               overwrite=FALSE) # Don't overwrite original proj files
 
         # generate occurrence probability change for future and current projections
         changefilepath = bccvl.get_filepath("prob_change_", 

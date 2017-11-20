@@ -500,7 +500,7 @@ bccvl.rasters.common.reference <- function(rasters, resamplingflag) {
     return(empty.rasters[[1]])
 }
 
-bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
+bccvl.rasters.warp <- function(raster.filenames, raster.types, reference, overwrite=TRUE) {
     # This warping runs all the time,... while it is fairly fast, it probably can be skipped if all raster layers lign up correctly
     rasters = mapply(
         function(filename, filetype) {
@@ -513,7 +513,7 @@ bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
             r = bccvl.raster.load(filename)
             # warp, crop and rescale raster file if necessary
             dir = dirname(filename)
-            tmpf = file.path(dir, 'tmp.tif') # TODO: better filename and location?
+            tmpf = file.path(dir, paste0(basename(tempfile()), '.tif')) # TODO: better filename and location?
             te = extent(reference)
 
             # This is to fix issue with NA value being treated as value 0 if nodatavalue is not set.
@@ -544,9 +544,13 @@ bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
             }
 
             # put new file back into place
-            file.rename(tmpf, filename)
+            rasterfilename = tmpf
+            if (overwrite) {
+                file.rename(tmpf, filename)
+                rasterfilename = filename
+            }
             # load new file and convert to categorical if required
-            r = raster(filename)
+            r = raster(rasterfilename)
             if (filetype == "categorical") {
                 # convert to factor if categorical
                 r = as.factor(r)
@@ -559,7 +563,7 @@ bccvl.rasters.warp <- function(raster.filenames, raster.types, reference) {
 
 # raster.filenames : a vector of filenames that will be loaded as rasters
 # resamplingflag: a flag to determine which resampling approach to take
-bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, raster.types, resamplingflag)
+bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, raster.types, resamplingflag, overwrite=TRUE)
 {
     # Load rasters and assign CRS if missing
     rasters = lapply(raster.filenames, bccvl.raster.load)
@@ -568,7 +572,7 @@ bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filen
     reference = bccvl.rasters.common.reference(rasters, resamplingflag)
     
     # adjust rasters spatially and convert categorical rasters to factors
-    rasters = bccvl.rasters.warp(raster.filenames, raster.types, reference)
+    rasters = bccvl.rasters.warp(raster.filenames, raster.types, reference, overwrite)
 
     return(rasters)
 }
