@@ -1058,7 +1058,7 @@ grid.info <- function(lats,cellsize,r=6378137) {
     if (length(cellsize)==1) cellsize=rep(cellsize,2) #ensure cellsize is defined for both lat & lon
     out = data.frame(lat=lats) #setup the output dataframe
     toplats = lats+(0.5*cellsize[1]); bottomlats = lats-(0.5*cellsize[1]) #define the top and bottom lats
-    check = range(c(toplats,bottomlats),na.rm=TRUE); if (-90.00001>check[1] | 90.00001<check[2]) stop('latitudes must be between -90 & 90 inclusively')
+    check = range(c(toplats,bottomlats),na.rm=TRUE); if (-90.0001>check[1] | 90.0001<check[2]) stop('latitudes must be between -90 & 90 inclusively')
     out$top = distance(toplats,rep(0,length(lats)),toplats,rep(cellsize[2],length(lats)))$distance
     out$bottom = distance(bottomlats,rep(0,length(lats)),bottomlats,rep(cellsize[2],length(lats)))$distance
     out$side = distance(toplats,rep(0,length(lats)),bottomlats,rep(0,length(lats)))$distance
@@ -1149,8 +1149,8 @@ distance = function(lat1, lon1=NULL, lat2=NULL, lon2=NULL, bearing=FALSE) {
     } else if (!is.null(lat2) & !is.null(lon1) & !is.null(lon2)) {
         if (!all(c(length(lat2),length(lon1),length(lon2))==length(lat1))) stop('inputs must all be of same length')
     } else { stop('inappropriate inputs... see helpfile') }
-    if (any(c(lon1,lon2) < -180.00001) | any(c(lon1,lon2) > 180.00001)) stop('lon must be decimal degrees between -180 & 180')
-    if (any(c(lat1,lat2) < -90.00001) | any(c(lat1,lat2) > 90.00001)) stop('lat must be decimal degrees between -90 & 90')
+    if (any(c(lon1,lon2) < -180.0001) | any(c(lon1,lon2) > 180.0001)) stop('lon must be decimal degrees between -180 & 180')
+    if (any(c(lat1,lat2) < -90.0001) | any(c(lat1,lat2) > 90.0001)) stop('lat must be decimal degrees between -90 & 90')
     #cycle through and output the new data
     out = data.frame(lat1=lat1,lon1=lon1,lat2=lat2,lon2=lon2)
     out$distance = round(.Call('Dist',out$lat1,out$lon1,out$lat2,out$lon2,PACKAGE='SDMTools'),2) #round to the nearest mm
