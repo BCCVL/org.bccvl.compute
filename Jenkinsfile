@@ -14,6 +14,7 @@ if (env.BRANCH_NAME == 'master') {
             stage('Package') {
                 if (publishPackage(currentBuild.result, env.BRANCH_NAME)) {
                     withPyPi() {
+                        sh 'pip install --upgrade setuptools'
                         sh 'rm -fr build dist'
                         sh 'python setup.py register -r devpi sdist bdist_wheel upload -r devpi'
                     }
