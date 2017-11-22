@@ -73,77 +73,83 @@ OUTPUTS = {
         '*.plout': {
             "title": "Log file",
             "genre": "DataGenreLog",
-            "mimetype": "text/plain"
+            "mimetype": "text/plain",
+            "order": 9
         },
         'proj_*.tif': {
-            "title": "Binary input",
+            "title": "Biodiverse input",
             "genre": "DataGenreBinaryImage",
-            "mimetype": "image/geotiff"
+            "mimetype": "image/geotiff",
+            "order": 10
         },
         '*ENDW_CWE.tif': {
-            "title": "Endemism whole - Corrected Weighted Endemism",
+            "title": "Endemism - corrected weighted",
             "genre": "DataGenreENDW_CWE",
-            "mimetype": "image/geotiff"
+            "mimetype": "image/geotiff",
+            "order": 2
         },
         '*ENDW_WE.tif': {
-            "title": "Endemism whole - Weighted Endemism",
+            "title": "Endemism - weighted",
             "genre": "DataGenreENDW_WE",
-            "mimetype": "image/geotiff"
+            "mimetype": "image/geotiff",
+            "order": 3
         },
         '*ENDW_RICHNESS.tif': {
-            "title": "Endemism whole - Richness used in ENDW_CWE",
+            "title": "Species Richness",
             "genre": "DataGenreENDW_RICHNESS",
-            "mimetype": "image/geotiff"
+            "mimetype": "image/geotiff",
+            "order": 1
         },
         '*REDUNDANCY_SET2.tif': {
             "title": "Redundancy - neigbour set 2",
             "genre": "DataGenreREDUNDANCY_SET2",
             "mimetype": "image/geotiff",
+            "order": 20
         },
         '*REDUNDANCY_ALL.tif': {
             "title": "Redundancy - both neigbour sets",
             "genre": "DataGenreREDUNDANCY_ALL",
             "mimetype": "image/geotiff",
+            "order": 20
         },
         '*RAREW_CWE.tif': {
-            "title": "Rarity whole - Corrected weighted rarity",
+            "title": "Rarity - corrected weighted",
             "genre": "DataGenreRAREW_CWE",
             "mimetype": "image/geotiff",
+            "order": 4
         },
         '*RAREW_RICHNESS.tif': {
             "title": "Rarity whole - Richness used in RAREW_CWE",
             "genre": "DataGenreRAREW_RICHNESS",
             "mimetype": "image/geotiff",
+            "skip": True
         },
         '*RAREW_WE.tif': {
-            "title": "Rarity whole - weighted rarity",
+            "title": "Rarity - weighted",
             "genre": "DataGenreRAREW_WE",
             "mimetype": "image/geotiff",
+            "order": 5
         },
         '*.csv': {
-            "title": "Biodiverse species spatial analysis result",
+            "title": "Biodiverse spatial analysis result",
             "genre": "DataGenreBiodiverseOutput",
             "mimetype": "text/csv",
+            "order": 6
         },
         '*.bds':  {
             # Perl Storable package
             'title': 'Biodiverse output',
             'genre': 'DataGenreBiodiverseModel',
             'mimetype': 'application/octet-stream',
+            "order": 7
         },
         '*.pl': {
             'title': 'Job Script',
             'genre': 'JobScript',
             'mimetype': 'application/x-perl',
+            "order": 8
         }
-    },
-    'archives': {
-        # 'results.html.zip': {
-        #     'files': ['results.html', 'AUC.png'],
-        #     'title': 'Accuracy measures report as zip',
-        #     'type': 'eval',
-        #     'format': 'zip',
-    },
+    }
 }
 
 

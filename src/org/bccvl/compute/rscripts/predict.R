@@ -38,7 +38,7 @@ species_algo_str = ifelse(is.null(mm.subset),
                           sprintf("%s_%s_%s", sdm.species, sdm.algorithm, mm.subset))
 
 
-# constraint_type: null for protjection with constraint, and  "unconstraint" for projection without constraint.
+# constraint_type: null for projection with constraint, and  "unconstraint" for projection without constraint.
 projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species, constraint_geojson, constraint_type=NULL) {
     future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, datalayername, resamplingflag=enviro.data.resampling)
     # filter out unused layers from future.climate.scenario
@@ -187,8 +187,8 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         bccvl.saveProjectionImage(tiffilepath, projection.name, biomod.species.name, species_algo_str, outputdir=outdir, filename_ext=constraint_type)
     }
 
-    # Compute metrics only for unconstraint projection.
-    if (length(sdm.projections.files) > 0 && !is.null(constraint_type)) {
+    # Compute metrics only for constraint projection only.
+    if (length(sdm.projections.files) > 0 && is.null(constraint_type)) {
         # get the correct sdm projection file
         sdm_projection_file = sdm.projections.files[[1]]
 
@@ -196,7 +196,8 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         data_types = list("continuous", "continuous")
         filenames = list(tiffilepath, sdm_projection_file)
         resamplingflag = ifelse(res(raster(tiffilepath))[1] >= res(raster(sdm_projection_file))[1], 'highest', 'lowest')
-        proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, data_types, resamplingflag)
+        proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, data_types, resamplingflag, 
+                                                                               overwrite=FALSE) # Don't overwrite original proj files
 
         # generate occurrence probability change for future and current projections
         changefilepath = bccvl.get_filepath("prob_change_", 
@@ -247,11 +248,6 @@ if (tolower(file_ext(modelfile)) == "zip") {
 # load model
 # TODO:should be loaded straigt from bccvl.params$sdms[1]
 model.obj <- bccvl.getModelObject(modelfile)
-
-# Do projection without any constraint only if there is constraint.
-if (!is.null(enviro.data.constraints)) {
-    projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species, enviro.data.constraints, constraint_type="unconstraint")
-}
 
 # use folder name of first dataset to generate name for projection output
 projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species, enviro.data.constraints)
