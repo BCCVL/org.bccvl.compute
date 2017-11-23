@@ -88,6 +88,14 @@ sub apply_threshold {
     # read vertical blocks until max height reached
     my $posh = 0 ;
     my $nodata = $band->NoDataValue();
+
+    # Fixme: This is a hack as GDAL NoDataValue() return undefined.
+    # Remove this when GDAL library is updated.
+    my $nodatadefined = defined($nodata);
+    if (not $nodatadefined) {
+        $nodata = 0;
+        $band->NoDataValue($nodata);
+    }
     my $allsame = undef;  # flag to see whether all raster values are 0 or 1 after thresholding
     while ($posh < $bandh) {
         # read horizontal blocks until max width reached
@@ -105,7 +113,7 @@ sub apply_threshold {
                 for(my $col_i = 0; $col_i < @{$row}; $col_i++) {
                     my $val = $row->[$col_i];
                     # Fixme: Potential error due to floating point number comparison.
-                    if (defined($nodata) && $val == $nodata) {
+                    if ($nodatadefined && $val == $nodata) {
                         # leave nodata points unchanged
                         # if we have nodata, we assume there are at least a few point set.
                         $allsame = -1;
@@ -171,7 +179,7 @@ sub get_species
 
         # First column is the element, 4th column is the species.
         # Skip if the 5th column (i.e. occurrence count) is 0 or undefined
-        if (defined($fields[4]) && $fields[4] > 0) {
+        if (defined($fields[4]) && $fields[4] ne "" && $fields[4] > 0) {
             # Strip the enclosing apostrophes if any from element, as 
             # this can occur with multiple species.
             my $element = $fields[0];
