@@ -317,6 +317,9 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         absen = data.frame(lon=numeric(0), lat=numeric(0))
         # To generate pseudo=absence points
         pseudo.absen.rep = 1
+        if (!save.pseudo.absen) {
+            pseudo.absen.rep = 0
+        }
     }
     else {
         # read absence points from file

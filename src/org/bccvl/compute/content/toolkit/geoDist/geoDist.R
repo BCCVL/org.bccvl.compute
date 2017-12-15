@@ -91,12 +91,13 @@ biomod2.data = bccvl.biomod2.formatData(absen.filename   = absen.data,
                                   climate.data           = current.climate.scenario,
                                   occur                  = occur,
                                   species.name           = occur.species,
+                                  save.pseudo.absen      = FALSE,
                                   species_algo_str       = species_algo_str)
 
 # Extract occurrence and absence data
 coord = biomod2.data@coord
 occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
-absen = coord[c(which(biomod2.data@data.species == 0 | is.na(biomod2.data@data.species))), names(coord)]
+#absen = coord[c(which(biomod2.data@data.species == 0 | is.na(biomod2.data@data.species))), names(coord)]
 
 
 ###############
@@ -118,7 +119,7 @@ bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=s
 
 # Do projection over current climate scenario without constraint
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-    model.proj = predict(model.sdm, current.climate.scenario.orig, tails=opt.tails)
+    model.proj = predict(model.sdm, current.climate.scenario.orig@layers[[1]], mask=TRUE)
 
     # remove the current.climate.scenario to release disk space
     bccvl.remove.rasterObject(current.climate.scenario.orig)
@@ -128,7 +129,7 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
 }    
 
 # predict for given climate scenario
-model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
+model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
 
 # remove the current.climate.scenario to release disk space
 bccvl.remove.rasterObject(current.climate.scenario)

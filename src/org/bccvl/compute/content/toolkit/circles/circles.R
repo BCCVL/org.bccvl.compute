@@ -118,7 +118,7 @@ if (!all(enviro.data.type=="continuous")) {
 
     # Do projection over current climate scenario without constraint
     if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-        model.proj = predict(model.sdm, current.climate.scenario.orig, tails=opt.tails)
+        model.proj = predict(model.sdm, current.climate.scenario.orig@layers[[1]], mask=TRUE)
 
         # remove the current.climate.scenario to release disk space
         bccvl.remove.rasterObject(current.climate.scenario.orig)
@@ -128,7 +128,7 @@ if (!all(enviro.data.type=="continuous")) {
     }
 
     # predict for given climate scenario
-    model.proj = predict(model.sdm, current.climate.scenario, tails=opt.tails)
+    model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
 
     # remove the current.climate.scenario to release disk space
     bccvl.remove.rasterObject(current.climate.scenario)
