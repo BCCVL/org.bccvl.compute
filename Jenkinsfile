@@ -25,8 +25,7 @@ if (env.BRANCH_NAME == 'master') {
 } else {
 
   def downstream = build(
-      //job: "../bccvl_buildout/${java.net.URLEncoder.encode(env.BRANCH_NAME)}",
-      job: "../bccvl_buildout/${java.net.URLEncoder.encode('feature/develop_docker')}",
+      job: "../bccvl_buildout/${java.net.URLEncoder.encode(env.BRANCH_NAME)}",
       wait: true,
       propagate: true
   )
