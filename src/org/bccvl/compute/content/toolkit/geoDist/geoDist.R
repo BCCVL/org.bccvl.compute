@@ -38,7 +38,8 @@ enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 as.logical(bccvl.params$scale_down),
                                 'highest', 'lowest')
 
-#additional parameters for projecting circles
+#additional parameters for projection using geodist
+opt.scale = ifelse(is.null(bccvl.params$scale), 1000, bccvl.params$scale)
 opt.tails = bccvl.params$tails # default "both"; use to ignore the left or right tail of the percentile distribution ("both", "low", "high"
 opt.ext = NULL #an optional extent object to limit the prediction to a sub-region of 'x'
 projection.name = "current"
@@ -97,7 +98,6 @@ biomod2.data = bccvl.biomod2.formatData(absen.filename   = absen.data,
 # Extract occurrence and absence data
 coord = biomod2.data@coord
 occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
-#absen = coord[c(which(biomod2.data@data.species == 0 | is.na(biomod2.data@data.species))), names(coord)]
 
 
 ###############
@@ -119,7 +119,7 @@ bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=s
 
 # Do projection over current climate scenario without constraint
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-    model.proj = predict(model.sdm, current.climate.scenario.orig@layers[[1]], mask=TRUE, scale=1000)
+    model.proj = predict(model.sdm, current.climate.scenario.orig@layers[[1]], mask=TRUE, scale=opt.scale)
 
     # remove the current.climate.scenario to release disk space
     bccvl.remove.rasterObject(current.climate.scenario.orig)
@@ -129,7 +129,7 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
 }    
 
 # predict for given climate scenario
-model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE, scale=1000)
+model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE, scale=opt.scale)
 
 # remove the current.climate.scenario to release disk space
 bccvl.remove.rasterObject(current.climate.scenario)
