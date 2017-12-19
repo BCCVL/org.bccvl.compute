@@ -41,60 +41,89 @@ def generate_ensemble_script():
 
 OUTPUTS = {
     'files': {
-        '*.Rout': {
-            "title": "Log file",
-            "genre": "DataGenreLog",
-            "mimetype": "text/x-r-transcript"
-        },
         '*_mean.tif': {
             'title': 'Summary Mean',
             'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             'mimetype': 'image/geotiff',
-        },
-        '*_max.tif': {
-            'title': 'Summary Maximum',
-            'genre': 'DataGenreEnsembleResult',
-            'mimetype': 'image/geotiff',
+            "order": 1
         },
         '*_min.tif': {
             'title': 'Summary Minimum',
             'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             'mimetype': 'image/geotiff',
+            "order": 2
+        },
+        '*_max.tif': {
+            'title': 'Summary Maximum',
+            'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
+            'mimetype': 'image/geotiff',
+            "order": 3
         },
         '*_variance.tif': {
             'title': 'Summary Variance',
             'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             'mimetype': 'image/geotiff',
+            "order": 4
         },
         '*_q0p05.tif': {
             'title': '5th Percentile',
             'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             'mimetype': 'image/geotiff',
+            "order": 5
         },
         '*_q0p1.tif': {
             'title': '10th Percentile',
             'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             'mimetype': 'image/geotiff',
+            "order": 6
         },
         '*_q0p5.tif': {
             'title': '50th Percentile',
             'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             'mimetype': 'image/geotiff',
+            "order": 7
         },
         '*_q0p9.tif': {
             'title': '90th Percentile',
             'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             'mimetype': 'image/geotiff',
+            "order": 8
         },
         '*_q0p95.tif': {
             'title': '95th Percentile',
             'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
             'mimetype': 'image/geotiff',
+            "order": 9
         },
         '*.R': {
             'title': 'Job Script',
             'genre': 'JobScript',
             'mimetype': 'text/x-r',
+            "order": 10
+        },
+        '*.Rout': {
+            "title": "Log file",
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript",
+            "order": 11
         }
     },
     'archives': {
