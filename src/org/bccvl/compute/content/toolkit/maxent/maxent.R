@@ -194,11 +194,11 @@ model.data = bccvl.biomod2.formatData(absen.filename     = absen.data,
                                       species_algo_str       = species_algo_str)
 
 # 2. Define the model options
-model.options <- BIOMOD_ModelingOptions(MAXENT = model.options.maxent)
+model.options <- BIOMOD_ModelingOptions(MAXENT.Phillips = model.options.maxent)
 # 3. Compute the model
 model.sdm <-
     BIOMOD_Modeling(data = model.data,
-                    models=c('MAXENT'),
+                    models=c('MAXENT.Phillips'),
                     models.options=model.options,
                     NbRunEval=biomod.NbRunEval,
                     DataSplit=biomod.DataSplit,
@@ -284,7 +284,7 @@ bccvl.grdtogtiff(file.path(getwd(),
 
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
-loaded.model = BIOMOD_LoadModels(model.sdm, models="MAXENT")
+loaded.model = BIOMOD_LoadModels(model.sdm, models="MAXENT.Phillips")
 bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm, species_algo_str) 	# save output
 
 # save the projection

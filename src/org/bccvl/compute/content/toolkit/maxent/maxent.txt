@@ -144,7 +144,7 @@
             "mimetype": "text/csv",
             "order": 22
         },
-        "*/models/bccvl/*_MAXENT_outputs/maxentResults.csv": {
+        "*/models/bccvl/*_MAXENT.Phillips_outputs/maxentResults.csv": {
             "title": "Maxent Thresholds",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
@@ -187,8 +187,8 @@
                       "*/*.bccvl.models.out",
                       "*/.BIOMOD_DATA/bccvl/*",
                       "*/models/bccvl/*",
-                      "*/models/bccvl/*_MAXENT_outputs/*",
-                      "*/models/bccvl/*_MAXENT_outputs/plots/*",
+                      "*/models/bccvl/*_MAXENT.Phillips_outputs/*",
+                      "*/models/bccvl/*_MAXENT.Phillips_outputs/plots/*",
                       "*/proj_current/*.current.projection.out"
                       ],
             "title": "R SDM Model object",
@@ -197,8 +197,8 @@
             "order": 31
         },
         "maxent_outputs.zip": {
-            "files": ["*/models/bccvl/*_MAXENT_outputs/*",
-                      "*/models/bccvl/*_MAXENT_outputs/plots/*"],
+            "files": ["*/models/bccvl/*_MAXENT.Phillips_outputs/*",
+                      "*/models/bccvl/*_MAXENT.Phillips_outputs/plots/*"],
             "title": "Maxent output",
             "genre": "DataGenreSDMEval",
             "mimetype": "application/zip",
