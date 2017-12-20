@@ -284,8 +284,8 @@ bccvl.format.outfilename <- function(filename, id_str, ext)
 # na.rm logical, if TRUE, all points having one or several missing value for environmental data will be removed from analysis
 
 
-# This uses the biomods function BIOMOD_FormatingData to format user input data. 
-# It generates pseudo absence points if true absence data are not available or 
+# This uses the biomods function BIOMOD_FormatingData to format user input data.
+# It generates pseudo absence points if true absence data are not available or
 # adds pseudo absence data to an existing absence dataset.
 bccvl.biomod2.formatData <- function(absen.filename=NULL,
                                   pseudo.absen.points=0,
@@ -312,7 +312,7 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
     }
 
     # Read true absence point if available.
-    if (is.null(absen.filename)) {        
+    if (is.null(absen.filename)) {
         # create an empty data frame for bkgd points
         absen = data.frame(lon=numeric(0), lat=numeric(0))
         # To generate pseudo=absence points
@@ -388,7 +388,7 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         }
 
         # save the pseudo absence points with environmental variables
-        bccvl.merge.save(climate.data, pseudoAbsen, species.name, absenv_filename)        
+        bccvl.merge.save(climate.data, pseudoAbsen, species.name, absenv_filename)
     }
     else if (nrow(absen) > 0) {
         # save background data generated
@@ -408,7 +408,7 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
 bccvl.merge.save <- function(env, csvdata, spname, ofname)
 {
   data = cbind(csvdata, species=spname, extract(env, csvdata))
-  
+
   bccvl.write.csv(data, ofname, rownames=FALSE)
 }
 
@@ -481,7 +481,7 @@ bccvl.rasters.common.reference <- function(rasters, resamplingflag) {
     if (! ce$equal.extents) {
         bccvl.log.warning(sprintf("Auto cropping to common extent %s", bccvl.raster.extent.to.str(ce$common.extent)))
     }
-    
+
     # determine common resolution
     # Note: resolution is usually in projection units. -> rasters should be in same CRS
     cr = bccvl.rasters.common.resolution(empty.rasters, resamplingflag)
@@ -512,7 +512,7 @@ bccvl.rasters.warp <- function(raster.filenames, raster.types, reference, overwr
             mdata = attr(gdinfo, 'df')
             dtype = as.character(mdata[['GDType']])
             hasNoDataValues = mdata[['hasNoDataValue']]
-    
+
             r = bccvl.raster.load(filename)
             # warp, crop and rescale raster file if necessary
             dir = dirname(filename)
@@ -573,7 +573,7 @@ bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filen
 
     # determine common raster shape
     reference = bccvl.rasters.common.reference(rasters, resamplingflag)
-    
+
     # adjust rasters spatially and convert categorical rasters to factors
     rasters = bccvl.rasters.warp(raster.filenames, raster.types, reference, overwrite)
 
@@ -633,8 +633,8 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
         # Parse the geojson from text to SpatialPointsDataFrame
         parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
     }
-  
-    # Assign the same projection to the raster 
+
+    # Assign the same projection to the raster
     if (!compareCRS(rasterstack, parsedgeojson, verbatim=TRUE)) {
         # CRS is different, reproject geojson to rasterstack
         parsedgeojson <- spTransform(parsedgeojson, crs(rasterstack))
@@ -666,8 +666,8 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
             }
         }
 
-        # Add a small buffer of width 1-resolution cell. This is to fix the issue 
-        # with missing env values along the boundary of the polygon. 
+        # Add a small buffer of width 1-resolution cell. This is to fix the issue
+        # with missing env values along the boundary of the polygon.
         parsedgeojson <- gBuffer(parsedgeojson, width=max(res(rasterstack@layers[[1]])))
 
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
@@ -676,7 +676,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
         names(occurconstrained) <- c("lon", "lat")
 
         # constraint the true absence points if available
-        if (!is.null(absenFilename)) {        
+        if (!is.null(absenFilename)) {
             # read absence points from file
             absen = bccvl.species.read(absenFilename)
             # keep only lon and lat columns
@@ -703,14 +703,14 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
     # Crop the raster to the extent of the constraint region before masking
     cropped_rasterstack <- crop(rasterstack, extent(parsedgeojson), filename = rasterTmpFile())
 
-    # save the constrained raster in work directory instead of raster temporary directory as 
+    # save the constrained raster in work directory instead of raster temporary directory as
     # predict.R clears the raster temp files.
     envraster_filename = paste(bccvl.env$workdir, basename(tempfile(fileext = ".grd")), sep="/")
     geoconstrained <- stack(mask(cropped_rasterstack, parsedgeojson, filename = envraster_filename))
 
     # Remove cropped rasterstack and associated raster files (i.e. grd and gri)
     bccvl.remove.rasterObject(cropped_rasterstack)
-    
+
     # Return the masked raster stack and constrained occurrence points
     mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
     return(mylist)
@@ -726,12 +726,12 @@ bccvl.plotProjection <- function(inputfile, main) {
     my.lab <- seq(0,1.0,by=0.25)
     ## define colors
     my.col <- colorRampPalette(c("grey90","yellow4","green4"))(100)
-    
+
     # Read in tiff input file as rasterstack and plot it
     require('rasterVis')
     levelplot(stack(raster(inputfile)),
-              at=my.at, 
-              margin=T, 
+              at=my.at,
+              margin=T,
               col.regions=my.col,
               main=main,
               colorkey=list(labels=list(
@@ -770,8 +770,8 @@ bccvl.generateOccurrenceProbChangeMetric <- function(prob_rasters, outfilename) 
 # function to compute and save species range change metric as geotif file
 bccvl.generateSpeciesRangeChangeMetric <- function(prob_rasters, threshold, outfilename) {
     # return 1 for Blank, 3 for Expansion, 0 for Contraction and 2 for No Change
-    rangeChange <- overlay(as.integer(prob_rasters[[1]] > threshold), 
-                           as.integer(prob_rasters[[2]] > threshold), 
+    rangeChange <- overlay(as.integer(prob_rasters[[1]] > threshold),
+                           as.integer(prob_rasters[[2]] > threshold),
                            fun=function(fp, cp) { return((2 * fp) + 1 - cp)})
     writeRaster(rangeChange, outfilename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
 
@@ -871,13 +871,13 @@ bccvl.grdtogtiff <- function(folder, algorithm, filename_ext=NULL, noDataValue=N
     for (grdfile in grdfiles) {
         # get grid file name without the extension
         # file_path_sans_ext does not work when file has double '.' before extension i.e. filename..grd
-        #grdname <- file_path_sans_ext(grdfile)            
+        #grdname <- file_path_sans_ext(grdfile)
         ext = file_ext(grdfile)
         if (!is.null(ext)) {
             pattern = paste0('\\.', ext, '$')
             grdname <- sub(pattern, '', grdfile)
         }
-        
+
         # read grid raster
         grd <- raster(file.path(folder, grdfile))
 
@@ -903,7 +903,7 @@ bccvl.grdtogtiff <- function(folder, algorithm, filename_ext=NULL, noDataValue=N
         }
         else {
             writeRaster(grd, filename, datatype=dataType(grd), NAflag=noDataValue,
-                        format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)            
+                        format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
         }
         # remove grd files
         file.remove(file.path(folder, paste(grdname, c("grd","gri"), sep=".")))
@@ -1023,15 +1023,15 @@ family_from_string <- function(s)
 }
 
 #' Grid Information from Geographic (lat lon) Projections
-#' 
+#'
 #' Since spatial grids in geographic projections do not have equal area or
 #' perimeters, \code{grid.info} extracts perimeter & area related information
 #' for latitudinal bands with differing longitudinal widths. \cr\cr Outputs
 #' lengths are in m using Vincenty's equation (\code{distance})and areas in m2.
 #' Surface areas are calculated summing surface areas of spherical polygons as
 #' estimated using l'Huiller's formula.
-#' 
-#' 
+#'
+#'
 #' @param lats is a vector of latitudes representing the midpoint of grid cells
 #' @param cellsize is a single value (assuming square cells) or a two value
 #' vector (rectangular cells) representing the height (latitude) and width
@@ -1049,11 +1049,11 @@ family_from_string <- function(s)
 #' estimating area of polygon on sphere was modified from
 #' \url{http://forum.worldwindcentral.com/showthread.php?t=20724}
 #' @examples
-#' 
+#'
 #' #show output for latitudes from -87.5 to 87.5 at 5 degree intervals
 #' grid.info(lats=seq(-87.5,87.5,5), 5)
-#' 
-#' @export 
+#'
+#' @export
 # This is a fix for SDM tool grid.info function due to floating point operation.
 grid.info <- function(lats,cellsize,r=6378137) {
     r2 = r^2 #radius of earth
@@ -1080,7 +1080,7 @@ grid.info <- function(lats,cellsize,r=6378137) {
         aa = 2 * asin(sqrt(hav1)); bb = 0.5*pi - beta2; cc = 0.5*pi - beta1
         ss = 0.5*(aa+bb+cc)
         tt = tan(ss/2)*tan((ss-aa)/2)*tan((ss-bb)/2)*tan((ss-cc)/2)
-        return(abs(4*atan(sqrt(abs(tt)))))      
+        return(abs(4*atan(sqrt(abs(tt)))))
     }
     if (any(bottomlats==-90)) { pos = which(bottomlats==-90); bottomlats[pos] = -bottomlats[pos]; toplats[pos] = -toplats[pos]} #ensure no -90 bottom lats
     out$area = excess(lam1=0,lam2=cellsize[2]*pi/180,toplats*pi/180,toplats*pi/180)
@@ -1089,7 +1089,7 @@ grid.info <- function(lats,cellsize,r=6378137) {
 }
 
 #' Vincenty Direct Calculation of Distance and Direction
-#' 
+#'
 #' \code{distance} estimates the distance given a starting & ending latitude
 #' and longitude. \cr \cr For general information on Vincenty's formula, see
 #' e.g., \url{http://en.wikipedia.org/wiki/Vincenty's_formulae}. It states: \cr
@@ -1103,8 +1103,8 @@ grid.info <- function(lats,cellsize,r=6378137) {
 #' (sometimes referred to as forward azimuth) for which one would follow as a
 #' straight line along a great-circle arc from start to finish.\cr \cr
 #' \bold{Note:} this will fail if there are NA's in the data.
-#' 
-#' 
+#'
+#'
 #' @param lat1 a single value or vector of values representing latitude in
 #' decimal degrees from -90 to 90 degrees. Alternatively, a data.frame or
 #' matrix can be used here with each column representing lat1, lon1, lat2, lon2
@@ -1136,13 +1136,13 @@ grid.info <- function(lats,cellsize,r=6378137) {
 #' Bearings were from multiple sources including
 #' \url{http://williams.best.vwh.net/avform.htm#Crs}.
 #' @examples
-#' 
-#' 
+#'
+#'
 #' #get the distance of 1 degree longitude at each 5 degrees latitude from -90 to 90
 #' distance(lat1=seq(-90,90,5),lon1=rep(0,37),lat2=seq(-90,90,5),lon2=rep(1,37),bearing=TRUE)
-#'  
-#' 
-#' @export 
+#'
+#'
+#' @export
 #' @useDynLib SDMTools Dist
 # This is a fix for SDM tool distance function due to floating point operation.
 distance = function(lat1, lon1=NULL, lat2=NULL, lon2=NULL, bearing=FALSE) {

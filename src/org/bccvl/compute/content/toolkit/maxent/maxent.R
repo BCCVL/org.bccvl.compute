@@ -26,7 +26,7 @@ absen.data = bccvl.params$species_absence_dataset$filename
 #define the current enviro data to use
 # rename file if filename contains 'asc' due to bug in Biomod2 function.
 # TODO: Don't need to rename when Biomod2 bug is fixed.
-enviro.data.current = lapply(bccvl.params$environmental_datasets, 
+enviro.data.current = lapply(bccvl.params$environmental_datasets,
                              function(x) {
                                 fname = x$filename
                                 if (file_ext(fname) != 'asc') {
@@ -35,7 +35,7 @@ enviro.data.current = lapply(bccvl.params$environmental_datasets,
                                 }
                                 return(fname)
                              }
-) 
+)
 #type in terms of continuous or categorical
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 #layer names for the current environmental layers used
@@ -67,8 +67,8 @@ biomod.modeling.id = bccvl.params$modeling_id  #character, the ID (=name) of mod
 # EMG Need to test whether a NULL values counts as an argument
 biomod.species.name = occur.species # used for various path and file name generation
 projection.name = "current"  #basename(enviro.data.current)
-species_algo_str = ifelse(is.null(bccvl.params$subset), 
-                          sprintf("%s_maxent", occur.species), 
+species_algo_str = ifelse(is.null(bccvl.params$subset),
+                          sprintf("%s_maxent", occur.species),
                           sprintf("%s_maxent_%s", occur.species, bccvl.params$subset))
 
 
@@ -138,7 +138,7 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
   constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, absen.data, enviro.data.constraints, enviro.data.generateCHall);
 
   # Save a copy of the climate dataset
-  current.climate.scenario.orig <- current.climate.scenario  
+  current.climate.scenario.orig <- current.climate.scenario
   current.climate.scenario <- constrainedResults$raster
   occur <- constrainedResults$occur
 }
@@ -216,8 +216,8 @@ model.sdm <-
 x.data <- attr(model.data,"data.env.var")
 y.data <- attr(model.data,"data.species")
 data1 = data.frame(y.data,x.data)
-bccvl.VIPplot(method="maxent", data1=data1, pdf=TRUE, 
-              filename=paste('vip_plot', species_algo_str, sep="_"), 
+bccvl.VIPplot(method="maxent", data1=data1, pdf=TRUE,
+              filename=paste('vip_plot', species_algo_str, sep="_"),
               this.dir=paste(biomod.species.name, "/models/bccvl", sep=""))
 
 # model output saved as part of BIOMOD_Modeling() # EMG not sure how to retrieve
@@ -248,7 +248,7 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
     # convert projection output from grd to gtiff
     bccvl.grdtogtiff(file.path(getwd(),
                                biomod.species.name,
-                               paste("proj", projection.name, sep="_")), 
+                               paste("proj", projection.name, sep="_")),
                      algorithm=ifelse(is.null(bccvl.params$subset), "maxent", sprintf("maxent_%s", bccvl.params$subset)),
                      filename_ext="unconstraint")
 

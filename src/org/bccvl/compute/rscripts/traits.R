@@ -87,7 +87,7 @@ parameter.as.string <- function (param, value) {
     }
     else if (param == "nb_run_eval") {
         pname = "n-fold cross validation"
-    } 
+    }
     else if (param == "control_maxcompete") {
         pname = "number of competitor splits"
     }
@@ -99,7 +99,7 @@ parameter.as.string <- function (param, value) {
     }
     else if (param == "control_surstyle") {
         pname = "surrogate style"
-    }    
+    }
     return(paste(pname, " = ", value, "\n", sep="", collapse=""))
 }
 
@@ -149,8 +149,8 @@ parameter.print(bccvl.params)
 bccvl.err.null <- function (e) return(NULL)
 
 # Generate formulae for models that test the response of each trait to all environmental variables selected
-# i.e. for trait diff model, trait ~ species 
-# for trait cta/glm/gam models, trait ~ env1 + env2 + env3 etc 
+# i.e. for trait diff model, trait ~ species
+# for trait cta/glm/gam models, trait ~ env1 + env2 + env3 etc
 # for trait glmm, trait ~ env1 + env2 + (1|random1) + (1|random2)
 bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
     cols = list(species=list(),
@@ -158,7 +158,7 @@ bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
                 lon=list(),
                 env=list(),
                 random=list(),
-                trait=list()) 
+                trait=list())
     for(colname in names(dataset_params)) {
         colval = dataset_params[[colname]]
         if (colval == 'species' || colval == 'lon' || colval == 'lat') {
@@ -190,7 +190,7 @@ bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
         randomvars = paste("(1|", ranvarnames, ")", sep = '', collapse=' + ')
     }
     for (trait in names(cols[['trait']])) {
-        formula = ifelse(is.null(ranvarnames), 
+        formula = ifelse(is.null(ranvarnames),
                          paste(trait, '~', variables),
                          paste(trait, '~', variables, '+', randomvars))
         formulae = append(formulae, list(list(formula=formula,
@@ -200,7 +200,7 @@ bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
     # return a list of lists, where each sublist has $formula, $type, and $trait
     return (formulae)
 }
-           
+
 bccvl.raster.load <- function(filename, filetype = 'continuous') {
     # load raster and assign crs if missing
     r = raster(filename)
@@ -214,7 +214,7 @@ bccvl.raster.load <- function(filename, filetype = 'continuous') {
     }
     return(r)
 }
-                             
+
 # geographically constrained modelling
 # return constrainted trait.data with env
 bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filenames, raster.types, layernames, rawgeojson) {
@@ -279,7 +279,7 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filena
         colval = trait.params[[colname]]
         if (colval == 'trait_ord' || colval == 'trait_nom') {
             constrained.trait.data[colname] = factor(constrained.trait.data[[colname]])
-        } 
+        }
     }
 
     return(list("data" = constrained.trait.data, "params" = trait.params))
@@ -292,10 +292,10 @@ bccvl.saveModelProjection <- function(model.obj, projection.name, species, outpu
     ##  only useful for dismo outputs
 
     if (is.null(filename_ext)) {
-        basename = paste("proj", projection.name, species, sep="_")        
+        basename = paste("proj", projection.name, species, sep="_")
     }
     else {
-        basename = paste("proj", projection.name, species, filename_ext, sep="_")   
+        basename = paste("proj", projection.name, species, filename_ext, sep="_")
     }
     filename = file.path(outputdir, paste(basename, 'tif', sep="."))
     writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
