@@ -41,7 +41,7 @@
               description="Options are set to package defaults unless otherwise modified.">
       <field name="scale" type="zope.schema.Decimal">
         <default>1000</default>
-        <description>Scale (in meters) used to divide the distance from occurrence records before computing the inverse distance</description>
+        <description>scale (in meters) used to divide the distance from occurrence records before computing the inverse distance</description>
         <required>False</required>
         <title>scale</title>
         <min>1</min>
