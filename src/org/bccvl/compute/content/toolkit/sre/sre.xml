@@ -52,15 +52,15 @@
               description="Options are set to package defaults unless otherwise modified.">
       <field name='prevalence' type='zope.schema.Decimal'>
         <required>False</required>
-        <description>Prevalence; allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
-        <title>weighted response weights</title>
+        <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
+        <title>weighted response weights (prevalence)</title>
         <min>0</min>
         <max>1</max>
       </field>
       <field name="var_import" type="zope.schema.Int">
         <default>0</default>
-        <description>VarImport; number of permutations to estimate the importance of each variable</description>
-        <title>resampling</title>
+        <description>number of permutations to estimate the importance of each variable</description>
+        <title>resampling (VarImport)</title>
         <min>0</min>
       </field>
       <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
@@ -69,8 +69,8 @@
         <title>do full models</title>
       </field>
       <field name='quant' type='zope.schema.Decimal'>
-        <title>quantile</title>
         <description>the quantile used to remove the most extreme values of each environmental variable for determining tolerance boundaries; default is 0.025 corresponding to a 95% confidence interval in normal distributions</description>
+        <title>quantile (quant)</title>
         <min>0</min>
         <max>1</max>
         <default>0.025</default>
