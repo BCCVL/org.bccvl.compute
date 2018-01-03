@@ -35,17 +35,17 @@
         <required>False</required>
         <title>pseudo-absence disk maximum distance</title>
         <min>0</min>
-      </field>
-      <field name="scale" type="zope.schema.Decimal">
-        <default>1000</default>
-        <description>Scale used to divide the distance before computing the inverse distance</description>
-        <required>False</required>
-        <title>scale</title>
-        <min>1</min>
-      </field>      
+      </field>     
     <fieldset name="Other"
               label="Other Configuration"
               description="Options are set to package defaults unless otherwise modified.">
+      <field name="scale" type="zope.schema.Decimal">
+        <default>1000</default>
+        <description>Scale (in meters) used to divide the distance from occurrence records before computing the inverse distance</description>
+        <required>False</required>
+        <title>scale</title>
+        <min>1</min>
+      </field>  
       <field name="random_seed" type="zope.schema.Int">
         <description>random seed used</description>
         <required>False</required>
