@@ -59,7 +59,7 @@
       <field name='prevalence' type='zope.schema.Decimal'>
         <required>False</required>
         <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
-        <title>weighted response weights</title>
+        <title>weighted response weights (prevalence)</title>
         <min>0</min>
         <max>1</max>
       </field>
@@ -97,7 +97,7 @@
       <field name="n_trees" type="zope.schema.Int">
         <default>2500</default>
         <required>True</required>
-        <title>maximum number of trees</title>
+        <title>maximum number of trees (n.trees)</title>
         <description>maximum number of trees to fit</description>
         <min>0</min>
       </field>
@@ -141,7 +141,7 @@
         <default>3</default>
         <required>True</required>
         <title>number of subsets used for cross-validation</title>
-        <description>number of cross validations</description>
+        <description>number of cross validations (cv.folds)</description>
         <min>0</min>
       </field>
       <field name="random_seed" type="zope.schema.Int">
