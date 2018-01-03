@@ -7,7 +7,7 @@
               label="Other Configuration"
               description="Options are set to package defaults unless otherwise modified.">
       <field name="d" type="zope.schema.Decimal">
-        <description>Radius (in meters) of each circle around the occurrence records; if blank (default) the radius is computed from the mean inter-point distance</description>
+        <description>radius (in meters) of each circle around the occurrence records; if blank (default) the radius is computed from the mean inter-point distance</description>
         <required>False</required>
         <title>radius</title>
       </field>  
