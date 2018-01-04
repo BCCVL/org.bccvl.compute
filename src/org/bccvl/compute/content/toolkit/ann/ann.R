@@ -64,6 +64,8 @@ species_algo_str = ifelse(is.null(bccvl.params$subset),
 # model-specific arguments to create a biomod model
 model.options.ann <- list(
 	NbCV = bccvl.params$nbcv, #nb of cross validation to find best size and decay parameters
+	size = bccvl.params$size, #number of units in the hidden layer
+	decay = bccvl.params$decay, #parameter for weight decay
 	rang = bccvl.params$rang, #Initial random weights on [-rang, rang]
 	maxit = bccvl.params$maxit #maximum number of iterations. Default 100
 )
