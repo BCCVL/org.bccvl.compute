@@ -53,14 +53,19 @@ def getdatasetparams(uuid):
 
     dsmdr = IBCCVLMetadata(dsobj)
     species = dsmdr.get('species', {})
+    commonNames = ''
     if isinstance(species, (list, tuple)):
         # We have a list of species dicts....
+        commonNames = [s['vernacularName']
+                   for s in species if s.get('vernacularName')]
         species = [s['scientificName']
                    for s in species if s.get('scientificName')]
     else:
+        commonNames = species.get('vernacularName', '')
         species = species.get('scientificName')
     if species:
         dsinfo['species'] = species
+        dsinfo['commonName'] = commonNames
     # if we can get layermetadata, let's add it
     biomod = getdsmetadata(dsobj)
     layers = biomod.get('layers', [])
