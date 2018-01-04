@@ -67,10 +67,14 @@ model.options.cta <- list(
 	# parms = "default", #optional parameters for the splitting function
 	# cost = NULL, #a vector of non-negative costs, one for each variable in the model. Defaults to one for all variables
 	control = list(
-		xval = bccvl.params$control_xval, #number of cross-validations
-		minbucket = bccvl.params$control_minbucket, #the minimum number of observations in any terminal <leaf> node
 		minsplit = bccvl.params$control_minsplit, #the minimum number of observations that must exist in a node in order for a split to be attempted
+		minbucket = bccvl.params$control_minbucket, #the minimum number of observations in any terminal <leaf> node
 		cp = bccvl.params$control_cp, #complexity parameter
+		maxcompete = bccvl.params$control_maxcompete, #number of competitor splits retained in the output
+		maxsurrogate = bccvl.params$control_maxsurrogate, #number of surrogate splits retained in the output
+		usesurrogate = bccvl.params$control_usesurrogate, #how to use surrogates in the splitting proces
+		xval = bccvl.params$control_xval, #number of cross-validations
+		surrogatestyle = bccvl.params$control_surrogatestyle, #controls the selection of a best surrogate
 		maxdepth = bccvl.params$control_maxdepth  #Set the maximum depth of any node of the final tree, with the root node counted as depth 0. Values greater than 30 rpart will give nonsense results on 32-bit machines
 	)
 )
