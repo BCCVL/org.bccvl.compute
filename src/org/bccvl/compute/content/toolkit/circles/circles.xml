@@ -6,6 +6,11 @@
     <fieldset name="Other"
               label="Other Configuration"
               description="Options are set to package defaults unless otherwise modified.">
+      <field name="d" type="zope.schema.Decimal">
+        <description>radius (in meters) of each circle around the occurrence records; if blank (default) the radius is computed from the mean inter-point distance</description>
+        <required>False</required>
+        <title>radius</title>
+      </field>  
       <field name="random_seed" type="zope.schema.Int">
         <description>random seed used</description>
         <required>False</required>

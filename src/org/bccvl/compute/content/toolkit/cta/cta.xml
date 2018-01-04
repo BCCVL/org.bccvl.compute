@@ -57,14 +57,14 @@
       <field name='prevalence' type='zope.schema.Decimal'>
         <required>False</required>
         <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
-        <title>weighted response weights</title>
+        <title>weighted response weights (prevalence)</title>
         <min>0</min>
         <max>1</max>
       </field>
       <field name="var_import" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
         <default>0</default>
         <description>number of permutations to estimate the relative importance of each variable</description>
-        <title>resampling</title>
+        <title>resampling (VarImport)</title>
         <min>0</min>
       </field>
       <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
@@ -83,30 +83,50 @@
           <element>poisson</element>
         </values>
       </field>
-      <field name="control_xval" type="zope.schema.Int">
-        <default>10</default>
-        <description>number of cross-validation subsets created for training (cv folds - 1) and testing (1)</description>
-        <title>cross-validation folds</title>
-      </field>
       <field name="control_minbucket" type="zope.schema.Int">
         <default>1</default> 
         <description>minimum number of observations in any terminal node</description>
-        <title>minimum bucket</title>
+        <title>minimum bucket (minbucket)</title>
       </field>
       <field name="control_minsplit" type="zope.schema.Int">
         <default>20</default>
         <description>minimum number of observations that must exist in a node for a split to be attempted</description>
-        <title>minimum split</title>
+        <title>minimum split (minsplit)</title>
       </field>
       <field name="control_cp" type="zope.schema.Decimal">
         <default>0.01</default>
         <description>the growing process will be terminated if the next best split does not reduce the tree's overall complexity by the value of the complexity parameter</description>
-        <title>complexity parameter</title>
+        <title>complexity parameter (cp)</title>
       </field>
+      <field name="control_maxcompete" type="zope.schema.Int">
+        <default>4</default>
+        <description>number of competitor splits retained in the output</description>
+        <title>competitor splits (maxcompete)</title>
+      </field>
+      <field name="control_maxsurrogate" type="zope.schema.Int">
+        <default>5</default>
+        <description>number of surrogate splits retained in the output</description>
+        <title>surrogate splits (maxsurrogate)</title>
+      </field>
+      <field name="control_usesurrogate" type="zope.schema.Int">
+        <default>2</default>
+        <description>how to use surrogate splits; if 0: observations with missing values for primary split rule are not sent further down the tree; if 1: use surrogates for observations missing values for primary split rule; if 2 (default): if all surrogates are missing then observation is included in major direction</description>
+        <title>use of surrogate splits (usesurrogate)</title>
+      </field>
+      <field name="control_xval" type="zope.schema.Int">
+        <default>10</default>
+        <description>number of cross-validation subsets created for training (cv folds - 1) and testing (1)</description>
+        <title>cross-validation folds (xval)</title>
+      </field>
+      <field name="control_surrogatestyle" type="zope.schema.Int">
+        <default>0</default>
+        <description>controls the selection of a best surrogate; if 0 (default): total number of correct classifications is used; if 1: percentage correct classifications is used. 0 value more severely penalizes variables with a large number of missing values</description>
+        <title>surrogate selection (surrogatestyle)</title>
+      </field>     
       <field name="control_maxdepth" type="zope.schema.Int">
         <default>30</default>
         <description>maximum number of splits of the tree</description>
-        <title>maximum depth</title>
+        <title>maximum depth (maxdepth)</title>
       </field>
       <field name="random_seed" type="zope.schema.Int">
         <description>random seed used</description>

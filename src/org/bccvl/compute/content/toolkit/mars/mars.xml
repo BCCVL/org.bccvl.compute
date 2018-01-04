@@ -57,47 +57,65 @@
       <field name='prevalence' type='zope.schema.Decimal'>
         <required>False</required>
         <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
-        <title>weighted response weights</title>
+        <title>weighted response weights (prevalence)</title>
         <min>0</min>
         <max>1</max>
       </field>
       <field name="var_import" type="zope.schema.Int">
         <default>0</default>
         <description>number of permutations to estimate the relative importance of each variable</description>
-        <title>resampling</title>
+        <title>resampling (VarImport)</title>
         <min>0</min>
       </field>
-      <field name="do_full_models" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget" form:mode="z3c.form.interfaces.IForm:hidden">
-        <default>True</default>
-        <description>calibrate &amp; evaluate models with the whole dataset?</description>
-        <title>do full models</title>
+      <field name="type" type="zope.schema.Choice">
+        <default>simple</default>
+        <description>type of regression to model: linear ("simple"), quadratic ("quad") or polynomial ("poly")</description>
+        <title>type</title>
+       <values>
+        <element>simple</element>
+        <element>quadratic</element>
+        <element>polynomial</element>
+       </values>
       </field>
-      <field name="degree" type="zope.schema.Int">
-        <default>1</default>
-        <description>number of interactions between predictor variables that need to be considered; value of 1 will fit an additive model, value = 2 will include interactions between variables, higher degrees are possible if needed</description>
-        <title>maximum interaction degree</title>
-      </field>
+      <field name="interaction_level" type="zope.schema.Int">
+        <default>0</default>
+        <description>number of interactions between predictor variables that need to be considered; 1: will fit an additive model; 2: will include interactions between variables; higher degrees are possible if needed</description>
+        <title>interaction level</title>
+        </field>
       <field name="nk" type="zope.schema.Int">
         <description>maximum number of terms in the model before pruning</description>
-        <title>maximum number of terms</title>
+        <title>maximum number of terms (nk)</title>
         <required>False</required>
       </field>
-      <field name="penalty" type="zope.schema.Decimal">
-        <default>2.0</default>
-        <description>the cost per degree of freedom change; default = 2 if maximum interaction degree = 1, if degree > 1, suggested penalty = 3</description>
+      <field name="penalty" type="zope.schema.Int">
+        <default>2</default>
+        <description>generalized cross validation (gcv) penalty per knot; default = 2 if interaction level = 1, or 3 if interaction level > 1</description>
         <title>penalty</title>
       </field>
       <field name="thresh" type="zope.schema.Decimal">
         <default>0.001</default>
-        <description>forward stepwise stopping threshold</description>
+        <description>forward stepwise stopping threshold; the forward pass terminates if adding a term changes RSq by less than the threshold</description>
         <title>threshold</title>
       </field>
-      <field name="prune" type="zope.schema.Bool" form:widget="z3c.form.browser.radio.RadioFieldWidget">
-        <default>True</default>
-        <description>whether the model should be pruned in a backward stepwise fashion</description>
-        <title>prune</title>
+      <field name="nprune" type="zope.schema.Int">
+        <default>NULL</default>
+        <description>maximum number of terms in the pruned model</description>
+        <title>pruned model terms (nprune)</title>
         <required>False</required>
       </field>
+     <field name="pmethod" type="zope.schema.Choice">
+      <default>backward</default>
+      <description>pruning method</description>
+      <title>pruning method (pmethod)</title>
+      <values>
+        <element>backward</element>
+        <element>none</element>
+        <element>exhaustive</element>
+        <element>forward</element>
+        <element>seqrep</element>
+        <element>cv</element>
+       </values>
+    </field>       
       <field name="random_seed" type="zope.schema.Int">
         <description>random seed used</description>
         <required>False</required>
