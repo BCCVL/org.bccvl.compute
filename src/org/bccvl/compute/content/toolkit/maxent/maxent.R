@@ -90,6 +90,7 @@ model.options.maxent <- list(
   beta_categorical = bccvl.params$beta_categorical,
   beta_lqp = bccvl.params$beta_lqp,
   beta_hinge = bccvl.params$beta_hinge,
+  betamultiplier = bccvl.params$betamultiplier,
   defaultprevalence = bccvl.params$defaultprevalence
 )
 

@@ -63,11 +63,11 @@ species_algo_str = ifelse(is.null(bccvl.params$subset),
 
 # model-specific arguments to create a biomod model
 model.options.mars <- list(
-	degree =  bccvl.params$degree,
-	nk =  bccvl.params$nk,
-	penalty= bccvl.params$penalty,
-	thresh = bccvl.params$thresh,
-	prune = bccvl.params$prune
+	nk =  bccvl.params$nk, # maximum number of model terms
+	penalty= bccvl.params$penalty, #generalized cross validation (gcv) penalty per knot
+	thresh = bccvl.params$thresh, #forward stepwise stopping threshold
+	nprune = bccvl.params$nprune, #maximum number of terms in the pruned model
+	pmethod = bccvl.params$pmethod #pruning method
 )
 
 

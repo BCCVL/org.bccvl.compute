@@ -68,7 +68,7 @@
       <field name='prevalence' type='zope.schema.Decimal'>
         <required>False</required>
         <description>allows to give more or less weight to particular observations; default = NULL: each observation (presence or absence) has the same weight; if value &lt; 0.5: absences are given more weight; if value > 0.5: presences are given more weight</description>
-        <title>weighted response weights</title>
+        <title>weighted response weights (prevalence)</title>
         <min>0</min>
         <max>1</max>
       </field>
@@ -136,23 +136,28 @@
       <field name="beta_threshold" type="zope.schema.Decimal">
         <default>-1.0</default>
         <description>regularization parameter to be applied to all threshold features; negative value enables automatic setting</description>
-        <title>threshold feature regularization</title>
+        <title>threshold feature regularization (beta_threshold)</title>
       </field>
       <field name="beta_categorical" type="zope.schema.Decimal">
         <default>-1.0</default>
         <description>regularization parameter to be applied to all categorical features; negative value enables automatic setting</description>
-        <title>categorical feature regularization</title>
+        <title>categorical feature regularization (beta_categorical)</title>
       </field>
       <field name="beta_lqp" type="zope.schema.Decimal">
         <default>-1.0</default>
         <description>regularization parameter to be applied to all linear, quadratic and product features; negative value enables automatic setting</description>
-        <title>linear/quadratic/product feature regularization</title>
+        <title>linear/quadratic/product feature regularization (beta_lqp)</title>
       </field>
       <field name="beta_hinge" type="zope.schema.Decimal">
         <default>-1.0</default>
         <description>regularization parameter to be applied to all hinge features; negative value enables automatic setting</description>
-        <title>hinge feature regularization</title>
+        <title>hinge feature regularization (beta_hinge)</title>
       </field>
+      <field name="betamultiplier" type="zope.schema.Decimal">
+        <default>1.0</default>
+        <description>multiply all automatic regularization parameters by this number; a higher number gives a more spread-out distribution</description>
+        <title>regularization multiplier (betamultiplier)</title>
+      </field>     
       <field name="defaultprevalence" type="zope.schema.Decimal">
         <default>0.5</default>
         <description>proportion of occupied locations; default is 0.5 meaning that the proportion of presences in the study area is equal to absences</description>
