@@ -297,6 +297,8 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
                                   occur=NULL,
                                   species.name=NULL,
                                   save.pseudo.absen=TRUE,
+                                  save.env.absen=TRUE,
+                                  save.env.occur=TRUE,
                                   generate.background.data=FALSE,
                                   species_algo_str=NULL) {
 
@@ -388,7 +390,9 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         }
 
         # save the pseudo absence points with environmental variables
-        bccvl.merge.save(climate.data, pseudoAbsen, species.name, absenv_filename)
+        if (save.env.absen) {
+            bccvl.merge.save(climate.data, pseudoAbsen, species.name, absenv_filename)
+        }
     }
     else if (nrow(absen) > 0) {
         # save background data generated
@@ -396,11 +400,15 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
             bccvl.write.csv(absen, pa_filename, rownames = FALSE)
         }
         # save the true absence points/background points with environmental variables
-        bccvl.merge.save(climate.data, absen, species.name, absenv_filename)
+        if (save.env.absen) {
+            bccvl.merge.save(climate.data, absen, species.name, absenv_filename)
+        }
     }
 
     # save the occurrence datasets with environmental variables
-    bccvl.merge.save(climate.data, occur, species.name, occenv_filename)
+    if (save.env.occur) {
+        bccvl.merge.save(climate.data, occur, species.name, occenv_filename)
+    }
 
     return(myBiomodData)
 }

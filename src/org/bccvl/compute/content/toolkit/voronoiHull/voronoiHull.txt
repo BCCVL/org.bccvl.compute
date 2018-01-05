@@ -10,7 +10,7 @@
             "skip": true
         },
         "*proj_current*.tif": {
-            "title": "Projection to current climate",
+            "title": "Projection",
             "genre": "DataGenreCP",
             "mimetype": "image/geotiff",
             "layer": "projection_binary",
@@ -18,7 +18,7 @@
             "order": 1
         },
         "*proj_current_*_unconstraint.tif": {
-            "title": "Projection to current climate - unconstraint",
+            "title": "Projection - unconstraint",
             "genre": "DataGenreCP_ENVLOP",
             "mimetype": "image/geotiff",
             "layer": "projection_binary",

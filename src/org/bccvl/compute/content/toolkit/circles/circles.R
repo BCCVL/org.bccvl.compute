@@ -68,8 +68,6 @@ occur = occur[c("lon","lat")]
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
   constrainedResults = bccvl.sdm.geoconstrained(current.climate.scenario, occur, absen.data, enviro.data.constraints, enviro.data.generateCHall);
 
-# save a copy of the climate dataset
-  current.climate.scenario.orig <- current.climate.scenario  
   current.climate.scenario <- constrainedResults$raster
   occur <- constrainedResults$occur
 }
@@ -88,6 +86,7 @@ biomod2.data = bccvl.biomod2.formatData(absen.filename   = absen.data,
                                   occur                  = occur,
                                   species.name           = occur.species,
                                   save.pseudo.absen      = FALSE,
+                                  save.env.occur         = FALSE,
                                   species_algo_str       = species_algo_str)
 # Extract occurrence and absence data
 coord = cbind(biomod2.data@coord, biomod2.data@data.env.var)
@@ -116,23 +115,12 @@ if (!all(enviro.data.type=="continuous")) {
   # save out the model object
     bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
 
-    # do projection over current climate scenario without constraint
-    if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-        model.proj = predict(model.sdm, current.climate.scenario.orig@layers[[1]], mask=TRUE)
+  # predict for given climate scenario
+  model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
 
-     # remove the current.climate.scenario to release disk space
-        bccvl.remove.rasterObject(current.climate.scenario.orig)
+  # remove the current.climate.scenario to release disk space
+  bccvl.remove.rasterObject(current.climate.scenario)
 
-     # save output
-        bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str, filename_ext="unconstraint")
-    }
-
-    # predict for given climate scenario
-    model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
-
-    # remove the current.climate.scenario to release disk space
-    bccvl.remove.rasterObject(current.climate.scenario)
-
-    # save output
-    bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
+  # save output
+  bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
 }
