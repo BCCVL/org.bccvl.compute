@@ -98,7 +98,6 @@
         <title>threshold</title>
       </field>
       <field name="nprune" type="zope.schema.Int">
-        <default>NULL</default>
         <description>maximum number of terms in the pruned model</description>
         <title>pruned model terms (nprune)</title>
         <required>False</required>

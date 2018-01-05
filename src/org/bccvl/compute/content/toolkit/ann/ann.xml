@@ -80,13 +80,11 @@
         <min>1</min>
       </field>
       <field name="size" type="zope.schema.Int">
-        <default>NULL</default>
         <description>number of units in the hidden layer; default = NULL: size will be optimised by cross validation based on model AUC</description>
         <required>False</required>
         <title>size</title>
       </field>
       <field name="decay" type="zope.schema.Int">
-        <default>NULL</default>
         <description>parameter for weight decay; default = NULL: decay will be optimised by cross validation based on model AUC</description>
         <required>False</required>
         <title>decay</title>
