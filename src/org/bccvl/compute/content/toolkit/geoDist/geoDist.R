@@ -117,18 +117,7 @@ model.sdm = geoDist(p=occur, lonlat=TRUE)
 # save out the model object
 bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
 
-# Do projection over current climate scenario without constraint
-if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
-    model.proj = predict(model.sdm, current.climate.scenario.orig@layers[[1]], mask=TRUE, scale=opt.scale)
-
-    # remove the current.climate.scenario to release disk space
-    bccvl.remove.rasterObject(current.climate.scenario.orig)
-
-    # save output
-    bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str, filename_ext="unconstraint")
-}    
-
-# predict for given climate scenario
+# predict for given climate scenario (over constraint region only)
 model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE, scale=opt.scale)
 
 # remove the current.climate.scenario to release disk space
