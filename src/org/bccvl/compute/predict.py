@@ -89,7 +89,7 @@ def get_output(algorithm):
     elif algorithm in ('circles', 'convhull', 'voronoihull'):
         layer = 'projection_binary'
         dtype = 'Discrete'
-    else: 
+    else:
         layer = 'projection_probability'
         dtype = 'Continuous'
 
@@ -127,7 +127,7 @@ def get_output(algorithm):
                 "title": "Future Projection map",
                 "genre": "DataGenreFP_ENVLOP",
                 'layer': layer,
-                'data_type': dtype,            
+                'data_type': dtype,
                 "mimetype": "image/geotiff",
                 "order": 2
             },
