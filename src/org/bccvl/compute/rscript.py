@@ -56,7 +56,7 @@ def get_sdm_params(result):
         # replace all spaces and underscores to '.' (biomod does the same)
         # TODO: really necessary?
         if params[paramname]:
-            params[paramname]['species'] = re.sub(u"[ _,'\"/\(\)\{\}\[\]]", u".", params[paramname].get('species', u'Unknown'))
+            params[paramname]['species'] = re.sub(u"[ _-,'\"/\(\)\{\}\[\]]", u".", params[paramname].get('species', u'Unknown'))
     # TODO: This assumes we only zip file based layers
     envlist = []
     for uuid, layers in params['environmental_datasets'].items():
