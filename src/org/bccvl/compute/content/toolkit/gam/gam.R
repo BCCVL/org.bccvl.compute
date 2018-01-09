@@ -63,29 +63,35 @@ species_algo_str = ifelse(is.null(bccvl.params$subset),
 
 # model-specific arguments to create a biomod model
 model.options.gam <- list(
-    algo = "GAM_mgcv", #"GAM_mgcv", "GAM_gam" or "BAM_mgcv"
-    myFormula = NULL, #specific formula; if not NULL, type and interaction.level are args are switched off
-    k = NULL, #a smooth term in a formula argument to gam (see gam s or mgcv s)
-    family = bccvl.params$family, #"binomial", "bernoulli", "gaussian", "laplace", "tdist", "huberized", "multinomial", "adaboost", "poisson", "coxph", "quantile", or "pairwise"
+    algo = "GAM_mgcv", # "GAM_mgcv", "GAM_gam" or "BAM_mgcv"
+    type = "s_smoother", # the smoother used to generate the formula; only "s_smoother" available at time; switched off if myFormula is not NULL
+    interaction.level = bccvl.params$interaction_level, # integer corresponding to the interaction level between variables considered; switched off if myFormula is not NULL
+    myFormula = NULL, # specific formula; if not NULL, type and interaction.level are args are switched off
+    k = bccvl.params$k, # a smooth term in a formula argument to gam (see gam s or mgcv s)
+    family = bccvl.params$family, # "binomial", "bernoulli", "gaussian", "laplace", "tdist", "huberized", "multinomial", "adaboost", "poisson", "coxph", "quantile", or "pairwise"
+    method = bccvl.params$method, # the smoothing parameter estimation method
+    optimizer = bccvl.params$optimizer, # an array specifying the numerical optimization method to use to optimize the smoothing parameter estimation criterion (given by method). "perf" (deprecated) for performance iteration. "outer" for the more stable direct approach.
+                                        # "outer" can use several alternative optimizers, specified in the second element of optimizer: "newton" (default), "bfgs", "optim", "nlm" and "nlm.fd"
+    select = bccvl.params$select, # If this is TRUE then gam can add an extra penalty to each term so that it can be penalized to zero. 
+    knots = NULL, # this is an optional list containing user specified knot values to be used for basis construction
+    paraPen = NULL, # this is an optional list specifying any penalties to be applied to parametric model terms   
     control = list(
         # Specific GAM settings
-        irls.reg = bccvl.params$irls_reg, #the size of the ridge regression penalty to the model to impose identifiability; for most models this should be 0
-        epsilon = bccvl.params$epsilon, #this is used for judging conversion of the GLM IRLS loop
-        maxit = bccvl.params$maxit, #maximum number of IRLS iterations to perform
-        mgcv.tol = bccvl.params$mgcv_tol, #the convergence tolerance parameter to use in GCV/UBRE optimization
-        mgcv.half = bccvl.params$mgcv_half, #if a step of the GCV/UBRE optimization method leads to a worse GCV/UBRE score, then the step length is halved; this is the number of halvings to try before giving up
-        trace = FALSE, #set this to TRUE to turn on diagnostic output
-        rank.tol = .Machine$double.eps^0.5, #the tolerance used to estimate the rank of the fitting problem
-        nlm = list(), #list of control parameters to pass to nlm if this is used for outer estimation of smoothing parameters (not default)
-        optim = list(), #list of control parameters to pass to optim if this is used for outer estimation of smoothing parameters (not default)
-        newton = list(), #list of control parameters to pass to default Newton optimizer used for outer estimation of log smoothing parameters
-        outerPIsteps = 0, #the number of performance interation steps used to initialize outer iteration
-        idLinksBases = TRUE, #if smooth terms have their smoothing parameters linked via the id mechanism (see s), should they also have the same bases. Set this to FALSE only if you are sure you know what you are doing
-        scalePenalty = TRUE, #this option rescales the penalty matrices to accomodate this problem. Probably should be set to FALSE if you are linking smoothing parameters but have set idLinkBases to FALSE
-        keepData = FALSE #should a copy of the original data argument be kept in the gam object
-    ),
-    type = "s_smoother", #the smoother used to generate the formula; only "s_smoother" available at time; switched off if myFormula is not NULL
-    interaction.level = bccvl.params$interaction_level #integer corresponding to the interaction level between variables considered; switched off if myFormula is not NULL
+        irls.reg = bccvl.params$control_irls.reg, # the size of the ridge regression penalty to the model to impose identifiability; for most models this should be 0
+        epsilon = bccvl.params$control_epsilon, # this is used for judging conversion of the GLM IRLS loop
+        maxit = bccvl.params$control_maxit, # maximum number of IRLS iterations to perform
+        mgcv.tol = bccvl.params$control_mgcv.tol, # the convergence tolerance parameter to use in GCV/UBRE optimization
+        mgcv.half = bccvl.params$control_mgcv.half, # if a step of the GCV/UBRE optimization method leads to a worse GCV/UBRE score, then the step length is halved; this is the number of halvings to try before giving up
+        trace = bccvl.params$control_trace, # set this to TRUE to turn on diagnostic output
+        rank.tol = .Machine$double.eps^0.5, # the tolerance used to estimate the rank of the fitting problem
+        nlm = list(), # list of control parameters to pass to nlm if this is used for outer estimation of smoothing parameters (not default)
+        optim = list(), # list of control parameters to pass to optim if this is used for outer estimation of smoothing parameters (not default)
+        newton = list(), # list of control parameters to pass to default Newton optimizer used for outer estimation of log smoothing parameters
+        outerPIsteps = 0, # the number of performance interation steps used to initialize outer iteration
+        idLinksBases = TRUE, # if smooth terms have their smoothing parameters linked via the id mechanism (see s), should they also have the same bases. Set this to FALSE only if you are sure you know what you are doing
+        scalePenalty = TRUE, # this option rescales the penalty matrices to accomodate this problem. Probably should be set to FALSE if you are linking smoothing parameters but have set idLinkBases to FALSE
+        keepData = FALSE # should a copy of the original data argument be kept in the gam object
+    )
 )
 
 ############### BIOMOD2 Models ###############
