@@ -22,7 +22,7 @@ def get_project_params(result):
     uuid = params['species_distribution_models']
     params['species_distribution_models'] = getdatasetparams(uuid)
     # do biomod name mangling of species name
-    params['species_distribution_models']['species'] = re.sub(u"[ _'\"/\(\)\{\}\[\]]", u".", params['species_distribution_models'].get('species', u"Unknown"))
+    params['species_distribution_models']['species'] = re.sub(u"[ _-'\"/\(\)\{\}\[\]]", u".", params['species_distribution_models'].get('species', u"Unknown"))
     # we need the layers from sdm to fetch correct files for climate_models
     # TODO: getdatasetparams should fetch 'layers'
     sdmobj = uuidToObject(uuid)
@@ -89,7 +89,7 @@ def get_output(algorithm):
     elif algorithm in ('circles', 'convhull', 'voronoihull'):
         layer = 'projection_binary'
         dtype = 'Discrete'
-    else: 
+    else:
         layer = 'projection_probability'
         dtype = 'Continuous'
 
@@ -127,7 +127,7 @@ def get_output(algorithm):
                 "title": "Future Projection map",
                 "genre": "DataGenreFP_ENVLOP",
                 'layer': layer,
-                'data_type': dtype,            
+                'data_type': dtype,
                 "mimetype": "image/geotiff",
                 "order": 2
             },
