@@ -63,6 +63,9 @@ species_algo_str = ifelse(is.null(bccvl.params$subset),
 
 # model-specific arguments to create a biomod model
 model.options.mars <- list(
+	type = bccvl.params$type, #"simple", "quadratic" or "polynomial"; switched off if myFormula is not NULL
+	interaction.level = bccvl.params$interaction_level, #integer corresponding to the interaction level between variables considered; switched off if myFormula is not NULL
+	# myFormula = NULL, #specific formula; if not NULL, type and interaction.level args are switched off (N/A for BCCVL)
 	nk =  bccvl.params$nk, # maximum number of model terms
 	penalty= bccvl.params$penalty, #generalized cross validation (gcv) penalty per knot
 	thresh = bccvl.params$thresh, #forward stepwise stopping threshold
