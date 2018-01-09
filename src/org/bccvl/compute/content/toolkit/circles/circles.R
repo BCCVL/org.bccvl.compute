@@ -110,7 +110,12 @@ if (!all(enviro.data.type=="continuous")) {
     warning("circles not run because categorical data cannot be used")
 } else {
     # run circles with matrix of enviro data
-    model.sdm = circles(p=occur, d=opt.d, lonlat=TRUE)
+    if (is.null(opt.d)) {
+      model.sdm = circles(p=occur, lonlat=TRUE)
+    }
+    else {
+      model.sdm = circles(p=occur, d=opt.d, lonlat=TRUE)
+    }
     
   # save out the model object
     bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
