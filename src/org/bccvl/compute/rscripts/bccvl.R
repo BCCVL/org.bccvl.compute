@@ -639,7 +639,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
         parsedgeojson <- SpatialPolygons(list(Polygons(list(Polygon(rbind(c(1,1)))), ID=1)), proj4string=crs(rasterstack))
     } else {
         # Parse the geojson from text to SpatialPointsDataFrame
-        parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
+        parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON", verbose = FALSE)
     }
 
     # Assign the same projection to the raster
