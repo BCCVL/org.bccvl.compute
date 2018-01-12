@@ -43,7 +43,7 @@
             "order": 5
         },
         "pseudo_absences_*.csv": {
-            "title": "Pseudo Absence Points",
+            "title": "Absence records (map)",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
             "order": 6
