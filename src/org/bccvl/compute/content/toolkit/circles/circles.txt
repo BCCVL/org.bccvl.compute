@@ -41,13 +41,13 @@
             "title": "Generated pseudo-absence points",
             "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
-            "order": 5
+            "order": 6
         },
         "occurrence_environmental_*.csv": {
             "title": "Occurrence points with environmental data",
             "genre": "DataGenreSpeciesOccurEnv",
             "mimetype": "text/csv",
-            "order": 6
+            "order": 5
         },
         "absence_environmental_*.csv": {
             "title": "Absence points with environmental data",

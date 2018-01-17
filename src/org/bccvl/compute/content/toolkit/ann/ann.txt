@@ -42,15 +42,15 @@
             "data_type": "Discrete",
             "order": 5
         },
-        "pseudo_absences_*.csv": {
-            "title": "Absence records (map)",
-            "genre": "DataGenreSpeciesAbsence",
-            "mimetype": "text/csv",
-            "order": 6
-        },
         "occurrence_environmental_*.csv": {
             "title": "Occurrence points with environmental data",
             "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 6
+        },
+        "pseudo_absences_*.csv": {
+            "title": "Absence records (map)",
+            "genre": "DataGenreSpeciesAbsence",
             "mimetype": "text/csv",
             "order": 7
         },
