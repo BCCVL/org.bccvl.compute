@@ -395,10 +395,13 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         }
     }
     else if (nrow(absen) > 0) {
-        # save background data generated
-        if (is.null(absen.filename)) {
-            bccvl.write.csv(absen, pa_filename, rownames = FALSE)
+        # save true-absence/background data generated
+        if (!is.null(absen.filename)) {
+            # rename true-absence file
+            pa_filename = bccvl.format.outfilename(filename="absence", id_str=species_algo_str, ext="csv")
         }
+        bccvl.write.csv(absen, pa_filename, rownames = FALSE)
+        
         # save the true absence points/background points with environmental variables
         if (save.env.absen) {
             bccvl.merge.save(climate.data, absen, species.name, absenv_filename)

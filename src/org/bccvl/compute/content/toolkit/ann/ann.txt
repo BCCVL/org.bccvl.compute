@@ -54,6 +54,12 @@
             "mimetype": "text/csv",
             "order": 7
         },
+        "absence_*.csv": {
+            "title": "Absence records (map)",
+            "genre": "DataGenreSpeciesAbsence",
+            "mimetype": "text/csv",
+            "order": 7
+        },
         "absence_environmental_*.csv": {
             "title": "Absence points with environmental data",
             "genre": "DataGenreSpeciesAbsenceEnv",
