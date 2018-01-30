@@ -670,7 +670,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
         if (generateCHull) {
             # get the offset 
             constraintjson <- rjson::fromJSON(rawgeojson)
-            region_offset <- as.double(constraintjson$properties$offset)
+            region_offset <- as.double(constraintjson$properties$region_offset)
             region_offset <- ifelse(is.na(region_offset), 0, region_offset/111.0) # convert from km to degree
 
             chcoords <- occurSP@coords[chull(occurSP@coords),]
