@@ -395,10 +395,13 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         }
     }
     else if (nrow(absen) > 0) {
-        # save background data generated
-        if (is.null(absen.filename)) {
-            bccvl.write.csv(absen, pa_filename, rownames = FALSE)
+        # save true-absence/background data generated
+        if (!is.null(absen.filename)) {
+            # rename true-absence file
+            pa_filename = bccvl.format.outfilename(filename="absence", id_str=species_algo_str, ext="csv")
         }
+        bccvl.write.csv(absen, pa_filename, rownames = FALSE)
+
         # save the true absence points/background points with environmental variables
         if (save.env.absen) {
             bccvl.merge.save(climate.data, absen, species.name, absenv_filename)
@@ -663,7 +666,13 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
 
         # actual constraint is the intersection between the occurrence's convex-hull polygon and the constraint.
         # Otherwise, actual constraint is the convex-hull polygon.
+        region_offset = 0
         if (generateCHull) {
+            # get the offset 
+            constraintjson <- rjson::fromJSON(rawgeojson)
+            region_offset <- as.double(constraintjson$properties$region_offset)
+            region_offset <- ifelse(is.na(region_offset), 0, region_offset/111.0) # convert from km to degree
+
             chcoords <- occurSP@coords[chull(occurSP@coords),]
             chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords, hole=FALSE)), ID=1)), proj4string=crs(parsedgeojson))
             if (!is.null(rawgeojson)) {
@@ -676,7 +685,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
 
         # Add a small buffer of width 1-resolution cell. This is to fix the issue
         # with missing env values along the boundary of the polygon.
-        parsedgeojson <- gBuffer(parsedgeojson, width=max(res(rasterstack@layers[[1]])))
+        parsedgeojson <- gBuffer(parsedgeojson, width=max(region_offset, max(res(rasterstack@layers[[1]]))))
 
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
         occurconstrained <- as.data.frame(occurSPconstrained)
