@@ -111,12 +111,7 @@ current.climate.scenario = bccvl.enviro.stack(enviro.data.current, enviro.data.t
 
 ###read in the necessary observation, background and environmental data
 occur = bccvl.species.read(occur.data, month.filter) #read in the observation data lon/lat
-# keep only lon and lat columns
-occur = occur[c("lon","lat")]
-
 absen = bccvl.species.read(absen.data, month.filter) #read in the observation data lon/lat
-# keep only lon and lat columns
-absen = absen[c("lon","lat")]
 
 # geographically constrained modelling
 if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {

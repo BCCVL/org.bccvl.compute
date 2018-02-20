@@ -236,10 +236,16 @@ bccvl.species.read <- function(filename, month_filter=NULL) {
         # However, given the nature of the numbers, and the resolution of raster files
         # we deal with, this shouldn't be a problem.
         csvfile = read.csv(filename, colClasses=c("lon"="numeric", "lat"="numeric"))
+
+        # keep only lon and lat columns; for MM include month column
         if (is.null(month_filter)) {
+            csvfile = csvfile[c("lon","lat")]
             return(csvfile)
         }
-        return(subset(csvfile, month %in% unlist(month_filter)))
+        else {
+            csvfile = csvfile[c("lon","lat","month")]
+            return(subset(csvfile, month %in% unlist(month_filter)))
+        }
     }
 }
 
@@ -252,7 +258,7 @@ bccvl.data.transform <- function(data, climate.data)
         }
 
         newdata <- as.data.frame(spTransform(sp, crs(climate.data)))
-        names(newdata) <- c("lon", "lat")
+        names(newdata) <- names(data)
         return(newdata)
     }
     return(data)
@@ -314,7 +320,7 @@ bccvl.biomod2.formatData <- function(true.absen=NULL,
     }
 
     # Read true absence point if available.
-    if (is.null(true.data)) {
+    if (is.null(true.absen)) {
         # create an empty data frame for bkgd points
         absen = data.frame(lon=numeric(0), lat=numeric(0))
         # To generate pseudo=absence points
@@ -326,8 +332,8 @@ bccvl.biomod2.formatData <- function(true.absen=NULL,
     else {
         # Ensure true absence dataset is in same projection system as climate.
         absen <- true.absen
-        if (!is.null(climate.data) & nrow(true.absen) > 0) {
-            absen <- bccvl.data.transform(absen.data, climate.data)
+        if (!is.null(climate.data) && nrow(true.absen) > 0) {
+            absen <- bccvl.data.transform(true.absen, climate.data)
         }
 
         # Do not generate pseudo absence point when true absence points are available
@@ -414,7 +420,7 @@ bccvl.biomod2.formatData <- function(true.absen=NULL,
 
 bccvl.merge.save <- function(env, csvdata, spname, ofname)
 {
-  data = cbind(csvdata, species=spname, extract(env, csvdata))
+  data = cbind(csvdata, species=spname, extract(env, csvdata[c('lon','lat')]))
 
   bccvl.write.csv(data, ofname, rownames=FALSE)
 }
@@ -669,8 +675,8 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absen, rawgeojson, gene
             region_offset <- as.double(constraintjson$properties$region_offset)
             region_offset <- ifelse(is.na(region_offset), 0, region_offset/111.0) # convert from km to degree
 
-            chcoords <- occurSP@coords[chull(occurSP@coords),]
-            chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords, hole=FALSE)), ID=1)), proj4string=crs(parsedgeojson))
+            chcoords <- occurSP@coords[chull(occurSP@coords[,1:2]),]
+            chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords[,1:2], hole=FALSE)), ID=1)), proj4string=crs(parsedgeojson))
             if (!is.null(rawgeojson)) {
                 parsedgeojson <- intersect(parsedgeojson, chullPolygon)
             }
@@ -686,19 +692,19 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absen, rawgeojson, gene
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
         occurconstrained <- as.data.frame(occurSPconstrained)
         # rest of scripts expects names "lon", "lat" and not "x", "y"
-        names(occurconstrained) <- c("lon", "lat")
+        #names(occurconstrained) <- c("lon", "lat")
 
         # constraint the true absence points if available
         absenconstrained = NULL
         # Ensure true absence dataset is in same projection system as climate 1st.
-        if (!is.null(absen) & nrow(absen) > 0) {
+        if (!is.null(absen) && nrow(absen) > 0) {
             absenSP <- bccvl.sp.transform(absen, rasterstack)
             absenSPconstrained <- absenSP[!is.na(over(absenSP, parsedgeojson))]
 
             # project it back to epsg:4326 for saving as a csv file
             absenSPconstrained <- spTransform(absenSPconstrained, CRS('+init=epsg:4326'))
             absenconstrained <- as.data.frame(absenSPconstrained)
-            names(absenconstrained) <- c("lon", "lat")
+            #names(absenconstrained) <- c("lon", "lat")
             #write.csv(absen, file=absenFilename, row.names=FALSE)
         }
     }
