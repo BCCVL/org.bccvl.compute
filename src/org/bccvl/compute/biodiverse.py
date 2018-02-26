@@ -136,7 +136,7 @@ OUTPUTS = {
             "mimetype": "text/csv",
             "order": 6
         },
-        '*.bds':  {
+        '*.bds': {
             # Perl Storable package
             'title': 'Biodiverse output',
             'genre': 'DataGenreBiodiverseModel',
