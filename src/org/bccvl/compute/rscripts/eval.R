@@ -303,7 +303,7 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence-absence-plot_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g1 <- ggplot(temp2, aes(x=pred, fill=factor(obs))) + 
       geom_density(stat="density", alpha=0.5) + 
-      labs(title="Presence/absence density plot \nacross threshold probability values", x="\nThreshold probability value", y="Density\n") + 
+      labs(title="Presence/absence density plot \nacross predicted probability of presence", x="\nPredicted probability of presence", y="Density\n") + 
       scale_fill_manual(values=c("#EE3B3B", "#6495ED"), labels=c(" Absences      ", " Presences")) +
       theme(axis.text = element_text(family="Arial", size=rel(1.5)), axis.title = element_text(family="Arial", size=rel(1.5)), plot.title = element_text(family="Arial", size=rel(2)), legend.text = element_text(family="Arial", size=rel(1.5)), legend.position="top", legend.key=element_blank(), legend.key.size=unit(1.5, "lines")) + 
       guides(fill=guide_legend(nrow=1, title=NULL))
@@ -314,7 +314,7 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-presence-absence-hist_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g2 <- ggplot(temp2, aes(x=pred, fill=factor(obs)))  + 
       geom_histogram(position="dodge", alpha = 0.5) +
-      labs(title="Presence/absence histogram \nacross threshold probability values", x="\nThreshold probability value", y="Count\n") +
+      labs(title="Presence/absence histogram \nacross predicted probability of presence", x="\nPredicted probability of presence", y="Count\n") +
       scale_fill_manual(values=c("#EE3B3B", "#6495ED"), labels=c(" Absences    ", " Presences")) +
       theme(axis.text = element_text(family="Arial", size=rel(1.5)), axis.title = element_text(family="Arial", size=rel(1.5)), plot.title = element_text(family="Arial", size=rel(2)), legend.text = element_text(family="Arial", size=rel(1.5)), legend.position="top", legend.key=element_blank(), legend.key.size=unit(1.5, "lines")) + 
       guides(fill=guide_legend(nrow=1, title=NULL))
