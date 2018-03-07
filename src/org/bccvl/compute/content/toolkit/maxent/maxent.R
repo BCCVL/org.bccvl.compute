@@ -182,7 +182,7 @@ pa_number_point = bccvl.params$pa_maxent_background_points
 ###############
 
 # 1. Format the data as required by the biomod package
-model.data = bccvl.biomod2.formatData(absen.filename     = absen.data,
+model.data = bccvl.biomod2.formatData(true.absen     = absen.data,
                                       pseudo.absen.points    = pa_number_point,
                                       pseudo.absen.strategy  = bccvl.params$pa_strategy,
                                       pseudo.absen.disk.min  = bccvl.params$pa_disk_min,
