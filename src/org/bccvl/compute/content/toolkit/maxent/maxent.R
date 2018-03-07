@@ -286,7 +286,7 @@ bccvl.grdtogtiff(file.path(getwd(),
 
 # output is saved as part of the projection, format specified in arg 'opt.biomod.output.format'
 loaded.model = BIOMOD_LoadModels(model.sdm, models="MAXENT.Phillips")
-bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm, species_algo_str) 	# save output
+bccvl.saveBIOMODModelEvaluation(loaded.model, model.sdm, species_algo_str, save_biomod2_eval=TRUE) 	# save output
 
 # save the projection
 bccvl.saveProjection(model.proj, species_algo_str)

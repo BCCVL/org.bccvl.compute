@@ -630,14 +630,15 @@ bccvl.saveDISMOModelEvaluation <- function(model.name, model.obj, occur, bkgd, s
 
 ### Evaluation of 'biomod2' models and save outputs
 
-bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model, species_algo_str) {
+bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model, species_algo_str, save_biomod2_eval=FALSE) {
 
   # Get Biomod2 evaluation and save the TSS amd ROC
-  evaluation = get_evaluations(biomod.model)
-  eva_result = data.frame(evaluation[c("TSS","ROC"), "Testing.data",,,])
-  colnames(eva_result) <- dimnames(evaluation)[[4]]  
-  bccvl.write.csv(eva_result, name=paste0("biomod2_model_evaluation_", species_algo_str, ".csv"))
-
+  if (save_biomod2_eval) { 
+    evaluation = get_evaluations(biomod.model)
+    eva_result = data.frame(evaluation[c("TSS","ROC"), "Testing.data",,,])
+    colnames(eva_result) <- dimnames(evaluation)[[4]]  
+    bccvl.write.csv(eva_result, name=paste0("biomod2_model_evaluation_", species_algo_str, ".csv"))
+  }
 
   # Get the model predictions and observed values. Predictions is a 4-dimensional array (Predictions, Algorithm, Model run, PseudoAbsence Run)
   predictions = get_predictions(biomod.model)
