@@ -54,12 +54,12 @@
     <fieldset name="Other"
               label="Other Configuration"
               description="Options are set to package defaults unless otherwise modified.">
-     <field name="nb_run_eval" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
+     <field name="nb_run_eval" type="zope.schema.Int">
         <default>10</default>
         <title>n-fold cross validation</title>
         <min>1</min>
       </field>
-      <field name="data_split" type="zope.schema.Int" form:mode="z3c.form.interfaces.IForm:hidden">
+      <field name="data_split" type="zope.schema.Int">
         <default>100</default>
         <title>data split</title>
         <min>0</min>
