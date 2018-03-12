@@ -236,10 +236,16 @@ bccvl.species.read <- function(filename, month_filter=NULL) {
         # However, given the nature of the numbers, and the resolution of raster files
         # we deal with, this shouldn't be a problem.
         csvfile = read.csv(filename, colClasses=c("lon"="numeric", "lat"="numeric"))
+
+        # keep only lon and lat columns; for MM include month column
         if (is.null(month_filter)) {
+            csvfile = csvfile[c("lon","lat")]
             return(csvfile)
         }
-        return(subset(csvfile, month %in% unlist(month_filter)))
+        else {
+            csvfile = csvfile[c("lon","lat","month")]
+            return(subset(csvfile, month %in% unlist(month_filter)))
+        }
     }
 }
 
@@ -252,7 +258,7 @@ bccvl.data.transform <- function(data, climate.data)
         }
 
         newdata <- as.data.frame(spTransform(sp, crs(climate.data)))
-        names(newdata) <- c("lon", "lat")
+        names(newdata) <- names(data)
         return(newdata)
     }
     return(data)
@@ -287,7 +293,7 @@ bccvl.format.outfilename <- function(filename, id_str, ext)
 # This uses the biomods function BIOMOD_FormatingData to format user input data.
 # It generates pseudo absence points if true absence data are not available or
 # adds pseudo absence data to an existing absence dataset.
-bccvl.biomod2.formatData <- function(absen.filename=NULL,
+bccvl.biomod2.formatData <- function(true.absen=NULL,
                                   pseudo.absen.points=0,
                                   pseudo.absen.strategy='random',
                                   pseudo.absen.disk.min=0,
@@ -314,7 +320,7 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
     }
 
     # Read true absence point if available.
-    if (is.null(absen.filename)) {
+    if (is.null(true.absen)) {
         # create an empty data frame for bkgd points
         absen = data.frame(lon=numeric(0), lat=numeric(0))
         # To generate pseudo=absence points
@@ -324,14 +330,10 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
         }
     }
     else {
-        # read absence points from file
-        absen = bccvl.species.read(absen.filename)
-        # keep only lon and lat columns
-        absen = absen[c("lon","lat")]
-
         # Ensure true absence dataset is in same projection system as climate.
-        if (!is.null(climate.data) & !is.null(absen) & nrow(absen) > 0) {
-            absen <- bccvl.data.transform(absen, climate.data)
+        absen <- true.absen
+        if (!is.null(climate.data) && nrow(true.absen) > 0) {
+            absen <- bccvl.data.transform(true.absen, climate.data)
         }
 
         # Do not generate pseudo absence point when true absence points are available
@@ -396,7 +398,7 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
     }
     else if (nrow(absen) > 0) {
         # save true-absence/background data generated
-        if (!is.null(absen.filename)) {
+        if (!is.null(true.absen)) {
             # rename true-absence file
             pa_filename = bccvl.format.outfilename(filename="absence", id_str=species_algo_str, ext="csv")
         }
@@ -418,7 +420,7 @@ bccvl.biomod2.formatData <- function(absen.filename=NULL,
 
 bccvl.merge.save <- function(env, csvdata, spname, ofname)
 {
-  data = cbind(csvdata, species=spname, extract(env, csvdata))
+  data = cbind(csvdata, species=spname, extract(env, csvdata[c('lon','lat')]))
 
   bccvl.write.csv(data, ofname, rownames=FALSE)
 }
@@ -631,10 +633,10 @@ bccvl.sp.transform <- function(data, climate.data)
 
 
 # geographically constrained modelling
-bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojson, generateCHull) {
+bccvl.sdm.geoconstrained <- function(rasterstack, occur, absen, rawgeojson, generateCHull) {
 
     if (is.null(rawgeojson) & !generateCHull) {
-        return(list("raster" = rasterstack, "occur" = occur))
+        return(list("raster" = rasterstack, "occur" = occur, "absen" = absen))
     }
 
     # create a dummy geojson for convex-hull polygon if no geojson
@@ -673,8 +675,8 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
             region_offset <- as.double(constraintjson$properties$region_offset)
             region_offset <- ifelse(is.na(region_offset), 0, region_offset/111.0) # convert from km to degree
 
-            chcoords <- occurSP@coords[chull(occurSP@coords),]
-            chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords, hole=FALSE)), ID=1)), proj4string=crs(parsedgeojson))
+            chcoords <- occurSP@coords[chull(occurSP@coords[,1:2]),]
+            chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords[,1:2], hole=FALSE)), ID=1)), proj4string=crs(parsedgeojson))
             if (!is.null(rawgeojson)) {
                 parsedgeojson <- intersect(parsedgeojson, chullPolygon)
             }
@@ -690,30 +692,25 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
         occurconstrained <- as.data.frame(occurSPconstrained)
         # rest of scripts expects names "lon", "lat" and not "x", "y"
-        names(occurconstrained) <- c("lon", "lat")
+        #names(occurconstrained) <- c("lon", "lat")
 
         # constraint the true absence points if available
-        if (!is.null(absenFilename)) {
-            # read absence points from file
-            absen = bccvl.species.read(absenFilename)
-            # keep only lon and lat columns
-            absen = absen[c("lon","lat")]
+        absenconstrained = NULL
+        # Ensure true absence dataset is in same projection system as climate 1st.
+        if (!is.null(absen) && nrow(absen) > 0) {
+            absenSP <- bccvl.sp.transform(absen, rasterstack)
+            absenSPconstrained <- absenSP[!is.na(over(absenSP, parsedgeojson))]
 
-            # Ensure true absence dataset is in same projection system as climate 1st.
-            if (!is.null(absen) & nrow(absen) > 0) {
-                absenSP <- bccvl.sp.transform(absen, rasterstack)
-                absenSPconstrained <- absenSP[!is.na(over(absenSP, parsedgeojson))]
-
-                # project it back to epsg:4326 for saving as a csv file
-                absenSPconstrained <- spTransform(absenSPconstrained, CRS('+init=epsg:4326'))
-                absen <- as.data.frame(absenSPconstrained)
-                names(absen) <- c("lon", "lat")
-                write.csv(absen, file=absenFilename, row.names=FALSE)
-            }
+            # project it back to epsg:4326 for saving as a csv file
+            absenSPconstrained <- spTransform(absenSPconstrained, CRS('+init=epsg:4326'))
+            absenconstrained <- as.data.frame(absenSPconstrained)
+            #names(absenconstrained) <- c("lon", "lat")
+            #write.csv(absen, file=absenFilename, row.names=FALSE)
         }
     }
     else {
         occurconstrained = NULL
+        absenconstrained = NULL
     }
 
     # Mask the rasterstack (and make sure it is a RasterStack)
@@ -729,7 +726,7 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absenFilename, rawgeojs
     bccvl.remove.rasterObject(cropped_rasterstack)
 
     # Return the masked raster stack and constrained occurrence points
-    mylist <- list("raster" = geoconstrained, "occur" = occurconstrained)
+    mylist <- list("raster" = geoconstrained, "occur" = occurconstrained, "absen" = absenconstrained)
     return(mylist)
 }
 
