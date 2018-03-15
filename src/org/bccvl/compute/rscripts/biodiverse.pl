@@ -111,6 +111,13 @@ sub apply_threshold {
         $band->NoDataValue($nodata);
     } else {
         say "Use NoData $nodata";
+        if ($band->DataType =~ /Float32/) {
+            say "Adjust NoData to Float32";
+            # Perl parses NoData as double, but if dataset is float, we get into
+            # huge comparison problems
+            $nodata = unpack('f', pack('f', $nodata));
+            $band->NoDataValue($nodata);
+        }
     }
     my $allsame = undef;  # flag to see whether all raster values are 0 or 1 after thresholding
 
