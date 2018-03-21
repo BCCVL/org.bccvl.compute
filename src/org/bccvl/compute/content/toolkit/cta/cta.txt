@@ -108,7 +108,7 @@
             "mimetype": "image/png",
             "order": 15
         },
-        "Full-TPR-TNR.png_*": {
+        "Full-TPR-TNR_*.png": {
             "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
