@@ -85,37 +85,37 @@
             "mimetype": "text/csv",
             "order": 11
         },
-        "brt-presence-absence-plot_*.png": {
+        "dismo-presence-absence-plot_*.png": {
             "title": "Presence/absence density plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 12
         },
-        "brt-presence-absence-hist_*.png": {
+        "dismo-presence-absence-hist_*.png": {
             "title": "Presence/absence histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 13
         },
-        "brt-TPR-TNR_*.png": {
+        "dismo-TPR-TNR_*.png": {
             "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 14
         },
-        "brt-error-rates_*.png": {
+        "dismo-error-rates_*.png": {
             "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 15
         },
-        "brt-ROC_*.png": {
+        "dismo-ROC_*.png": {
             "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 16
         },
-        "brt-loss-functions_*.png": {
+        "dismo-loss-functions_*.png": {
             "title": "Loss functions plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
@@ -127,7 +127,7 @@
             "mimetype": "text/csv",
             "order": 18
         },
-        "brt-loss-intervals_*.png": {
+        "dismo-loss-intervals_*.png": {
             "title": "Loss function intervals",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
