@@ -129,7 +129,7 @@ if (!all(enviro.data.type=="continuous")) {
         bccvl.remove.rasterObject(current.climate.scenario.orig)
 
         # save output
-        bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str, filename_ext="unconstraint")
+        bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str, filename_ext="unconstrainted")
     }
 
     # predict for given climate scenario
