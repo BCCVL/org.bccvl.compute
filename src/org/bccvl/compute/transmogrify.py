@@ -137,6 +137,7 @@ class ResultSource(object):
             'description': import_item.get('description', u''),
             'bccvlmetadata': bccvlmd,
             '_layermd': import_item.get('layermd', {}),
+            'dataSource': import_item.get('dataSource', None),
             '_partof': import_item.get('_partof'),
         }
 
