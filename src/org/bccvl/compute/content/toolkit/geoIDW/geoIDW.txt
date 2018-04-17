@@ -17,8 +17,8 @@
             "data_type": "Continuous",
             "order": 1
         },
-        "*proj_current_*_unconstrainted.tif": {
-            "title": "Projection - unconstrainted",
+        "*proj_current_*_unconstrained.tif": {
+            "title": "Projection - unconstrained",
             "genre": "DataGenreCP_ENVLOP",
             "mimetype": "image/geotiff",
             "layer": "projection_probability",
@@ -31,8 +31,8 @@
             "mimetype": "image/png",
             "order": 3
         },
-        "proj_current_*_unconstrainted.png": {
-            "title": "Projection plot - unconstrainted",
+        "proj_current_*_unconstrained.png": {
+            "title": "Projection plot - unconstrained",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 4

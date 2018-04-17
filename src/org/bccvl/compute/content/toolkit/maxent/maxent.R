@@ -251,10 +251,10 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
                                biomod.species.name,
                                paste("proj", projection.name, sep="_")),
                      algorithm=ifelse(is.null(bccvl.params$subset), "maxent", sprintf("maxent_%s", bccvl.params$subset)),
-                     filename_ext="unconstrainted")
+                     filename_ext="unconstrained")
 
     # save the projection
-    bccvl.saveProjection(model.proj, species_algo_str, filename_ext="unconstrainted")
+    bccvl.saveProjection(model.proj, species_algo_str, filename_ext="unconstrained")
 }
 
 # predict for current climate scenario

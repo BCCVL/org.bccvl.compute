@@ -214,7 +214,7 @@ if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
     bccvl.remove.rasterObject(current.climate.scenario.orig)
 
     # save output
-    bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str, filename_ext="unconstrainted")
+    bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str, filename_ext="unconstrained")
 }
 
 model.proj = predict(current.climate.scenario, model.sdm, n.trees=model.sdm$gbm.call$best.trees, type="response")

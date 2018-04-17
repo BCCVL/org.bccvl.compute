@@ -115,7 +115,7 @@ def get_output(algorithm):
                 "mimetype": 'image/geotiff',
                 "order": 1
             },
-            'proj_*_unconstrainted.tif': {
+            'proj_*_unconstrained.tif': {
                 'title': 'Future Projection map',
                 'genre': 'DataGenreFP_ENVLOP',
                 'layer': layer,
@@ -123,7 +123,7 @@ def get_output(algorithm):
                 'mimetype': 'image/geotiff',
                 'order': 2
             },
-            '*/proj_*/proj_*_unconstrainted.tif': {
+            '*/proj_*/proj_*_unconstrained.tif': {
                 "title": "Future Projection map",
                 "genre": "DataGenreFP_ENVLOP",
                 'layer': layer,
