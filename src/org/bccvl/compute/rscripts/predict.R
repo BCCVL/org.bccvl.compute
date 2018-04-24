@@ -225,6 +225,11 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
                                             filename_ext=constraint_type,
                                             file_ext="csv")
         bccvl.generateCentreOfGravityMetric(filenames, changefilepath)
+
+        # Remove files in proj_raster
+        for (i in proj_rasters) {
+          unlink(i@file@name)
+        }
     }
 }
 
