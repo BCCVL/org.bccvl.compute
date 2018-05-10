@@ -672,8 +672,10 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absen, rawgeojson, gene
         if (generateCHull) {
             # get the offset 
             constraintjson <- rjson::fromJSON(rawgeojson)
-            region_offset <- as.double(constraintjson$properties$region_offset)
-            region_offset <- ifelse(!is.na(region_offset) && is.numeric(region_offset), region_offset/111.0, 0) # convert from km to degree
+            if (!is.null(region_offset) && !is.na(region_offset) && region_offset != '') {
+                region_offset <- as.double(constraintjson$properties$region_offset)
+                region_offset <- ifelse(!is.na(region_offset) && is.numeric(region_offset), region_offset/111.0, 0) # convert from km to degree
+            }
 
             chcoords <- occurSP@coords[chull(occurSP@coords[,1:2]),]
             chullPolygon <- SpatialPolygons(list(Polygons(list(Polygon(chcoords[,1:2], hole=FALSE)), ID=1)), proj4string=crs(parsedgeojson))
