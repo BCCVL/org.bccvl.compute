@@ -672,8 +672,12 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absen, rawgeojson, gene
         if (generateCHull) {
             # get the offset 
             constraintjson <- rjson::fromJSON(rawgeojson)
-            if (!is.null(region_offset) && !is.na(region_offset) && region_offset != '') {
-                region_offset <- as.double(constraintjson$properties$region_offset)
+            region_offset <- constraintjson$properties$region_offset
+            if (is.null(region_offset) || is.na(region_offset) || region_offset == '') {
+                region_offset = 0
+            }
+            else {
+                region_offset <- as.double(region_offset)
                 region_offset <- ifelse(!is.na(region_offset) && is.numeric(region_offset), region_offset/111.0, 0) # convert from km to degree
             }
 
