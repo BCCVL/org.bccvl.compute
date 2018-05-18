@@ -195,7 +195,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         # Make sure both projections have the same extent and resolution; scale it to the resolution of CC 
         data_types = list("continuous", "continuous")
         filenames = list(tiffilepath, sdm_projection_file)
-        resamplingflag = ifelse(res(raster(tiffilepath))[1] >= res(raster(sdm_projection_file))[1], 'highest', 'lowest')
+        resamplingflag = ifelse(res(raster(tiffilepath))[1] <= res(raster(sdm_projection_file))[1], 'highest', 'lowest')
         proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, data_types, resamplingflag, 
                                                                                overwrite=FALSE) # Don't overwrite original proj files
 

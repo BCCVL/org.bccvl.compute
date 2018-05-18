@@ -830,7 +830,7 @@ bccvl.generateCentreOfGravityMetric <- function(projfiles, outfilename) {
 
     results = as.data.frame(matrix(ncol=5, nrow=3))
     rownames(results) = c('Centre_of_Range', 'Minimum', 'Maximum')
-    colnames(results) = c('current_latitude', 'current_longitude', 'future_latitude', 'future_longitude', 'change_in_km')
+    colnames(results) = c('current_latitude', 'current_longitude', 'future_latitude', 'future_longitude', 'change_in_m')
     results[1,] = distance(current_cog['COGy'], current_cog['COGx'], future_cog['COGy'], future_cog['COGx'])
     results[2,] = distance(min(coordinates(current_proj)[,2]),
                            min(coordinates(current_proj)[,1]),
