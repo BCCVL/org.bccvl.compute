@@ -61,10 +61,24 @@ species_algo_str = ifelse(is.null(bccvl.params$subset),
                           sprintf("%s_cta_%s", occur.species, bccvl.params$subset))
 
 
+# create input to rpart
+the.penalty = bccvl.params$the.penalty
+if (bccvl.params$which.penalise=="equal") {
+    the.penalty <- 1
+    list.penalties <- c(0,1,1,0)
+} else if (bccvl.params$which.penalise == "FN") {
+    list.penalties <- c(0,1,the.penalty,0) 
+} else if (bccvl.params$which.penalise=="FP") {
+    list.penalties <- c(0,the.penalty,1,0)
+}
+
+this.loss <- matrix(list.penalties, byrow=TRUE, nrow=2)
+
 # model-specific arguments to create a biomod model
 model.options.cta <- list(
 	method = bccvl.params$method, #"anova", "poisson", "class" or "exp"
-	# parms = "default", #optional parameters for the splitting function
+  parms = list(method = bccvl.params$method, parms=list(loss=this.loss, split="information")),
+  # parms = "default", #optional parameters for the splitting function
 	# cost = NULL, #a vector of non-negative costs, one for each variable in the model. Defaults to one for all variables
 	control = list(
 		minsplit = bccvl.params$control_minsplit, #the minimum number of observations that must exist in a node in order for a split to be attempted

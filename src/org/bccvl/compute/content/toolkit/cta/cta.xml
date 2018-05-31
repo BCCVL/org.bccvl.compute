@@ -128,6 +128,21 @@
         <description>maximum number of splits of the tree</description>
         <title>maximum depth (maxdepth)</title>
       </field>
+      <field name="which.penalise" type="zope.schema.Choice">
+        <default>equal</default>
+        <description>which penalise option</description>
+        <title>which.penalise</title>
+        <values>
+          <element>equal</element>
+          <element>FN</element>
+          <element>FP</element>
+        </values>
+      </field>
+      <field name="the.penalty" type="zope.schema.Int">
+        <default>1</default>
+        <description>the penalty</description>
+        <title>the.penalty</title>
+      </field>
       <field name="random_seed" type="zope.schema.Int">
         <description>random seed used</description>
         <required>False</required>
