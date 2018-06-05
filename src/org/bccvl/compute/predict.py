@@ -45,7 +45,6 @@ def get_project_params(result):
                 'filename': dsinfo['filename'],
                 'downloadurl': dsinfo['downloadurl'],
                 'layer': layer,
-                'zippath': dsinfo['layers'][layer]['filename'],
                 # TODO: add year, gcm, emsc here?
                 'type': dsinfo['layers'][layer]['datatype'],
             }
