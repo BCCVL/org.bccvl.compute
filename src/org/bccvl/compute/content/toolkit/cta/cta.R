@@ -77,7 +77,7 @@ this.loss <- matrix(list.penalties, byrow=TRUE, nrow=2)
 # model-specific arguments to create a biomod model
 model.options.cta <- list(
 	method = bccvl.params$method, #"anova", "poisson", "class" or "exp"
-  parms = list(method = bccvl.params$method, parms=list(loss=this.loss, split="information")),
+  parms = list(loss=this.loss, split="information"),
   # parms = "default", #optional parameters for the splitting function
 	# cost = NULL, #a vector of non-negative costs, one for each variable in the model. Defaults to one for all variables
 	control = list(
