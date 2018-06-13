@@ -829,13 +829,13 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
    nd = dim(data1)[2]
 
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
    glm.all = glm(formula = RespV1 ~ ., family = binomial, data = subdata1)
 
    Xaic = NULL
-   for (i in 1:(nd-1))
+   for (i in (nd-1):1)
    {
-      subdf = subdata1[,-i, drop=FALSE]
+      subdf = subdata1[,i, drop=FALSE]
       glm.one = glm(formula = RespV1 ~ . , family = binomial, data = subdf)
       Xaic = c(Xaic,AIC(glm.one)) 
    }
@@ -898,7 +898,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    # variable importance plot using the inbuilt biomod2 function 'variables_importance'
 
    nd = dim(data1)[2]
-   subdata1 = data1[,2:nd]
+   subdata1 = data1[,2:nd, drop=FALSE]
    vi_biomod = variables_importance(fittedmodel,data=subdata1)$mat
    nx = length(vi_biomod)
    dfvi = as.data.frame(cbind(1:nx,vi_biomod[,1]))
@@ -927,7 +927,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    {
      # variable importance plot using the inbuilt biomod2 function 'variables_importance'
      nd = dim(data1)[2]  
-     RespV1 = data1[,1]; subdata1 = data1[,2:nd]
+     RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
    
      vi_biomod = variables_importance(fittedmodel,data=subdata1)$mat
      nx = length(vi_biomod)
@@ -943,7 +943,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    {
      # variable importance plot following the AIC approach
      nd = dim(data1)[2]  
-     RespV1 = data1[,1]; subdata1 = data1[,2:nd]
+     RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
 
      xname = names(subdata1)
      sname = paste("s(", xname, ")",sep="")
@@ -952,9 +952,9 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
      gam.all = gam(formula = gamformu.all, family = binomial, data = subdata1)
 
      Xaic = NULL
-     for (i in 1:(nd-1))
+     for (i in (nd-1):1)
      {
-        subdf = subdata1[,-i]
+        subdf = subdata1[, i, drop=FALSE]
         xname1 = names(subdf)
         sname1 = paste("s(", xname1, ")",sep="")
         gamformu1 <- as.formula(paste("RespV1 ~ 1 +", paste(sname1, collapse= "+")))
@@ -984,7 +984,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
    # variable importance plot using the inbuilt biomod2 function 'variables_importance'
    nd = dim(data1)[2]  
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
  
    vi_biomod = variables_importance(fittedmodel,data=subdata1)$mat
    nx = length(vi_biomod)
@@ -1009,7 +1009,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
    # variable importance plot using the inbuilt function 'varImp' from package 'caret'
    nd = dim(data1)[2]  
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
  
    var_imp = varImp(fittedmodel)
    nx = length(var_imp[,1])
@@ -1030,7 +1030,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
  
    # variable importance plot using the inbuilt biomod2 function 'variables_importance'
    nd = dim(data1)[2]  
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
  
    vi_biomod = variables_importance(fittedmodel,data=subdata1)$mat
    nx = length(vi_biomod)
@@ -1060,7 +1060,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    #  across the K classes.
 
    nd = dim(data1)[2]  
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
  
    out.rf = fittedmodel$importance
    rfImp = out.rf[,1]
