@@ -833,9 +833,9 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    glm.all = glm(formula = RespV1 ~ ., family = binomial, data = subdata1)
 
    Xaic = NULL
-   for (i in (nd-1):1)
+   for (i in 1:(nd-1))
    {
-      subdf = subdata1[,i, drop=FALSE]
+      subdf = subdata1[,-i, drop=FALSE]
       glm.one = glm(formula = RespV1 ~ . , family = binomial, data = subdf)
       Xaic = c(Xaic,AIC(glm.one)) 
    }
@@ -952,9 +952,9 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
      gam.all = gam(formula = gamformu.all, family = binomial, data = subdata1)
 
      Xaic = NULL
-     for (i in (nd-1):1)
+     for (i in 1:(nd-1))
      {
-        subdf = subdata1[, i, drop=FALSE]
+        subdf = subdata1[, -i, drop=FALSE]
         xname1 = names(subdf)
         sname1 = paste("s(", xname1, ")",sep="")
         gamformu1 <- as.formula(paste("RespV1 ~ 1 +", paste(sname1, collapse= "+")))
