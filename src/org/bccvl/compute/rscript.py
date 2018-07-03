@@ -83,6 +83,11 @@ def get_sdm_params(result):
         if isinstance(item, Decimal):
             params[key] = float(item)
 
+    # Get the content of the modelling_region BlobFile.
+    # Note: deepcopy does not copy the content of BlobFile.
+    if result.job_params['modelling_region']:
+        params['modelling_region'] = result.job_params['modelling_region'].data
+
     # add hints for worker to download files
     workerhints = {
         # only those parameters that are actually in params dict

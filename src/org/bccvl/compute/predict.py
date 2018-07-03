@@ -65,6 +65,12 @@ def get_project_params(result):
         if isinstance(item, Decimal):
             params[key] = float(item)
 
+    # Get the content of the projection_region BlobFile.
+    # Note: deepcopy does not copy the content of BlobFile.
+    if result.job_params['projection_region']:
+        params['projection_region'] = result.job_params['projection_region'].data
+
+
     # add hints for worker
     workerhints = {
         'files': ('species_distribution_models', 'future_climate_datasets', 'sdm_projections')
