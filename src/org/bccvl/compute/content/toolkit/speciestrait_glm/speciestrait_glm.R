@@ -42,7 +42,10 @@ formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
 
 # Run model - with polr function for ordinal traits, multinom function for nominal traits, glm function for continuous traits
-  na_action = get(getOption(bccvl.params$na_action, "na.fail"))
+  na_action = get0(bccvl.params$na_action)
+  if (is.null(na_action)) {
+        na_action = get("na.fail")
+  }
   if (formula$type == 'ordinal') {
         output_filename = paste0(formula$trait, ".polr.results.txt")
         glm.result = polr(formula=formula(formula$formula),
