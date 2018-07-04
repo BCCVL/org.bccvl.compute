@@ -43,7 +43,11 @@ formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
   # Run model - with clmm function for ordinal traits, glmer function for nominal traits, glmer function for continuous traits
   # Todo: not sure whether 'glmer' works for nominal trait data - need to further look into this
-  na_action = get(getOption(bccvl.params$na_action, "na.fail"))
+  na_action = get0(bccvl.params$na_action)
+  if (is.null(na_action)) {
+      na_action = get("na.fail")
+  }
+
   if (formula$type == 'ordinal') {
         output_filename = paste0(formula$trait, ".clmm.results.txt")
         glmm.result = clmm(formula=formula(formula$formula),

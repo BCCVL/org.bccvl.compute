@@ -41,6 +41,11 @@ library("gam")
 # It causes issue with gam library
 #library("mgcv")
 
+na_action = get0(bccvl.params$na_action)
+if (is.null(na_action)) {
+    na_action = get("na.fail")
+}
+
 # Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
@@ -64,7 +69,7 @@ for (formula in formulae) {
                      data=trait.data,
                      family=family_from_string(bccvl.params$family),
                      weights=NULL,
-                     na.action=get(getOption(bccvl.params$na_action, "na.fail")),
+                     na.action=na_action,
                      start=NULL,
                      etastart=NULL,
                      mustart=NULL,

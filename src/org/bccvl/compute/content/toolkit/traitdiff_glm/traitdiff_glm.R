@@ -35,7 +35,10 @@ library("nnet")
 # Generate the formulae to test differences among species for each trait separately
 formulae = bccvl.trait.gen_formulae(trait.data.params, trait_diff=TRUE)
 # Run model - with polr function for ordinal traits, multinom function for nominal traits, glm function for continuous traits
-na_action = get(getOption(bccvl.params$na_action, "na.fail"))
+na_action = get0(bccvl.params$na_action)
+if (is.null(na_action)) {
+    na_action = get("na.fail")
+}
 for (formula in formulae) {
     if (formula$type == 'ordinal') {
         output_filename = paste0(formula$trait, ".diffpolr.results.txt")
