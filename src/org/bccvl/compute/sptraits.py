@@ -55,6 +55,11 @@ def get_traits_params(result):
     # replace original dict
     params['environmental_datasets'] = envlist
 
+    # Get the content of the modelling_region BlobFile.
+    # Note: deepcopy does not copy the content of BlobFile.
+    if result.job_params['modelling_region']:
+        params['modelling_region'] = result.job_params['modelling_region'].data
+
     # add hints for worker
     workerhints = {
         'files': [x for x in ('traits_dataset', 'environmental_datasets', ) if x in params]
