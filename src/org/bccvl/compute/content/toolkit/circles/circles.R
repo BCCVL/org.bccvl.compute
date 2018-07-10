@@ -109,16 +109,16 @@ occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
 if (!all(enviro.data.type=="continuous")) {
     warning("circles not run because categorical data cannot be used")
 } else {
-    # run circles with matrix of enviro data
+    # run circles with matrix of enviro data. Do not merge ovelap circles.
     if (is.null(opt.d)) {
-      model.sdm = circles(p=occur, lonlat=TRUE)
+      model.sdm = circles(p=occur, lonlat=TRUE, dissolve=FALSE)
     }
     else {
-      model.sdm = circles(p=occur, d=opt.d, lonlat=TRUE)
+      model.sdm = circles(p=occur, d=opt.d, lonlat=TRUE, dissolve=FALSE)
     }
     
   # save out the model object
-    bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
+  bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
 
   # predict for given climate scenario
   model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
