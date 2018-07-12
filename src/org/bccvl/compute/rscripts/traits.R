@@ -152,7 +152,7 @@ bccvl.err.null <- function (e) return(NULL)
 # i.e. for trait diff model, trait ~ species
 # for trait cta/glm/gam models, trait ~ env1 + env2 + env3 etc
 # for trait glmm, trait ~ env1 + env2 + (1|random1) + (1|random2)
-bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
+bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE, include_rf=FALSE) {
     cols = list(species=list(),
                 lat=list(),
                 lon=list(),
@@ -184,10 +184,14 @@ bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE) {
     # For trait diff, variable is the species, otherwise environmental variables.
     variables = paste(names(cols[[ifelse(trait_diff, 'species', 'env')]]), collapse=' + ')
 
-    ranvarnames = names(cols[['random']])
+    # only include random factors for glmm and cta
+    ranvarnames = NULL
     randomvars = ""
-    if (!is.null(ranvarnames)) {
-        randomvars = paste("(1|", ranvarnames, ")", sep = '', collapse=' + ')
+    if (include_rf) {
+        ranvarnames = names(cols[['random']])
+        if (!is.null(ranvarnames)) {
+            randomvars = paste("(1|", ranvarnames, ")", sep = '', collapse=' + ')
+        }
     }
     for (trait in names(cols[['trait']])) {
         formula = ifelse(is.null(ranvarnames),

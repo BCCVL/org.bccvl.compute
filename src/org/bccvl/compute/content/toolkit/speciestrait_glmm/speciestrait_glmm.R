@@ -39,7 +39,7 @@ library(ordinal)
 
 # Generate a formula for each trait
 # trait ~ fixed1 + fixed2 + (1|random1) + (1|random2)
-formulae = bccvl.trait.gen_formulae(trait.data.params)
+formulae = bccvl.trait.gen_formulae(trait.data.params, include_rf=TRUE)
 for (formula in formulae) {
   # Run model - with clmm function for ordinal traits, glmer function for nominal traits, glmer function for continuous traits
   # Todo: not sure whether 'glmer' works for nominal trait data - need to further look into this
