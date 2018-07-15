@@ -247,7 +247,7 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filena
     }
     else {
         # Make geojson a SpatialPolygons object due to storing constraint method info as properties
-        parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON")
+        parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON", verbose = FALSE)
         parsedgeojson <- SpatialPolygons(parsedgeojson@polygons, proj4string=parsedgeojson@proj4string)
 
         # CRS is different, reproject geojson to the trait coordinate systemf
