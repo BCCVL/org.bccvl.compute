@@ -37,9 +37,15 @@ bccvl.saveProjection <- function(proj.model, species_algo_str, filename_ext=NULL
 
 absmean <- function(x) abs(mean(x, na.rm=T))
 absdiff <- function(x) abs(diff(x, na.rm=T))
+pick1min <- function(x) { # w<-c(5,6,7,11,13)
+	w <- which(x == min(x, na.rm=T)); 
+	len <- length(w); 
+	if (len == 1) return(w) else {if (len %% 2 ==1) {return(median(w))} else {return(median(w[-1]))}}
+}
 
 performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.plot=T) {
   library(gridExtra)
+  library(pROC)
   
   # AIM: Calculate 2D measures of predictive performance for any
   # model that predicts a probability of presence (or success), 
@@ -63,6 +69,15 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
   # Table with best probability threshold value corresponding to minimum loss
   # Range of threshold probability values for which loss falls within 5% of minimum
   # 
+  
+  # TESTING 23 July 2018 - SLC - problem with threshold = 0 when predictions only 0 or 1
+  # species_algo_str <- "SRE"; make.plot <- "bccvl"; kill.plot <- F; obs<-gobs; pred<-gpred
+  
+  
+  # TESTING 23 July 2018 - SLC - when more than one "best" value as the minimum is achieved twice!
+  # Addition Number 2
+  
+  
   #############################################################
   #
   # ERROR CHECKING
@@ -143,6 +158,11 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
   # CREATE ERROR MATRICES
   list.tpv <- sort(unique(pred)) 
   
+  tbl.pred <- table(pred)
+  diversity.pred <- length(tbl.pred)
+  if (diversity.pred==1) stop("All predictions are the same!")
+  if (any(list.tpv==0)) { if (diversity.pred==2) { list.tpv <- 1; } else { list.tpv <- list.tpv[list.tpv!=0]; } }
+  
   # tpv = threshold probability value: threshold that is used to transform the continuous probability of presence predicted by the model into a binary prediction:
   # probabilities < tpv = absences, probabilities > tpv = presences
   
@@ -162,14 +182,14 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
   # tn = True Negatives (observed and predicted absences)
   # fn = False Negatives (observed presences predicted as absences)
   
-  for (ell in seq(along=list.tpv)) { 
+  for (ell in seq(along=list.tpv)) {  # ell <- 1
     
     th <- list.tpv[ell]
     
-    tp[ell] <- length(which(pred>=th & obs==1))
-    fp[ell] <- length(which(pred>=th & obs==0))
-    tn[ell] <- length(which(pred<th & obs==0))
-    fn[ell] <- length(which(pred<th & obs==1))
+    tp[ell] <- length(which(pred>=th & truth==1))
+    fp[ell] <- length(which(pred>=th & truth ==0))
+    tn[ell] <- length(which(pred<th & truth ==0))
+    fn[ell] <- length(which(pred<th & truth ==1))
     
   ## Evaluation statistics:
     
@@ -231,7 +251,7 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
     kappa[ell] <- ((Po[ell]-Pe[ell])/(1-Pe[ell]))
     
     # auc = Area Under the (ROC) Curve
-    roc <- roc(obs, pred)
+    roc <- roc(truth, pred)
     auc <- auc(roc)
     
   }
@@ -259,13 +279,16 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
   temp$L.all <- apply(temp[, list.errors],1, absmean)
   temp$L.eq.diag <- apply(temp[, c("tpr", "tnr")], 1, absdiff)
 
-  # Calculate the best threshold probability value
+  # Addition Number 2, 23 July 2018
+  # Check if there is more than one minimum, then pick the middle 
   best <- list(
-    diag = temp$tpv[which(temp$L.diag == min(temp$L.diag, na.rm=T))],
-    pred = temp$tpv[which(temp$L.pred == min(temp$L.pred, na.rm=T))],
-    all = temp$tpv[which(temp$L.all == min(temp$L.all, na.rm=T))],   
-    eq.diag = temp$tpv[which(temp$L.eq.diag==min(temp$L.eq.diag, na.rm=T))]
+    diag = temp$tpv[pick1min(temp$L.diag) ],
+    pred = temp$tpv[pick1min(temp$L.pred == min(temp$L.pred, na.rm=T))],
+    all = temp$tpv[pick1min(temp$L.all == min(temp$L.all, na.rm=T))],   
+    eq.diag = temp$tpv[pick1min(temp$L.eq.diag==min(temp$L.eq.diag, na.rm=T))]
   )
+  
+  # End Addition Number 2, 23 July 2018
   
   # Calculate the range of threshold probability values for which each of the losses fall within 5% of the best value
   rangeperf <- matrix(NA, nrow=4, ncol=2, dimnames=list(names(best), c("lower","upper")))
@@ -364,13 +387,16 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
     # Create evaluation stats table with values for optimum tpv value for L.diag (= maximize sum of TPR + TNR). 
     all.stats <- data.frame(list(tpv=list.tpv, L.diag=temp$L.diag, tpr=tpr, tnr=tnr, fpr=fpr, fnr=fnr, fdr=fdr, fors=fors, ppv=ppv, npv=npv, kappa=kappa, tss=tss, bs=bs, csi=csi, ets=ets, or=or, acc=acc, mcr=mcr))   
     all.stats <- round(all.stats, digits = 3)
-    max.TPR.TNR <- all.stats[which.max(all.stats$L.diag), ] # select row with all stats for maximum value of L.diag
-    rownames(max.TPR.TNR) <- c("maximize sum TPR and TNR")
+    
+    # Addition Number 2, 23 July 2018
+    max.TPR.TNR <- all.stats[pick1min(all.stats$L.diag), ] # select row with all stats for maximum value of L.diag
+    rownames(max.TPR.TNR) <- c("maximize sum TPR and TNR, minimize sum FPR and FNR")
+    # End Addition Number 2, 23 July 2018
     
     # stats.table <- rbind(max.TPR.TNR, TPR.eq.TNR, max.Kappa) 
     stats.table <- max.TPR.TNR
     stats.table$L.diag <- NULL
-    names(stats.table) <- c("Optimum treshold value:", "True Positive Rate (TPR)", "True Negative Rate (TNR)", "False Positive Rate (FPR)", "False Negative Rate (FNR)", 
+    names(stats.table) <- c("Optimum threshold value:", "True Positive Rate (TPR)", "True Negative Rate (TNR)", "False Positive Rate (FPR)", "False Negative Rate (FNR)", 
                             "False Discovery Rate (FDR)", "False Omission Rate (FOR)", "Positive Predictive Value (PPV)", "Negative Predictive Value (NPV)", 
                             "Cohen's Kappa", "True Skill Statistic (TSS)", "Bias Score (BS)", "Critical Success Index (CSI)", "Equitable Threat Score (ETS)",
                             "Odds-Ratio (OR)","Accuracy", "Misclassification Rate")
@@ -829,7 +855,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
    nd = dim(data1)[2]
 
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
    glm.all = glm(formula = RespV1 ~ ., family = binomial, data = subdata1)
 
    Xaic = NULL
@@ -984,7 +1010,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
    # variable importance plot using the inbuilt biomod2 function 'variables_importance'
    nd = dim(data1)[2]  
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
  
    vi_biomod = variables_importance(fittedmodel,data=subdata1)$mat
    nx = length(vi_biomod)
@@ -1009,7 +1035,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
    # variable importance plot using the inbuilt function 'varImp' from package 'caret'
    nd = dim(data1)[2]  
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
  
    var_imp = varImp(fittedmodel)
    nx = length(var_imp[,1])
@@ -1030,7 +1056,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
  
    # variable importance plot using the inbuilt biomod2 function 'variables_importance'
    nd = dim(data1)[2]  
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
  
    vi_biomod = variables_importance(fittedmodel,data=subdata1)$mat
    nx = length(vi_biomod)
@@ -1060,7 +1086,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    #  across the K classes.
 
    nd = dim(data1)[2]  
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
  
    out.rf = fittedmodel$importance
    rfImp = out.rf[,1]
