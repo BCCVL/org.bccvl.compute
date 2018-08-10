@@ -790,8 +790,8 @@ bccvl.generateOccurrenceProbChangeMetric <- function(prob_rasters, outfilename) 
 # function to compute and save species range change metric as geotif file
 bccvl.generateSpeciesRangeChangeMetric <- function(prob_rasters, threshold, outfilename) {
     # return 1 for Blank, 3 for Expansion, 0 for Contraction and 2 for No Change
-    rangeChange <- overlay(as.integer(prob_rasters[[1]] > threshold),
-                           as.integer(prob_rasters[[2]] > threshold),
+    rangeChange <- overlay(as.integer(prob_rasters[[1]] >= threshold),
+                           as.integer(prob_rasters[[2]] >= threshold),
                            fun=function(fp, cp) { return((2 * fp) + 1 - cp)})
     writeRaster(rangeChange, outfilename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
 
@@ -827,6 +827,11 @@ bccvl.generateCentreOfGravityMetric <- function(projfiles, outfilename) {
     current_proj = raster(projfiles[[2]])
     future_cog = COGravity(future_proj)
     current_cog = COGravity(current_proj)
+
+    # Do not generate CoG if it has NaN value
+    if (!any(is.nan(current_cog)) || !any(is.nan(future_cog))) {
+        return
+    }
 
     results = as.data.frame(matrix(ncol=5, nrow=3))
     rownames(results) = c('Centre_of_Range', 'Minimum', 'Maximum')
