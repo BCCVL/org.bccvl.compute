@@ -379,7 +379,7 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
       geom_abline(intercept=0, slope=1, colour="grey") + 
       labs(x="\nFalse Positive Rate (1-Specificity)", y="True Positive Rate (Sensitivity)\n") +
       ggtitle(paste("ROC plot")) +
-      annotate(geom = "text", x = 0.8, y = 0.1, label = paste("AUC = ", auc.d$auc), size = 6) +
+      annotate(geom = "text", x = 0.5, y = 0.1, label = paste("AUC = ", auc.d$auc), size = 6) +
       theme(axis.text = element_text(family="Arial", size=rel(1.5)), axis.title = element_text(family="Arial", size=rel(1.5)), plot.title = element_text(family="Arial", size=rel(2)), legend.text = element_text(family="Arial", size=rel(1.5)))
     print(g5)
     dev.off()
