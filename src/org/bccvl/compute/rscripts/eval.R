@@ -249,13 +249,12 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
     Po[ell] <- acc[ell] # observed accuracy
     Pe[ell] <- ((((tp[ell]+fp[ell])/(tp[ell]+fp[ell]+tn[ell]+fn[ell]))*((tp[ell]+fn[ell])/(tp[ell]+fp[ell]+tn[ell]+fn[ell]))) + (((fn[ell]+tn[ell])/(tp[ell]+fp[ell]+tn[ell]+fn[ell]))*((fp[ell]+tn[ell])/(tp[ell]+fp[ell]+tn[ell]+fn[ell])))) # expected accuracy by random chance
     kappa[ell] <- ((Po[ell]-Pe[ell])/(1-Pe[ell]))
-    
-    # auc = Area Under the (ROC) Curve
-    roc <- roc(truth, pred)
-    auc <- auc(roc)
-    
   }
-  
+
+  # auc = Area Under the (ROC) Curve
+  roc <- roc(truth, pred)
+  auc <- auc(roc)
+    
   # Compile the information into dataframes
   temp <- data.frame(list(tpv=list.tpv, tpr=tpr, fpr=fpr,  tnr=tnr, fnr=fnr, ppv=ppv, fdr=fdr, npv=npv, fors=fors))
   auc.d <- data.frame(auc)
@@ -373,13 +372,16 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
     
     # Create ROC plot 
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-ROC_%s.png", make.plot, species_algo_str)), width=480, height=480)
+    xmax1 = min(round((max(temp$fpr) + 0.2)/0.1)*0.1, 1)
+    xpos = max(xmax1/2, 0.1) 
     g5 <- ggplot(temp, aes(x=fpr, y=tpr)) + 
       geom_line(size=1.2) + 
       ylim(0,1) +
+      xlim(0, xmax1) +
       geom_abline(intercept=0, slope=1, colour="grey") + 
       labs(x="\nFalse Positive Rate (1-Specificity)", y="True Positive Rate (Sensitivity)\n") +
       ggtitle(paste("ROC plot")) +
-      annotate(geom = "text", x = 0.5, y = 0.1, label = paste("AUC = ", auc.d$auc), size = 6) +
+      annotate(geom = "text", x = xpos, y = 0.1, label = paste("AUC = ", auc.d$auc), size = 6) +
       theme(axis.text = element_text(family="Arial", size=rel(1.5)), axis.title = element_text(family="Arial", size=rel(1.5)), plot.title = element_text(family="Arial", size=rel(2)), legend.text = element_text(family="Arial", size=rel(1.5)))
     print(g5)
     dev.off()
