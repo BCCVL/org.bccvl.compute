@@ -67,7 +67,7 @@ for (formula in formulae) {
     # Run the model for each trait separately
     gam.result = gam(formula=formula(formula$formula),
                      data=trait.data,
-                     family=family_from_string(bccvl.params$family),
+                     family=fam,
                      weights=NULL,
                      na.action=na_action,
                      start=NULL,
