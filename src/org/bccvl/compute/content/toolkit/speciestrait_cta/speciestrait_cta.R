@@ -13,6 +13,8 @@ trait.data.filename = bccvl.params$traits_dataset$filename
 trait.data.params = bccvl.params$traits_dataset_params
 # Read in the trait data
 trait.data = read.csv(trait.data.filename)
+# Get the species
+trait.species =bccvl.params$species
 
 # Define the current environmental data to use
 enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
@@ -28,6 +30,7 @@ library("rpart")
 
 # Geographically constrained modelling and merge the environmental data into trait.data
 if (!is.null(trait.data)) {
+    trait.data = subset(trait.data, species==trait.species)
     merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints);
     trait.data = merged.result$data
     trait.data.params = merged.result$params

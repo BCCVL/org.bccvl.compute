@@ -127,6 +127,9 @@ parameter.print <- function(params) {
         # Todo: Need to update these parameters
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
     }
+    else if (func == "exploration_plot") {
+        pnames = c("random_seed")
+    }
 
     for (p in pnames) {
         cat(parameter.as.string(p, params[[p]]))
@@ -258,7 +261,7 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filena
         traitSPconstrained <- traitSP[!is.na(over(traitSP, parsedgeojson))]
     }
 
-    trait.constrained <- as.data.frame(traitSPconstrained)
+    trait.constrained <- unique.data.frame(as.data.frame(traitSPconstrained))
     names(trait.constrained) <- c("lon", "lat")
 
     # constraint the trait.data
@@ -424,4 +427,133 @@ family_from_string <- function(s)
         }
     }
     return (do.call(what=f, args=args))
+}
+
+### Author: Jon Shuker
+
+## Note: Exception handling will need to be added to this script if needed.
+
+bccvl.regPlots = function(regResult, outerTitle="", fnamePrefix="", outputdir=bccvl.env$outputdir) {
+  
+  plotWidth = 7; plotHeight = 7  # inches
+  plotDPI = 300
+
+  listVars = names(regResult$coefficients)[-1]   # exclude Intercept which is first
+  nVars = length(listVars)
+  nCols = ceiling(sqrt(nVars))
+  nRows = ceiling(nVars/nCols)
+  
+  png(filename=file.path(outputdir, paste0(fnamePrefix, 'plots.png')),
+      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+  par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
+  require(visreg)
+  for (nameVar in listVars) {
+    visreg(regResult, nameVar, ylab="")
+    # visreg(regResult, "B01")
+  }
+  mtext(outerTitle, outer=TRUE, line=0)
+  dev.off()
+
+  png(filename=file.path(outputdir, paste0(fnamePrefix, 'diagnostic_plots.png')),
+      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+  layout(matrix(c(1,3,2,4),2,2)) # 4 graphs/page
+  plot(regResult)
+  title(outerTitle, outer=TRUE, line=-1)
+  dev.off()
+  
+}
+
+
+bccvl.exploratoryPlots.categ = function(dataToExplore, outerTitle="", fnamePrefix="",
+                                    outputdir=bccvl.env$outputdir) {
+  
+  plotWidth = 7; plotHeight = 7  # inches
+  plotDPI = 300
+
+  listVars = colnames(dataToExplore)
+  nVars = length(listVars)
+  nCols = ceiling(sqrt(nVars))
+  nRows = ceiling(nVars/nCols)
+  
+  # Barplots
+  
+  png(filename=file.path(outputdir, paste0(fnamePrefix, 'barplot.png')),
+      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+      # width=800, height=800, unit='px', 
+      # res=300, pointsize=12*(800/480)*(72/300))  ##, type='cairo')
+  par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
+  for (nameVar in listVars) {
+    barplot(table(dataToExplore[,c(nameVar)]), 
+            main=nameVar)
+  }
+  mtext(outerTitle, outer=TRUE, line=0)
+  dev.off()
+  
+}
+
+
+bccvl.exploratoryPlots.contin = function(dataToExplore, doCorrelation=FALSE, outerTitle="",
+                                   fnamePrefix="", outputdir=bccvl.env$outputdir) {
+  
+  listVars = colnames(dataToExplore)
+  nVars = length(listVars)
+  nCols = ceiling(sqrt(nVars))
+  nRows = ceiling(nVars/nCols)
+  
+  plotWidth = 7; plotHeight = 7  # inches
+  plotDPI = 300
+
+  # Boxplots
+  
+  png(filename=file.path(outputdir, paste0(fnamePrefix, 'boxplot.png')),
+      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+      # width=800, height=800, unit='px', 
+      # res=300, pointsize=12*(800/480)*(72/300))  ##, type='cairo')
+  par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
+  for (nameVar in listVars) {
+    boxplot(dataToExplore[,c(nameVar)], main=nameVar)
+  }
+  mtext(outerTitle, outer=TRUE, line=0)
+  dev.off()
+  
+  # Histograms
+  
+  png(filename=file.path(outputdir, paste0(fnamePrefix, 'histogram.png')),
+      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+  par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
+  for (nameVar in listVars) {
+    hist(dataToExplore[,c(nameVar)], breaks=10, xlab="", main=nameVar)
+  }
+  mtext(outerTitle, outer=TRUE, line=0)
+  dev.off()
+
+  # Density plots
+  
+  png(filename=file.path(outputdir, paste0(fnamePrefix, 'density.png')),
+      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+  par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
+  for (nameVar in listVars) {
+    plot(density(dataToExplore[,c(nameVar)], na.rm=TRUE), main=nameVar)
+  }
+  mtext(outerTitle, outer=TRUE, line=0)
+  dev.off()
+  
+  # Correlations, if requested
+  
+  if (doCorrelation && nCols > 1) {
+    
+    png(filename=file.path(outputdir, paste0(fnamePrefix, 'correlations.png')),
+        width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+    par(oma=c(0,0,1.5,0))
+    pairs(dataToExplore, 
+          lower.panel = function(x,y){
+            usrSaved = par("usr"); on.exit(par(usrSaved))
+            par(usr = c(0, 1, 0, 1))
+            text(0.5, 0.5, 
+                 round(cor(x, y, use="na.or.complete", method="pearson"), digits=2))})
+    mtext(outerTitle, outer=TRUE, line=0)
+    dev.off()
+    
+  }
+  
 }
