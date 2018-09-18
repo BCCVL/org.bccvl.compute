@@ -850,8 +850,8 @@ bccvl.generateCentreOfGravityMetric <- function(projfiles, outfilename) {
     current_cog = COGravity(current_proj)
 
     # Do not generate CoG if it has NaN value
-    if (!any(is.nan(current_cog)) || !any(is.nan(future_cog))) {
-        return
+    if (is.nan(current_cog['COGy']) || is.nan(current_cog['COGx']) || is.nan(future_cog['COGy']) || is.nan(future_cog['COGx'])) {
+        return()
     }
 
     results = as.data.frame(matrix(ncol=5, nrow=3))
