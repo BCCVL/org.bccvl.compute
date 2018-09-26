@@ -785,13 +785,15 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
    fitteddata = fittedmodel$data  # these are the data used by biomod2 for model fitting
    nd = dim(fitteddata)[2]
-   sub.data = fitteddata[,2:nd]; RespV = fitteddata[,1]
-
+   sub.data = fitteddata[,2:nd, drop=FALSE]
+   # Can only scale numeric data
+   cat.data = Filter(is.factor, sub.data)
+   sub.data = Filter(is.numeric, sub.data)
+   RespV = fitteddata[,1, drop=FALSE]
    rescaled.data <- scale(sub.data)
 
    # attributes(rescaled.data)
-   all.data <- cbind(as.data.frame(list(presence=RespV)), as.data.frame(rescaled.data))
-   names(all.data) <- names(fitteddata)
+   all.data <- cbind(RespV, as.data.frame(rescaled.data), cat.data)
 
    # head(all.data); dim(all.data)
    rescaled.glm <- glm(fittedmodel$formula, data=all.data, family=binomial)
@@ -827,8 +829,8 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
       write.csv(dfout,file=paste(filekeep,"paraest_out.csv",sep="_"),row.names=FALSE)
    }
        
-   #  the heatmap in terms of correlation among predictor variables
-   rescdata = rescaled.glm$data[,-1]
+   #  the heatmap in terms of correlation among numerical predictor variables
+   rescdata = Filter(is.numeric, rescaled.glm$data[,-1, drop=FALSE])
 
    if("spearman" %in% cor.method) {
        xx = cor(rescdata, method="spearman")
@@ -857,7 +859,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
    nd = dim(data1)[2]
 
-   RespV1 = data1[,1]; subdata1 = data1[,2:nd]
+   RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
    glm.all = glm(formula = RespV1 ~ ., family = binomial, data = subdata1)
 
    Xaic = NULL
@@ -971,7 +973,11 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    {
      # variable importance plot following the AIC approach
      nd = dim(data1)[2]  
-     RespV1 = data1[,1]; subdata1 = data1[,2:nd, drop=FALSE]
+     RespV1 = data1[,1]
+     subdata1 = data1[,2:nd, drop=FALSE]
+
+     # gam function cannot take categorical data, so exclude categorical data.
+     subdata1 = Filter(is.numeric, subdata1)
 
      xname = names(subdata1)
      sname = paste("s(", xname, ")",sep="")
@@ -980,7 +986,8 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
      gam.all = gam(formula = gamformu.all, family = binomial, data = subdata1)
 
      Xaic = NULL
-     for (i in 1:(nd-1))
+     nd = dim(subdata1)[2]
+     for (i in 1:nd)
      {
         subdf = subdata1[, -i, drop=FALSE]
         xname1 = names(subdf)
@@ -1119,6 +1126,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    df.P = read.csv(working)
 
    the.data <- data1[,-1]
+   the.data <- Filter(is.numeric, the.data)
    nx = dim(the.data)[2]    #decide the number of the predictor variables
    yp = as.numeric(df.P[,8:(7+nx)])
 
