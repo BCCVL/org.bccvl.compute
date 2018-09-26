@@ -30,8 +30,10 @@ enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
 
 future.climate.dataset = lapply(bccvl.params$future_climate_datasets, function(x) x$filename)
 future.climate.data.type = lapply(bccvl.params$future_climate_datasets, function(x) x$type)
-#layer names for the current environmental layers used
+#layer names for the input environmental layers used
 future.climate.data.layer = lapply(bccvl.params$future_climate_datasets, function(x) x$layer)
+# layer names for the selected future dataset layers.
+future.climate.selected.layers = bccvl.params$selected_future_layers
 mm.subset = bccvl.params$subset
 species_algo_str = ifelse(is.null(mm.subset), 
                           sprintf("%s_%s", sdm.species, sdm.algorithm), 
@@ -39,8 +41,11 @@ species_algo_str = ifelse(is.null(mm.subset),
 
 
 # constraint_type: null for projection with constraint, and  "unconstraint" for projection without constraint.
-projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species, constraint_geojson, constraint_type=NULL) {
-    future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, datalayername, resamplingflag=enviro.data.resampling)
+projectdataset <- function(model.obj, futuredata, datatype, datalayername, projection.name, species, constraint_geojson, selected.future.layers=NULL, constraint_type=NULL) {
+    selected.layer.indexes = lapply(selected.future.layers, match, datalayername)
+    future.climate.scenario = bccvl.enviro.stack(futuredata, datatype, datalayername, 
+                                                resamplingflag=enviro.data.resampling, 
+                                                selected_layers=selected.layer.indexes)
     # filter out unused layers from future.climate.scenario
     predictors <- bccvl.checkModelLayers(model.obj, future.climate.scenario, futuredata)
     # geographically constrained modelling
@@ -197,6 +202,7 @@ projectdataset <- function(model.obj, futuredata, datatype, datalayername, proje
         filenames = list(tiffilepath, sdm_projection_file)
         resamplingflag = ifelse(res(raster(tiffilepath))[1] <= res(raster(sdm_projection_file))[1], 'highest', 'lowest')
         proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, data_types, resamplingflag, 
+                                                                               selected_layers=NULL, # consider all input layers
                                                                                overwrite=FALSE) # Don't overwrite original proj files
 
         # generate occurrence probability change for future and current projections
@@ -255,4 +261,5 @@ if (tolower(file_ext(modelfile)) == "zip") {
 model.obj <- bccvl.getModelObject(modelfile)
 
 # use folder name of first dataset to generate name for projection output
-projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, sdm.species, enviro.data.constraints)
+projectdataset(model.obj, future.climate.dataset, future.climate.data.type, future.climate.data.layer, projection.name, 
+              sdm.species, enviro.data.constraints, selected.future.layers=future.climate.selected.layers)
