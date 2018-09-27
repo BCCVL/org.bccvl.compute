@@ -54,6 +54,12 @@
             "mimetype": "image/png",
             "order": 9
         },   
+        "*_trait_environmental.csv": {
+            "title": "trait data with environmental data",
+            "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 10
+        },   
          "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
