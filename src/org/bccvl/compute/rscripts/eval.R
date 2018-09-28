@@ -850,6 +850,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    pheat <- ggplot(xx.ml, aes(X1, X2)) + geom_tile(aes(fill = value), colour="white") + 
       scale_fill_gradient2(low = "green4", high = "violetred", mid="white", 
       midpoint=0, limit=c(-1,1)) + labs(y=" ") + theme_minimal() +
+      scale_x_discrete(limits=rownames(xx)) + scale_y_discrete(limits=colnames(xx)) + coord_fixed() +
       theme(axis.title.x=element_blank(),legend.position = "bottom") +
       guides(fill=guide_legend(title="correlation"))
 
