@@ -662,6 +662,11 @@ bccvl.mask <- function(raster, parsedgeojson) {
     envraster_filename = paste(bccvl.env$workdir, basename(tempfile(fileext = ".grd")), sep="/")
     masked_raster = mask(cropped_raster, parsedgeojson, filename = envraster_filename)
 
+    # Adjust the levels as some levels may be dropped
+    if (is.factor(masked_raster)) {
+        masked_raster = as.factor(masked_raster)
+    }
+
     # Remove cropped raster and associated raster files (i.e. grd and gri)
     bccvl.remove.rasterObject(stack(cropped_raster))
 
