@@ -657,16 +657,15 @@ family_from_string <- function(s)
 
 bccvl.regPlots = function(regResult, outerTitle="", fnamePrefix="", outputdir=bccvl.env$outputdir) {
   
-  plotWidth = 7; plotHeight = 7  # inches
-  plotDPI = 300
-
+  plotWidth = 480; plotHeight = 480
+  
   listVars = names(regResult$coefficients)[-1]   # exclude Intercept which is first
   nVars = length(listVars)
   nCols = ceiling(sqrt(nVars))
   nRows = ceiling(nVars/nCols)
   
   png(filename=file.path(outputdir, paste0(fnamePrefix, 'plots.png')),
-      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+      width=plotWidth, height=plotHeight)
   par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
   require(visreg)
   for (nameVar in listVars) {
@@ -677,7 +676,7 @@ bccvl.regPlots = function(regResult, outerTitle="", fnamePrefix="", outputdir=bc
   dev.off()
 
   png(filename=file.path(outputdir, paste0(fnamePrefix, 'diagnostic_plots.png')),
-      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+      width=plotWidth, height=plotHeight)
   layout(matrix(c(1,3,2,4),2,2)) # 4 graphs/page
   plot(regResult)
   title(outerTitle, outer=TRUE, line=-1)
@@ -689,8 +688,7 @@ bccvl.regPlots = function(regResult, outerTitle="", fnamePrefix="", outputdir=bc
 bccvl.exploratoryPlots.categ = function(dataToExplore, outerTitle="", fnamePrefix="",
                                     outputdir=bccvl.env$outputdir) {
   
-  plotWidth = 7; plotHeight = 7  # inches
-  plotDPI = 300
+  plotWidth = 480; plotHeight = 480
 
   listVars = colnames(dataToExplore)
   nVars = length(listVars)
@@ -700,9 +698,7 @@ bccvl.exploratoryPlots.categ = function(dataToExplore, outerTitle="", fnamePrefi
   # Barplots
   
   png(filename=file.path(outputdir, paste0(fnamePrefix, 'barplot.png')),
-      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
-      # width=800, height=800, unit='px', 
-      # res=300, pointsize=12*(800/480)*(72/300))  ##, type='cairo')
+      width=plotWidth, height=plotHeight)
   par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
   for (nameVar in listVars) {
     barplot(table(dataToExplore[,c(nameVar)]), 
@@ -722,15 +718,12 @@ bccvl.exploratoryPlots.contin = function(dataToExplore, doCorrelation=FALSE, out
   nCols = ceiling(sqrt(nVars))
   nRows = ceiling(nVars/nCols)
   
-  plotWidth = 7; plotHeight = 7  # inches
-  plotDPI = 300
+  plotWidth = 480; plotHeight = 480
 
   # Boxplots
   
   png(filename=file.path(outputdir, paste0(fnamePrefix, 'boxplot.png')),
-      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
-      # width=800, height=800, unit='px', 
-      # res=300, pointsize=12*(800/480)*(72/300))  ##, type='cairo')
+      width=plotWidth, height=plotHeight)
   par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
   for (nameVar in listVars) {
     boxplot(dataToExplore[,c(nameVar)], main=nameVar)
@@ -741,7 +734,7 @@ bccvl.exploratoryPlots.contin = function(dataToExplore, doCorrelation=FALSE, out
   # Histograms
   
   png(filename=file.path(outputdir, paste0(fnamePrefix, 'histogram.png')),
-      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+      width=plotWidth, height=plotHeight)
   par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
   for (nameVar in listVars) {
     hist(dataToExplore[,c(nameVar)], breaks=10, xlab="", main=nameVar)
@@ -752,7 +745,7 @@ bccvl.exploratoryPlots.contin = function(dataToExplore, doCorrelation=FALSE, out
   # Density plots
   
   png(filename=file.path(outputdir, paste0(fnamePrefix, 'density.png')),
-      width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+      width=plotWidth, height=plotHeight)
   par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
   for (nameVar in listVars) {
     plot(density(dataToExplore[,c(nameVar)], na.rm=TRUE), main=nameVar)
@@ -765,7 +758,7 @@ bccvl.exploratoryPlots.contin = function(dataToExplore, doCorrelation=FALSE, out
   if (doCorrelation && nCols > 1) {
     
     png(filename=file.path(outputdir, paste0(fnamePrefix, 'correlations.png')),
-        width=plotWidth, height=plotHeight, unit='in', res=plotDPI)
+        width=plotWidth, height=plotHeight)
     par(oma=c(0,0,1.5,0))
     pairs(dataToExplore, 
           lower.panel = function(x,y){
