@@ -11,7 +11,7 @@ from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod
 from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.compute import perl_task
-from org.bccvl.tasks.plone import after_commit_task
+from org.bccvl.tasks.plone import after_commit_task, HIGH_PRIORITY
 
 
 LOG = logging.getLogger(__name__)
@@ -154,7 +154,7 @@ OUTPUTS = {
 
 
 @provider(IComputeMethod)
-def execute(result, toolkit):
+def execute(result, toolkit, priority=HIGH_PRIORITY):
     """
     This function takes an experiment and executes.
 
@@ -201,4 +201,4 @@ def execute(result, toolkit):
     # set debug flag
     params['worker']['zipworkenv'] = api.env.debug_mode()
     # send job to queue
-    after_commit_task(perl_task, params, context)
+    after_commit_task(perl_task, priority, params, context)

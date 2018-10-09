@@ -12,7 +12,7 @@ from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod
 from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.compute import r_task
-from org.bccvl.tasks.plone import after_commit_task
+from org.bccvl.tasks.plone import after_commit_task, HIGH_PRIORITY
 
 
 LOG = logging.getLogger(__name__)
@@ -126,7 +126,7 @@ def generate_sdm_script(r_script):
 
 
 @provider(IComputeMethod)
-def execute_sdm(result, toolkit):
+def execute_sdm(result, toolkit, priority=HIGH_PRIORITY):
     """
     This function takes an experiment and executes.
 
@@ -180,4 +180,4 @@ def execute_sdm(result, toolkit):
     ### send job to queue
 
     # TODO: define job chain here (and in other methods as well)
-    after_commit_task(r_task, params, context)
+    after_commit_task(r_task, priority, params, context)
