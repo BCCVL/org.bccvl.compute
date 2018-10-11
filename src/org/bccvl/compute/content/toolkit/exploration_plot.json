@@ -1,0 +1,14 @@
+{
+    "_type": "org.bccvl.content.function",
+    "title": "Exploration Plot",
+    "description": "Exploration plots for species trait experiment",
+    "subjects": ["exploration plot"],
+    "interpreter": "R",
+    "experiment_type": "org.bccvl.content.speciestraitsexperiment",
+    "script": {"filename": "exploration_plot.R"},
+    "schema": {"filename": "exploration_plot.xml"},
+    "output": {"filename": "exploration_plot.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish",
+    "algorithm_category": null
+}
