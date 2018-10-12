@@ -845,11 +845,11 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    rm = which(is.na(corx)==TRUE)
    xx.ml = xx.ml[-rm,]
 
-   pheat <- ggplot(xx.ml, aes(X1, X2)) + geom_tile(aes(fill = value), colour="white") + 
+   pheat <- ggplot(xx.ml, aes(X1, X2)) + geom_tile(aes(fill = value), colour="black") + 
       scale_fill_gradient2(low = "green4", high = "violetred", mid="white", 
       midpoint=0, limit=c(-1,1)) + labs(y=" ") + theme_minimal() +
       scale_x_discrete(limits=rownames(xx)) + scale_y_discrete(limits=colnames(xx)) + coord_fixed() +
-      theme(axis.title.x=element_blank(),legend.position = "bottom") +
+      theme(axis.title.x=element_blank(),legend.position = "bottom", axis.text.x=element_text(angle=-90)) +
       guides(fill=guide_legend(title="correlation"))
 
    # variable importance plot in terms of AIC scores which represent the information loss,
@@ -1147,14 +1147,14 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
    rm = which(is.na(corx)==TRUE)
    xx.ml = xx.ml[-rm,]
 
-   pheat <- ggplot(xx.ml, aes(X1, X2)) + geom_tile(aes(fill = value), colour="white") + 
+   pheat <- ggplot(xx.ml, aes(X1, X2)) + geom_tile(aes(fill = value), colour="black") + 
       scale_fill_gradient2(low = "green4", high = "violetred", mid="white", midpoint=0, limit=c(-1,1)) +
       scale_x_discrete(limits=rownames(xx)) + scale_y_discrete(limits=colnames(xx)) + coord_fixed() +
       labs(y=" ") + theme_minimal() +
-      theme(axis.title.x=element_blank(),legend.position = "bottom") +
+      theme(axis.title.x=element_blank(),legend.position = "bottom", axis.text.x=element_text(angle=-90)) +
       guides(fill=guide_legend(title="correlation"))
 
-   bccvl.savePdf(pp, pheat, ncol=2, nrow=1, filename=filename, aspdf=pdf)
+   bccvl.savePdf(pp, pheat, ncol=1, nrow=2, filename=filename, aspdf=pdf)
  }   
 }  
 
