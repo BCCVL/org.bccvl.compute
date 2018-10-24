@@ -54,7 +54,7 @@
     />
 
     <utility
-        component=".sptraitstemporal.execute"
+        component=".sptraits.execute"
         name="org.bccvl.site.content.interfaces.ISpeciesTraitsTemporalExperiment"
     />
 
