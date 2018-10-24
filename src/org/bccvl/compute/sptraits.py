@@ -33,27 +33,33 @@ def get_traits_params(result):
             # TODO: should I remove 'layers' section here?
             dsinfo['zippath'] = dsinfo['layers'].values()[0]['filename']
         params[paramname] = dsinfo
-    # TODO: This assumes we only zip file based layers
-    envlist = []
-    envds = params.get('environmental_datasets') or {}
-    for uuid, layers in envds.items():
-        dsinfo = getdatasetparams(uuid)
-        for layer in layers:
-            dsdata = {
-                'uuid': dsinfo['uuid'],
-                'filename': dsinfo['filename'],
-                'downloadurl': dsinfo['downloadurl'],
-                # TODO: should we use layer title or URI?
-                'layer': layer,
-                'type': dsinfo['layers'][layer]['datatype']
-            }
-            # if this is a zip file we'll have to set zippath as well
-            # FIXME: poor check whether this is a zip file
-            if dsinfo['filename'].endswith('.zip'):
-                dsdata['zippath'] = dsinfo['layers'][layer]['filename']
-            envlist.append(dsdata)
-    # replace original dict
-    params['environmental_datasets'] = envlist
+
+    # Update the environmental datasets only for non-temporal env variable.
+    # For STM-temporal, the env dataset is already a list of 
+    # {layer (layer name), downloadurl (NCI ANUClimate daily dataset url) and type (data-type)}. 
+    temporal_env = params.get('temporal_env', False)
+    if not temporal_env:
+        # TODO: This assumes we only zip file based layers
+        envlist = []
+        envds = params.get('environmental_datasets') or {}
+        for uuid, layers in envds.items():
+            dsinfo = getdatasetparams(uuid)
+            for layer in layers:
+                dsdata = {
+                    'uuid': dsinfo['uuid'],
+                    'filename': dsinfo['filename'],
+                    'downloadurl': dsinfo['downloadurl'],
+                    # TODO: should we use layer title or URI?
+                    'layer': layer,
+                    'type': dsinfo['layers'][layer]['datatype']
+                }
+                # if this is a zip file we'll have to set zippath as well
+                # FIXME: poor check whether this is a zip file
+                if dsinfo['filename'].endswith('.zip'):
+                    dsdata['zippath'] = dsinfo['layers'][layer]['filename']
+                envlist.append(dsdata)
+        # replace original dict
+        params['environmental_datasets'] = envlist
 
     # Get the content of the modelling_region BlobFile.
     # Note: deepcopy does not copy the content of BlobFile.

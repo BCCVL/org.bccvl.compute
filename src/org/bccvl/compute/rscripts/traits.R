@@ -110,7 +110,7 @@ parameter.print <- function(params) {
         return("")
     cat("Algorithm:", func, "\n")
 
-    if (func == "speciestrait_glm") {
+    if (func == "speciestrait_glm"  || func == "speciestraittemporal_glm") {
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
     }
     else if (func == "speciestrait_glmm") {
@@ -127,7 +127,7 @@ parameter.print <- function(params) {
         # Todo: Need to update these parameters
         pnames = c("family", "subset", "weights", "na_action", "start", "eta_start", "mu_start", "offset", "method", "model", "x", "y", "contrasts", "random_seed")
     }
-    else if (func == "exploration_plot") {
+    else if (func == "exploration_plot" || func == "exploration_plot_temporal") {
         pnames = c("random_seed")
     }
 

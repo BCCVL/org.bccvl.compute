@@ -54,6 +54,11 @@
     />
 
     <utility
+        component=".sptraitstemporal.execute"
+        name="org.bccvl.site.content.interfaces.ISpeciesTraitsTemporalExperiment"
+    />
+
+    <utility
         component=".ensemble.execute"
         name="org.bccvl.site.content.interfaces.IEnsembleExperiment"
     />

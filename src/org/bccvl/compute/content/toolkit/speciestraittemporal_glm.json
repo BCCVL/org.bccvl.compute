@@ -1,0 +1,14 @@
+{
+    "_type": "org.bccvl.content.function",
+    "title": "Generalized Linear Model",
+    "description": "A regression model that uses a least squares regression approach to model the relationship between species traits and the environmental variables, fitted with maximum likelihood estimation.",
+    "subjects": ["glm"],
+    "interpreter": "R",
+    "experiment_type": "org.bccvl.content.speciestraitstemporalexperiment",
+    "script": {"filename": "speciestraittemporal_glm.R"},
+    "schema": {"filename": "speciestraittemporal_glm.xml"},
+    "output": {"filename": "speciestraittemporal_glm.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish",
+    "algorithm_category": null
+}

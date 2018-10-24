@@ -1,0 +1,14 @@
+{
+    "_type": "org.bccvl.content.function",
+    "title": "Exploration Plot",
+    "description": "Exploration plots for species trait (temporal) experiment",
+    "subjects": ["exploration plot"],
+    "interpreter": "R",
+    "experiment_type": "org.bccvl.content.speciestraitstemporalexperiment",
+    "script": {"filename": "exploration_plot_temporal.R"},
+    "schema": {"filename": "exploration_plot_temporal.xml"},
+    "output": {"filename": "exploration_plot_temporal.txt"},
+    "_fileattributes": ["script", "schema", "output"],
+    "_transitions": "publish",
+    "algorithm_category": null
+}
