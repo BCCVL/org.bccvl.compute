@@ -19,6 +19,9 @@ trait.species =bccvl.params$species
 # Filter for species specified
 if (!is.null(trait.data)) {
     trait.data = subset(trait.data, species==trait.species)
+    # save it as trait-env data
+    traitenv_filename = sprintf("%s_trait_environmental.csv", trait.species)
+    bccvl.write.csv(trait.data, traitenv_filename)
 }
 
 ## MODEL

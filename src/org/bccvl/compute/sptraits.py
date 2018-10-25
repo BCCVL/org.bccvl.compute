@@ -66,9 +66,11 @@ def get_traits_params(result):
     if result.job_params['modelling_region']:
         params['modelling_region'] = result.job_params['modelling_region'].data
 
-    # add hints for worker
+    # add hints for worker about the input datasets to transfer
+    # Temporal env data is obtained directly from the data source using OpenDAP from the specifified URL
+    dataset_transfer = ('traits_dataset',) if temporal_env else ('traits_dataset', 'environmental_datasets', )
     workerhints = {
-        'files': [x for x in ('traits_dataset', 'environmental_datasets', ) if x in params]
+        'files': [x for x in dataset_transfer if x in params]
     }
     return {'env': {}, 'params': params, 'worker': workerhints}
 

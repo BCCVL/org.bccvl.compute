@@ -18,8 +18,11 @@ trait.species =bccvl.params$species
 
 # Geographically constrained modelling and merge the environmental data into trait.data
 if (!is.null(trait.data)) {
-	# filter out other species
-	  trait.data = subset(trait.data, species==trait.species)
+  # filter out other species
+  trait.data = subset(trait.data, species==trait.species)
+  # save it as trait-env data
+  traitenv_filename = sprintf("%s_trait_environmental.csv", trait.species)
+  bccvl.write.csv(trait.data, traitenv_filename)
 }
 
 # Continuous traits
