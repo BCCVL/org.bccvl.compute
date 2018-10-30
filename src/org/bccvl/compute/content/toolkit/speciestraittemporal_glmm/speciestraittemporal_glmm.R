@@ -1,9 +1,9 @@
 
 #########################################
-###    speciestraittemporal_glm.R     ###
+###        speciestraittemporal_glmm.R         ###
 #########################################
 
-### Runs a Generalized Linear Model to test the effect of selected environmental variables on species traits
+### Runs a Generalized Linear Mixed Model to test the effect of selected variables (fixed and random factors) on species traits
 
 ## DATA
 
@@ -25,33 +25,34 @@ if (!is.null(trait.data)) {
 }
 
 ## MODEL
-  
+
 # Load the library
-library("MASS")
-library("nnet")  
+library(lme4)
+library(ordinal)
 
 # Generate a formula for each trait
-formulae = bccvl.trait.gen_formulae(trait.data.params)
+# trait ~ fixed1 + fixed2 + (1|random1) + (1|random2)
+formulae = bccvl.trait.gen_formulae(trait.data.params, include_rf=TRUE)
 for (formula in formulae) {
-
-# Run model - with polr function for ordinal traits, multinom function for nominal traits, glm function for continuous traits
+  # Run model - with clmm function for ordinal traits, glmer function for nominal traits, glmer function for continuous traits
+  # Todo: not sure whether 'glmer' works for nominal trait data - need to further look into this
   na_action = get0(bccvl.params$na_action)
   if (is.null(na_action)) {
-        na_action = get("na.fail")
+      na_action = get("na.fail")
   }
+
   if (formula$type == 'ordinal') {
-        output_filename = paste0(formula$trait, ".polr.results.txt")
-        glm.result = polr(formula=formula(formula$formula),
+        output_filename = paste0(formula$trait, ".clmm.results.txt")
+        glmm.result = clmm(formula=formula(formula$formula),
                           data=trait.data,
                           weights=NULL,
                           na.action=na_action,
                           contrasts=NULL,
                           Hess=TRUE,
-                          model=TRUE,
-                          method="logistic")
+                          model=TRUE)
     } else if (formula$type == 'nominal') {
         output_filename = paste0(formula$trait, ".nom.results.txt")
-        glm.result = multinom(formula=formula(formula$formula),
+        glmm.result = glmer(formula=formula(formula$formula),
                               data=trait.data,
                               weights=NULL,
                               na.action=na_action,
@@ -59,8 +60,8 @@ for (formula in formulae) {
                               summ=0,        
                               model=TRUE)
     } else {
-        output_filename = paste0(formula$trait, ".glm.results.txt")
-        glm.result = glm(formula=formula(formula$formula),
+        output_filename = paste0(formula$trait, ".glmer.results.txt")
+        glmm.result = glmer(formula=formula(formula$formula),
                          family=family_from_string(bccvl.params$family),
                          data= trait.data,
                          weights=NULL,
@@ -69,18 +70,14 @@ for (formula in formulae) {
                          etastart=NULL,
                          mustart=NULL,
                          offset=NULL,
-                         model=TRUE,
-                         method=bccvl.params$method,
-                         x=FALSE,
-                         y=FALSE,
                          contrasts=NULL)
     }
 
-## Save the result to file
-# Save the model
-bccvl.save(glm.result, paste0(formula$trait, ".glm.model.object.RData"))
+  ## Save the result to file
+  # Save the model
+  bccvl.save(glmm.result, paste0(formula$trait, ".glmm.model.object.RData"))
 
-## Save the results as text to file for each trait
-s <- summary(glm.result) 
-bccvl.write.text(s, output_filename)
+  ## Save the results as text to file for each trait
+  s <- summary(glmm.result) 
+  bccvl.write.text(s, output_filename)
 }
