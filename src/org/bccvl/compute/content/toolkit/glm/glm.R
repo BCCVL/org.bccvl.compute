@@ -227,8 +227,8 @@ bccvl.VIPplot(method="glm", data1=data1, pdf=TRUE,
 #save out the model object
 bccvl.save(model.sdm, name="model.object.RData")
 
-# Do projection over current climate scenario without constraint
-if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
+# Do projection over current climate scenario without constraint only if all env data layers are continuous.
+if (all(env.data.type == 'continuous') && (!is.null(enviro.data.constraints) || enviro.data.generateCHall)) {
     model.proj <-
         BIOMOD_Projection(modeling.output     = model.sdm,
                           new.env             = current.climate.scenario.orig,

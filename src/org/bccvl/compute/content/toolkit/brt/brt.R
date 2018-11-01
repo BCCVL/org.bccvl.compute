@@ -206,8 +206,8 @@ bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=s
 # the function is defined outside of the dismo package
 # predict for CURRENT climate scenario
 
-# Do projection over current climate scenario without constraint
-if (!is.null(enviro.data.constraints) || enviro.data.generateCHall) {
+# Do projection over current climate scenario without constraint only if all env data layers are continuous.
+if (all(env.data.type == 'continuous') && (!is.null(enviro.data.constraints) || enviro.data.generateCHall)) {
     model.proj = predict(current.climate.scenario.orig, model.sdm, n.trees=model.sdm$gbm.call$best.trees, type="response")
 
     # remove the current.climate.scenario to release disk space
