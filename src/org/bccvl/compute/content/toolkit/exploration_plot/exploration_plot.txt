@@ -55,7 +55,7 @@
             "order": 9
         },   
         "*_trait_environmental.csv": {
-            "title": "trait data with environmental data",
+            "title": "Trait data with environmental data",
             "genre": "DataGenreSpeciesOccurEnv",
             "mimetype": "text/csv",
             "order": 10

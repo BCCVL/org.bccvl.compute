@@ -664,7 +664,7 @@ bccvl.regPlots = function(regResult, outerTitle="", fnamePrefix="", outputdir=bc
   nCols = ceiling(sqrt(nVars))
   nRows = ceiling(nVars/nCols)
   
-  png(filename=file.path(outputdir, paste0(fnamePrefix, 'plots.png')),
+  png(filename=file.path(outputdir, paste0(fnamePrefix, 'fitted_model_plots.png')),
       width=plotWidth, height=plotHeight)
   par(mfrow=c(nRows,nCols), oma=c(0,0,1.5,0))
   require(visreg)

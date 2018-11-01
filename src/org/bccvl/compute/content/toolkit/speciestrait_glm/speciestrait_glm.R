@@ -40,7 +40,7 @@ if (!is.null(trait.data)) {
   
 # Load the library
 library("MASS")
-library("nnet")  
+library("nnet")
 
 # Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params)
@@ -52,6 +52,7 @@ for (formula in formulae) {
         na_action = get("na.fail")
   }
   if (formula$type == 'ordinal') {
+        library(visreg)
         output_filename = paste0(formula$trait, ".polr.results.txt")
         glm.result = polr(formula=formula(formula$formula),
                           data=trait.data,
@@ -61,6 +62,7 @@ for (formula in formulae) {
                           Hess=TRUE,
                           model=TRUE,
                           method="logistic")
+        visreg(glm.result)
     } else if (formula$type == 'nominal') {
         output_filename = paste0(formula$trait, ".nom.results.txt")
         glm.result = multinom(formula=formula(formula$formula),
@@ -68,7 +70,7 @@ for (formula in formulae) {
                               weights=NULL,
                               na.action=na_action,
                               contrasts=NULL,
-                              summ=0,        
+                              summ=0,
                               model=TRUE)
     } else {
         output_filename = paste0(formula$trait, ".glm.results.txt")
@@ -86,6 +88,10 @@ for (formula in formulae) {
                          x=FALSE,
                          y=FALSE,
                          contrasts=NULL)
+        # dregression and iagnostic plots
+        bccvl.regPlots(glm.result, 
+                       outerTitle = paste0(trait.species, ': GLM fit for trait', formula$trait), 
+                       fnamePrefix = paste0(trait.species, '_', formula$trait, '_GLM_'))
     }
 
 ## Save the result to file
@@ -94,5 +100,5 @@ bccvl.save(glm.result, paste0(formula$trait, ".glm.model.object.RData"))
 
 ## Save the results as text to file for each trait
 s <- summary(glm.result) 
-bccvl.write.text(s, output_filename)                                       
+bccvl.write.text(s, output_filename)
 }
