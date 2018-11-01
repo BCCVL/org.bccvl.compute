@@ -1,0 +1,85 @@
+{
+    "files": {
+        "*continuous_traits_boxplot.png": {
+            "title": "Continuous traits - boxplots",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 1
+        },   
+        "*continuous_traits_density.png": {
+            "title": "Continuous traits - density plots",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 2
+        },   
+        "*continuous_traits_histogram.png": {
+            "title": "Continuous traits - histograms",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 3
+        },   
+        "*categorical_traits_barplot.png": {
+            "title": "Categorical traits - bar plots",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 4
+        },   
+        "*continuous_predictors_boxplot.png": {
+            "title": "Continuous climate/environmental variables - boxplots",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 5
+        },   
+        "*continuous_predictors_density.png": {
+            "title": "Continuous climate/environmental variables - density plots",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 6
+        },   
+        "*continuous_predictors_histogram.png": {
+            "title": "Continuous climate/environmental variables - histograms",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 7
+        },   
+        "*categorical_predictors_barplot.png": {
+            "title": "Categorical climate/environmental variables - bar plots",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 8
+        },   
+        "*continuous_predictors_correlations.png": {
+            "title": "Climate/environmental variables - correlations",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 9
+        },   
+        "*_trait_environmental.csv": {
+            "title": "Trait data with environmental data",
+            "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 10
+        },   
+         "*.R": {
+            "title": "Job Script",
+            "genre": "JobScript",
+            "mimetype": "text/x-r",
+            "order": 20
+        },
+         "*.Rout": {
+            "title": "Log file",
+            "genre": "DataGenreLog",
+            "mimetype": "text/x-r-transcript",
+            "order": 21
+        },
+        "params.json": {
+            "title": "Input parameters",
+            "genre": "InputParams",
+            "mimetype": "text/x-r-transcript",
+            "order": 100
+        }
+    },
+    "archives": {
+    }
+}
+

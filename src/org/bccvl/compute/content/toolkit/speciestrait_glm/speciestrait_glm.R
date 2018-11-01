@@ -13,6 +13,8 @@ trait.data.filename = bccvl.params$traits_dataset$filename
 trait.data.params = bccvl.params$traits_dataset_params
 # Read in the trait data
 trait.data = read.csv(trait.data.filename)
+# Get the species
+trait.species =bccvl.params$species
 
 # Define the current environmental data to use
 enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$filename)
@@ -22,11 +24,14 @@ enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$typ
 enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
 # Geographic constraints
 enviro.data.constraints = bccvl.params$modelling_region
+#Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
+enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
 
 
 # Geographically constrained modelling and merge the environmental data into trait.data
 if (!is.null(trait.data)) {
-    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints);
+    trait.data = subset(trait.data, species==trait.species)
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints, enviro.data.generateCHall);
     trait.data = merged.result$data
     trait.data.params = merged.result$params
 }
@@ -35,7 +40,7 @@ if (!is.null(trait.data)) {
   
 # Load the library
 library("MASS")
-library("nnet")  
+library("nnet")
 
 # Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params)
@@ -47,6 +52,7 @@ for (formula in formulae) {
         na_action = get("na.fail")
   }
   if (formula$type == 'ordinal') {
+        library(visreg)
         output_filename = paste0(formula$trait, ".polr.results.txt")
         glm.result = polr(formula=formula(formula$formula),
                           data=trait.data,
@@ -56,6 +62,7 @@ for (formula in formulae) {
                           Hess=TRUE,
                           model=TRUE,
                           method="logistic")
+        visreg(glm.result)
     } else if (formula$type == 'nominal') {
         output_filename = paste0(formula$trait, ".nom.results.txt")
         glm.result = multinom(formula=formula(formula$formula),
@@ -63,7 +70,7 @@ for (formula in formulae) {
                               weights=NULL,
                               na.action=na_action,
                               contrasts=NULL,
-                              summ=0,        
+                              summ=0,
                               model=TRUE)
     } else {
         output_filename = paste0(formula$trait, ".glm.results.txt")
@@ -81,6 +88,10 @@ for (formula in formulae) {
                          x=FALSE,
                          y=FALSE,
                          contrasts=NULL)
+        # dregression and iagnostic plots
+        bccvl.regPlots(glm.result, 
+                       outerTitle = paste0(trait.species, ': GLM fit for trait', formula$trait), 
+                       fnamePrefix = paste0(trait.species, '_', formula$trait, '_GLM_'))
     }
 
 ## Save the result to file
@@ -89,5 +100,5 @@ bccvl.save(glm.result, paste0(formula$trait, ".glm.model.object.RData"))
 
 ## Save the results as text to file for each trait
 s <- summary(glm.result) 
-bccvl.write.text(s, output_filename)                                       
+bccvl.write.text(s, output_filename)
 }

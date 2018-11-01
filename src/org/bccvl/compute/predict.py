@@ -13,7 +13,7 @@ from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod, IBCCVLMetadata
 from org.bccvl.site.utils import get_results_dir
 from org.bccvl.tasks.compute import r_task
-from org.bccvl.tasks.plone import after_commit_task
+from org.bccvl.tasks.plone import after_commit_task, HIGH_PRIORITY
 
 
 def get_project_params(result):
@@ -243,7 +243,7 @@ def get_output(algorithm):
 
 
 @provider(IComputeMethod)
-def execute(result, func):
+def execute(result, func, priority=HIGH_PRIORITY):
     """
     This function takes an experiment and executes.
 
@@ -284,4 +284,4 @@ def execute(result, func):
     }
     # set debug flag
     params['worker']['zipworkenv'] = api.env.debug_mode()
-    after_commit_task(r_task, params, context)
+    after_commit_task(r_task, priority, params, context)
