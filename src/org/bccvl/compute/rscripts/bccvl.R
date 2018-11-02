@@ -1224,5 +1224,93 @@ distance = function(lat1, lon1=NULL, lat2=NULL, lon2=NULL, bearing=FALSE) {
     return(out)
 }
 
+
+########################################################
+# Patch Biomod2 sample.factor.levels function
+#  taken from: biomod2-3.3-7 : https://github.com/cran/biomod2/blob/master/R/sample.factor.levels.R#L70
+########################################################
+
+sample.factor.levels <- function(x, mask.out = NULL, mask.in = NULL){
+  ## make some checking of given parameters
+  ## TODO(damien)
+  if(inherits(x, 'Raster')){
+    fact.level.cells <- .sample.factor.levels.raster(x, mask.out = mask.out, mask.in = mask.in)
+    return(fact.level.cells)
+  } else if(inherits(x, 'data.frame')){
+    fact.level.cells <- .sample.factor.levels.data.frame(x, mask.out = mask.out, mask.in = mask.in)
+    return(fact.level.cells)
+  } else {
+    warning(paste0("\nunsupported input data.",
+                   "\nx should be a Raster* object or a data.frame.",
+                   "\n NULL returned"))
+    return(NULL)
+  }
+}
+
+.sample.factor.levels.raster = function (x, mask.out = NULL, mask.in = NULL) 
+{
+  fact.var <- which(is.factor(x))
+  if (any(fact.var)) {
+    fact.level.cells <- sapply(fact.var, function(f) {
+      selected.cells <- NULL
+      fact.level.original <- unlist(raster::levels(subset(x, 
+                                                          f)))
+      fact.level <- fact.level.original
+      cat("\n> fact.level for", names(x)[f], ":\t", paste(fact.level, 
+                                                          names(fact.level), sep = ":", collapse = "\t"))
+      if (!is.null(mask.out)) {
+        fact.levels.sampled <- unlist(levels(as.factor(mask(subset(x, 
+                                                                   f), mask.out))))
+        attr(fact.levels.sampled, "names") <- attr(fact.level.original, 
+                                                   "names")[fact.levels.sampled]
+        cat("\n - according to mask.out levels", fact.levels.sampled, 
+            "have already been sampled")
+        fact.level <- fact.level[!is.element(fact.level,
+                                             fact.levels.sampled)]
+      }
+      if (length(fact.level)) {
+        if (!is.null(mask.in)) {
+          for (mask.in.id in 1:length(mask.in)) {
+            if (length(fact.level)) {
+              x.f.masked <- as.factor(mask(subset(x, 
+                                                  f), mask.in[[mask.in.id]]))
+              x.f.levels <- unlist(levels(x.f.masked))
+              attr(x.f.levels, "names") <- attr(fact.level.original, 
+                                                "names")[x.f.levels]
+              fact.levels.in.m.in <- fact.level[is.element(fact.level, 
+                                                           x.f.levels)]
+              if (length(fact.levels.in.m.in)) {
+                cat("\n - levels", fact.levels.in.m.in, 
+                    "will be sampled in mask.out", mask.in.id)
+                selected.cells <- c(selected.cells, sapply(fact.levels.in.m.in, 
+                                                           function(fl) {
+                                                             sample(which(x.f.masked[] == fl), 
+                                                                    1)
+                                                           }))
+                fact.level <- fact.level[!is.element(fact.level, 
+                                                     fact.levels.in.m.in)]
+              }
+            }
+          }
+        }
+        if (length(fact.level)) {
+          cat("\n - levels", fact.level, "will be sampled in the original raster")
+          selected.cells <- c(selected.cells, sapply(fact.level, 
+                                                     function(fl) {
+                                                       sample(which(subset(x, f)[] == fl), 1)
+                                                     }))
+        }
+      }
+      return(selected.cells)
+    })
+    fact.level.cells <- as.numeric(fact.level.cells[-which(sapply(fact.level.cells, is.null))])
+    return(fact.level.cells)
+  }
+  else {
+    return(NULL)
+  }
+}
+
+assignInNamespace("sample.factor.levels",sample.factor.levels, ns="biomod2")
 assignInNamespace("grid.info",grid.info, ns="SDMTools")
 assignInNamespace("distance",distance, ns="SDMTools")
