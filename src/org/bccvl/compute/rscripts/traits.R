@@ -426,6 +426,26 @@ bccvl.remove.rasterObject <- function(rasterObject) {
     rm(rasterObject)
 }
 
+bccvl.mask <- function(raster, parsedgeojson) {
+    # Crop the raster to the extent of the constraint region before masking
+    cropped_raster = crop(raster, extent(parsedgeojson))
+
+    # save the constrained raster in work directory instead of raster temporary directory as
+    # predict.R clears the raster temp files.
+    envraster_filename = paste(bccvl.env$workdir, basename(tempfile(fileext = ".grd")), sep="/")
+    masked_raster = mask(cropped_raster, parsedgeojson, filename = envraster_filename)
+
+    # Adjust the levels as some levels may be dropped
+    if (is.factor(masked_raster)) {
+        masked_raster = as.factor(masked_raster)
+    }
+
+    # Remove cropped raster and associated raster files (i.e. grd and gri)
+    bccvl.remove.rasterObject(stack(cropped_raster))
+
+    return(masked_raster)
+}
+
 # geographically constrained modelling
 # return constrainted trait.data with env
 bccvl.trait.constraint.merge <- function(trait.data, trait.params, rasterstack, rawgeojson, generateCHull, generateGeoconstraint=TRUE) {
@@ -522,18 +542,9 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, rasterstack, 
     bccvl.write.csv(constrained.trait.data, traitenv_filename)
 
     # Mask the rasterstack (and make sure it is a RasterStack)
-    # Crop the raster to the extent of the constraint region before masking
     geoconstrained = NULL
     if (generateGeoconstraint && !is.null(rawgeojson)) {
-        cropped_rasterstack <- crop(rasterstack, extent(parsedgeojson), filename = rasterTmpFile())
-
-        # save the constrained raster in work directory instead of raster temporary directory as
-        # predict.R clears the raster temp files.
-        envraster_filename = paste(bccvl.env$workdir, basename(tempfile(fileext = ".grd")), sep="/")
-        geoconstrained <- stack(mask(cropped_rasterstack, parsedgeojson, filename = envraster_filename))
-
-        # Remove cropped rasterstack and associated raster files (i.e. grd and gri)
-        bccvl.remove.rasterObject(cropped_rasterstack)
+        geoconstrained <- stack(lapply(as.list(rasterstack), bccvl.mask, parsedgeojson))
     }
 
     return(list("data" = constrained.trait.data, "params" = trait.params, "raster" = geoconstrained))
