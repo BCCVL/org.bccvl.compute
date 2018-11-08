@@ -31,10 +31,14 @@ enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FA
 # Load the rpart library
 library("rpart")
 
+
+# Load the environmental raster layers
+environ.rasterstack = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, "highest")
+
 # Geographically constrained modelling and merge the environmental data into trait.data
+trait.data = subset(trait.data, species==trait.species)
 if (!is.null(trait.data)) {
-    trait.data = subset(trait.data, species==trait.species)
-    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints, enviro.data.generateCHall);
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, environ.rasterstack, enviro.data.constraints, enviro.data.generateCHall, generateGeoconstraint=FALSE)
     trait.data = merged.result$data
     trait.data.params = merged.result$params
 }

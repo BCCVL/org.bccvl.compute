@@ -12,23 +12,29 @@
             "mimetype": "image/png",
             "order": 2
         },   
+        "*_trait_environmental.csv": {
+            "title": "Trait data with environmental data",
+            "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 8
+        },
          "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
             "mimetype": "text/x-r",
-            "order": 3
+            "order": 10
         },
          "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
-            "order": 4
+            "order": 11
         },
         "*.RData": {
             "title": "R Species Traits Model object",
             "genre": "DataGenreSTModel",
             "mimetype": "application/x-r-data",
-            "order": 5
+            "order": 12
         },
         "params.json": {
             "title": "Input parameters",

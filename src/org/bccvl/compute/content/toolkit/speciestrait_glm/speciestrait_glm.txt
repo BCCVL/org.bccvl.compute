@@ -18,6 +18,36 @@
             "mimetype": "image/png",
             "order": 3
         },
+        "proj_current_*.tif": {
+            "title": "Trait projection to current climate",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/geotiff",
+            "order": 4
+        },
+        "proj_current_*_unconstrained.tif": {
+            "title": "Trait projection to current climate",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/geotiff",
+            "order": 5
+        },
+        "proj_current_*.png": {
+            "title": "Trait projection to current climate",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 6
+        },
+        "proj_current_*_unconstrained.png": {
+            "title": "Trait projection to current climate",
+            "genre": "DataGenreSTResult",
+            "mimetype": "image/png",
+            "order": 7
+        },
+        "*_trait_environmental.csv": {
+            "title": "Trait data with environmental data",
+            "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 8
+        },
         "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
