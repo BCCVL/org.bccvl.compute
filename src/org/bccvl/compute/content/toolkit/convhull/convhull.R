@@ -107,7 +107,7 @@ occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
 #   the first polygon has 1 part, the second has 2 parts and x has x parts
 
 if (!all(enviro.data.type=="continuous")) {
-    warning("convhull not run because categorical data cannot be used")
+    stop("convhull not run because categorical data cannot be used")
 } else {
     # run convhull with matrix of enviro data
     model.sdm = convHull(p=occur)

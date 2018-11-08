@@ -107,7 +107,7 @@ occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
 # r radius of the earth; only relevant for longitude/latitude data; default is 6378137 m
 
 if (!all(enviro.data.type=="continuous")) {
-    warning("circles not run because categorical data cannot be used")
+    stop("circles not run because categorical data cannot be used")
 } else {
     # run circles with matrix of enviro data.
     if (is.null(opt.d)) {
