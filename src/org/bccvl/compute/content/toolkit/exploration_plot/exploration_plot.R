@@ -26,12 +26,13 @@ enviro.data.constraints = bccvl.params$modelling_region
 #Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
 enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
 
+# Load the environmental raster layers
+environ.rasterstack = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, "highest")
 
 # Geographically constrained modelling and merge the environmental data into trait.data
+trait.data = subset(trait.data, species==trait.species)
 if (!is.null(trait.data) || enviro.data.generateCHall) {
-	# filter out other species
-	  trait.data = subset(trait.data, species==trait.species)
-    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints, enviro.data.generateCHall);
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, environ.rasterstack, enviro.data.constraints, enviro.data.generateCHall, generateGeoconstraint=FALSE)
     trait.data = merged.result$data
     trait.data.params = merged.result$params
 }

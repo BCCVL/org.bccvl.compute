@@ -27,13 +27,20 @@ enviro.data.constraints = bccvl.params$modelling_region
 #Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
 enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
 
+projection.name = "current"
+species_algo_str = sprintf("%s_glm", trait.species)
+
+
+# Load the environmental raster layers
+environ.rasterstack = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, "highest")
 
 # Geographically constrained modelling and merge the environmental data into trait.data
+trait.data = subset(trait.data, species==trait.species)
 if (!is.null(trait.data)) {
-    trait.data = subset(trait.data, species==trait.species)
-    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints, enviro.data.generateCHall);
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, environ.rasterstack, enviro.data.constraints, enviro.data.generateCHall)
     trait.data = merged.result$data
     trait.data.params = merged.result$params
+    environ.constrained.rasterstack = merged.result$raster
 }
 
 ## MODEL
@@ -88,17 +95,49 @@ for (formula in formulae) {
                          x=FALSE,
                          y=FALSE,
                          contrasts=NULL)
-        # dregression and iagnostic plots
+        # regression and iagnostic plots
         bccvl.regPlots(glm.result, 
-                       outerTitle = paste0(trait.species, ': GLM fit for trait', formula$trait), 
+                       outerTitle = paste0(trait.species, ': GLM fit for ', formula$trait), 
                        fnamePrefix = paste0(trait.species, '_', formula$trait, '_GLM_'))
+
+        # Do projection only if there is no fixed factors i.e. all env variables of env dataset.
+        env.names = names(environ.rasterstack)
+        if (all(unlist(lapply(formula$env, function(x) x %in% env.names)))) {
+          # Do projection over constrained region
+          if (is.null(environ.constrained.rasterstack)) {
+            env.data = as.data.frame(environ.rasterstack, xy=TRUE)
+          }
+          else {
+            env.data = as.data.frame(environ.constrained.rasterstack, xy=TRUE)
+          }
+          proj  = predict.glm(glm.result, env.data)
+
+          # combine the coordinates and projection value to generate a raster
+          proj1 = cbind(env.data[,c("x", "y")], proj)
+          proj.raster = rasterFromXYZ(proj1)
+
+          # Save projection as geotif and png
+          bccvl.saveModelProjection(proj.raster, projection.name, formula$trait, species_algo_str)
+
+          # Do projection over unconstrained region only if all env variables are not categorical
+          if (!is.null(environ.constrained.rasterstack) && all(unlist(lapply(environ.rasterstack@layers, function(lyr) return(!lyr@data@isfactor))))) {
+            env.data = as.data.frame(environ.rasterstack, xy=TRUE)
+            proj  = predict.glm(glm.result, env.data)
+          
+            # combine the coordinates and projection value to generate a raster
+            proj1 = cbind(env.data[,c("x", "y")], proj)
+            proj.raster = rasterFromXYZ(proj1)
+          
+            # Save projection as geotif and png
+            bccvl.saveModelProjection(proj.raster, projection.name, formula$trait, species_algo_str, filename_ext="unconstrained")
+          }
+        }
     }
 
-## Save the result to file
-# Save the model
-bccvl.save(glm.result, paste0(formula$trait, ".glm.model.object.RData"))
+  # Save the model to file
+  bccvl.save(glm.result, paste0(formula$trait, ".glm.model.object.RData"))
 
-## Save the results as text to file for each trait
-s <- summary(glm.result) 
-bccvl.write.text(s, output_filename)
+  ## Save the results as text to file for each trait
+  s <- summary(glm.result) 
+  bccvl.write.text(s, output_filename)
 }

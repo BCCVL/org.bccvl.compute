@@ -14,7 +14,7 @@ write.table(installed.packages()[,c("Package", "Version", "Priority")],
             row.names=FALSE)
 
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "raster", "rgdal", "rgeos", "png", "gstat", "gdalUtils", "gam") #list the libraries needed
+necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "raster", "rgdal", "rgeos", "png", "gstat", "gdalUtils", "gam", "biomod2", "spatial.tools") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -207,6 +207,7 @@ bccvl.trait.gen_formulae <- function(dataset_params, trait_diff=FALSE, include_r
                          paste(trait, '~', variables),
                          paste(trait, '~', variables, '+', randomvars))
         formulae = append(formulae, list(list(formula=formula,
+                                    env=names(cols[['env']]),
                                     type=cols[['trait']][trait],
                                     trait=trait)))
     }
@@ -414,17 +415,25 @@ bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag, sel
     return(rasterstack)
 }
 
+# Remove raster object and its associated raster files (i.e. grd and gri) if any
+bccvl.remove.rasterObject <- function(rasterObject) {
+    raster_filenames = raster_to_filenames(rasterObject, unique = TRUE)
+    for (fname in raster_filenames) {
+        if (extension(fname)  == '.grd') {
+            file.remove(fname, extension(fname, '.gri'))
+        }
+    }
+    rm(rasterObject)
+}
+
 # geographically constrained modelling
 # return constrainted trait.data with env
-bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filenames, raster.types, layernames, rawgeojson, generateCHull) {
+bccvl.trait.constraint.merge <- function(trait.data, trait.params, rasterstack, rawgeojson, generateCHull, generateGeoconstraint=TRUE) {
 
     # trait must have at least a trait
     if (is.null(trait.data) & !generateCHull) {
         return(list("data" = trait.data, "params" = trait.params))
     }
-
-    # Load the environmental raster layers
-    rasterstack = bccvl.enviro.stack(raster.filenames, raster.types, layernames, "highest")
 
     # Parse the geojson from text to SpatialPointsDataFrame
     traitSP <- SpatialPoints(trait.data[c('lon', 'lat')])
@@ -441,6 +450,7 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filena
     if (is.null(rawgeojson))
     {
         traitSPconstrained <- traitSP
+        parsedgeojson <- SpatialPolygons(list(Polygons(list(Polygon(rbind(c(1,1)))), ID=1)), proj4string=crs(rasterstack))
     }
     else {
         # Make geojson a SpatialPolygons object due to storing constraint method info as properties
@@ -488,15 +498,14 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filena
 
     if (length(rasterstack@layers) > 0) {
         # Extract values from rasters, and combined with trait.data
-        # Use constraint trait.data as the constraint to ensure same number of rows
+        # Use constrained trait.data as the constraint to ensure same number of rows
         trait.constrained <- constrained.trait.data[c('lon', 'lat')]
         constrained.rasters <- extract(rasterstack, y = trait.constrained)
         constrained.trait.data <- cbind(constrained.trait.data, constrained.rasters)
 
         # Update the trait dataset parameters with environmental variables types
-        for (i in 1:length(layernames)) {
-          colname <- layernames[[i]]
-          trait.params[colname] = ifelse(raster.types[[i]] == 'continuous', 'env_var_con', 'env_var_cat')
+        for (layer in rasterstack@layers) {
+          trait.params[layer@data@names] = ifelse(layer@data@isfactor, 'env_var_cat', 'env_var_con')
         }
     }
 
@@ -511,29 +520,49 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, raster.filena
     # save the trait-environmental data as csv
     traitenv_filename = sprintf("%s_trait_environmental.csv", constrained.trait.data['species'][1,1])
     bccvl.write.csv(constrained.trait.data, traitenv_filename)
-    return(list("data" = constrained.trait.data, "params" = trait.params))
+
+    # Mask the rasterstack (and make sure it is a RasterStack)
+    # Crop the raster to the extent of the constraint region before masking
+    geoconstrained = NULL
+    if (generateGeoconstraint && !is.null(rawgeojson)) {
+        cropped_rasterstack <- crop(rasterstack, extent(parsedgeojson), filename = rasterTmpFile())
+
+        # save the constrained raster in work directory instead of raster temporary directory as
+        # predict.R clears the raster temp files.
+        envraster_filename = paste(bccvl.env$workdir, basename(tempfile(fileext = ".grd")), sep="/")
+        geoconstrained <- stack(mask(cropped_rasterstack, parsedgeojson, filename = envraster_filename))
+
+        # Remove cropped rasterstack and associated raster files (i.e. grd and gri)
+        bccvl.remove.rasterObject(cropped_rasterstack)
+    }
+
+    return(list("data" = constrained.trait.data, "params" = trait.params, "raster" = geoconstrained))
 }
 
-# function to save projection output raster
-bccvl.saveModelProjection <- function(model.obj, projection.name, species, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
-    ## save projections under biomod2 compatible name:
-    ##  proj_name_species.tif
-    ##  only useful for dismo outputs
-
+# function to generate a filename for the specified file type and extension.
+bccvl.get_filepath <- function(file_type, projection_name, trait, species, outputdir=bccvl.env$outputdir, filename_ext=NULL, file_ext='tif') {
     if (is.null(filename_ext)) {
-        basename = paste("proj", projection.name, species, sep="_")
+        basename = paste(file_type, projection_name, trait, species, sep="_")
     }
     else {
-        basename = paste("proj", projection.name, species, filename_ext, sep="_")
+        basename = paste(file_type, projection_name, trait, species, filename_ext, sep="_")
     }
-    filename = file.path(outputdir, paste(basename, 'tif', sep="."))
-    writeRaster(model.obj, filename, format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
+    return(file.path(outputdir, paste(basename, file_ext, sep=".")))
+}
 
-    # Save as image as well
-    png(file.path(outputdir, paste(basename, 'png', sep=".")))
-    title = paste(species, projection.name, "projections", sep=" ")
+# function to save projection output raster as geotif and png
+bccvl.saveModelProjection <- function(model.obj, projection.name, trait, species_algo_str, outputdir=bccvl.env$outputdir, filename_ext=NULL) {
+    filename = bccvl.get_filepath("proj", projection.name, trait, species_algo_str, outputdir, filename_ext, "tif")
+    writeRaster(model.obj, filename, format="GTiff", options=c("COMPRESS=LZW", "TILED=YES"), overwrite=TRUE)
+
+    # Save as image as png as well
+    pngfilename = bccvl.get_filepath("proj", projection.name, trait, species_algo_str, outputdir, filename_ext, "png")
+    png(pngfilename)
+    title = paste(projection.name, "projections for ", trait, sep=" ")
     plot(model.obj, xlab="latitude", ylab="longtitude", main=title)
     dev.off()
+
+    return (filename)
 }
 
 

@@ -28,10 +28,15 @@ enviro.data.constraints = bccvl.params$modelling_region
 enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
 
 
+# Load the environmental raster layers
+environ.rasterstack = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, "highest")
+
+# Geographically constrained modelling and merge the environmental data into trait.data
+trait.data = subset(trait.data, species==trait.species)
+
 # Geographically constrained modelling and merge the environmental data into trait.data
 if (!is.null(trait.data)) {
-    trait.data = subset(trait.data, species==trait.species)
-    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints, enviro.data.generateCHall);
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, environ.rasterstack, enviro.data.constraints, enviro.data.generateCHall, generateGeoconstraint=FALSE)
     trait.data = merged.result$data
     trait.data.params = merged.result$params
 }
@@ -91,5 +96,5 @@ for (formula in formulae) {
 
   ## Save the results as text to file for each trait
   s <- summary(glmm.result) 
-  bccvl.write.text(s, output_filename)                                       
+  bccvl.write.text(s, output_filename)
 }
