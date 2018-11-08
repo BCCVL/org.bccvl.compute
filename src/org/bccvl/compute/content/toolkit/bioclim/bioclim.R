@@ -113,7 +113,7 @@ absen = coord[c(which(biomod2.data@data.species == 0 | is.na(biomod2.data@data.s
 # NOTE: env vars must be numerical
 
 if (!all(enviro.data.type=="continuous")) {
-    warning("bioclim not run because categorical data cannot be used")
+    stop("bioclim not run because categorical data cannot be used")
 } else {
     # run bioclim with matrix of enviro data
     model.sdm = bioclim(x=occur[,names(current.climate.scenario), drop=FALSE])
