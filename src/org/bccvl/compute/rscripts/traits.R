@@ -718,7 +718,8 @@ bccvl.regPlots = function(regResult, outerTitle="", fnamePrefix="", outputdir=bc
   png(filename=file.path(outputdir, paste0(fnamePrefix, 'diagnostic_plots.png')),
       width=plotWidth, height=plotHeight)
   layout(matrix(c(1,3,2,4),2,2)) # 4 graphs/page
-  plot(regResult, par(ps=15))
+  par(ps=15)
+  plot(regResult)
   title(outerTitle, outer=TRUE, line=-1)
   dev.off()
   
