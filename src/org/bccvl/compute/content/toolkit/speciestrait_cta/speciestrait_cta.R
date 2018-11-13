@@ -35,8 +35,12 @@ library("rpart")
 # Load the environmental raster layers
 environ.rasterstack = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, "highest")
 
+# if no species, then run across all species
+if (!is.null(trait.species)) {
+  trait.data = subset(trait.data, species==trait.species)
+}
+
 # Geographically constrained modelling and merge the environmental data into trait.data
-trait.data = subset(trait.data, species==trait.species)
 if (!is.null(trait.data)) {
     merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, environ.rasterstack, enviro.data.constraints, enviro.data.generateCHall, generateGeoconstraint=FALSE)
     trait.data = merged.result$data

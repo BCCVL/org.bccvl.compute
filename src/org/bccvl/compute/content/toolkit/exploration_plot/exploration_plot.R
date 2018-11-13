@@ -29,8 +29,16 @@ enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FA
 # Load the environmental raster layers
 environ.rasterstack = bccvl.enviro.stack(enviro.data.current, enviro.data.type, enviro.data.layer, "highest")
 
+# if no species, then run across all species
+if (!is.null(trait.species)) {
+  trait.data = subset(trait.data, species==trait.species)
+}
+else {
+  # use the trait filename as species name for the plots' filenames.
+  trait.species = file_path_sans_ext(basename(trait.data.filename))
+}
+
 # Geographically constrained modelling and merge the environmental data into trait.data
-trait.data = subset(trait.data, species==trait.species)
 if (!is.null(trait.data) || enviro.data.generateCHall) {
     merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, environ.rasterstack, enviro.data.constraints, enviro.data.generateCHall, generateGeoconstraint=FALSE)
     trait.data = merged.result$data

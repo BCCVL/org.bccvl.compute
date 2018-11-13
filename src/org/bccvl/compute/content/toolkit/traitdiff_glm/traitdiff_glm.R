@@ -16,11 +16,12 @@ trait.data = read.csv(trait.data.filename)
 enviro.data.constraints = bccvl.params$modelling_region
 
 # Empty environmental dataset as it is not needed
-enviro.data.current = list()
+environ.rasterstack = stack()
+crs(environ.rasterstack) <- '+init=epsg:4326'
 
-# Geographically constrained modelling and merge the environmental data into trait.data
+# Geographically constrained modelling; just need to constraint the trait-data
 if (!is.null(trait.data)) {
-    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, enviro.data.current, enviro.data.type, enviro.data.layer, enviro.data.constraints);
+    merged.result = bccvl.trait.constraint.merge(trait.data, trait.data.params, environ.rasterstack, enviro.data.constraints, generateCHull=FALSE, generateGeoconstraint=FALSE)
     trait.data = merged.result$data
     trait.data.params = merged.result$params
 }
