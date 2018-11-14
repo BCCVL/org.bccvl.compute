@@ -34,8 +34,7 @@ environ.rasterstack = bccvl.enviro.stack(enviro.data.current, enviro.data.type, 
 # if no species, the run across all species
 if (!is.null(trait.species)) {
   trait.data = subset(trait.data, species==trait.species)
-}
-else {
+} else {
   # use the trait filename as species name for the plots' filenames.
   trait.species = file_path_sans_ext(basename(trait.data.filename))
 }
