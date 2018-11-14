@@ -106,7 +106,7 @@ for (formula in formulae) {
         # regression and iagnostic plots
         bccvl.regPlots(glm.result, 
                        outerTitle = paste0(trait.species, ': GLM fit for ', formula$trait), 
-                       fnamePrefix = paste0(trait.species, '_', formula$trait, '_GLM_'))
+                       fnamePrefix = paste0(formula$trait, '_', trait.species, '_glm_'))
 
         # Do projection only if there is no fixed factors i.e. all env variables of env dataset.
         env.names = names(environ.rasterstack)
