@@ -25,7 +25,7 @@
             "order": 4
         },
         "proj_current_*_unconstrained.tif": {
-            "title": "Trait projection to current climate",
+            "title": "Trait projection to current climate - unconstrained",
             "genre": "DataGenreSTResult",
             "mimetype": "image/geotiff",
             "order": 5
@@ -37,7 +37,7 @@
             "order": 6
         },
         "proj_current_*_unconstrained.png": {
-            "title": "Trait projection to current climate",
+            "title": "Trait projection to current climate - unconstrained",
             "genre": "DataGenreSTResult",
             "mimetype": "image/png",
             "order": 7
