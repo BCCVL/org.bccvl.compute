@@ -61,8 +61,9 @@ for (formula in formulae) {
       na_action = get("na.fail")
   }
 
+  traitname = gsub("[_ ]", "-", trimws(formula$trait))
   if (formula$type == 'ordinal') {
-        output_filename = paste0(formula$trait, ".clmm.results.txt")
+        output_filename = paste0(traitname, "_clmm_results.txt")
         glmm.result = clmm(formula=formula(formula$formula),
                           data=trait.data,
                           weights=NULL,
@@ -71,16 +72,16 @@ for (formula in formulae) {
                           Hess=TRUE,
                           model=TRUE)
     } else if (formula$type == 'nominal') {
-        output_filename = paste0(formula$trait, ".nom.results.txt")
+        output_filename = paste0(traitname, "_nom_results.txt")
         glmm.result = glmer(formula=formula(formula$formula),
                               data=trait.data,
                               weights=NULL,
                               na.action=na_action,
                               contrasts=NULL,
-                              summ=0,        
+                              summ=0,
                               model=TRUE)
     } else {
-        output_filename = paste0(formula$trait, ".glmer.results.txt")
+        output_filename = paste0(traitname, "_glmer_results.txt")
         glmm.result = glmer(formula=formula(formula$formula),
                          family=family_from_string(bccvl.params$family),
                          data= trait.data,
@@ -95,7 +96,7 @@ for (formula in formulae) {
 
   ## Save the result to file
   # Save the model
-  bccvl.save(glmm.result, paste0(formula$trait, ".glmm.model.object.RData"))
+  bccvl.save(glmm.result, paste0(traitname, "_glmm_model.object.RData"))
 
   ## Save the results as text to file for each trait
   s <- summary(glmm.result) 

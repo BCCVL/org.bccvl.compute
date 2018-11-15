@@ -65,9 +65,11 @@ for (formula in formulae) {
   if (is.null(na_action)) {
         na_action = get("na.fail")
   }
+  # Replace underscore and white-space with dash in trait-name for use in output filename
+  traitname = gsub("[_ ]", "-", trimws(formula$trait))
   if (formula$type == 'ordinal') {
         library(visreg)
-        output_filename = paste0(formula$trait, ".polr.results.txt")
+        output_filename = paste0(traitname, "_polr_results.txt")
         glm.result = polr(formula=formula(formula$formula),
                           data=trait.data,
                           weights=NULL,
@@ -78,7 +80,7 @@ for (formula in formulae) {
                           method="logistic")
         visreg(glm.result)
     } else if (formula$type == 'nominal') {
-        output_filename = paste0(formula$trait, ".nom.results.txt")
+        output_filename = paste0(traitname, "_nom_results.txt")
         glm.result = multinom(formula=formula(formula$formula),
                               data=trait.data,
                               weights=NULL,
@@ -87,7 +89,7 @@ for (formula in formulae) {
                               summ=0,
                               model=TRUE)
     } else {
-        output_filename = paste0(formula$trait, ".glm.results.txt")
+        output_filename = paste0(traitname, "_glm_results.txt")
         glm.result = glm(formula=formula(formula$formula),
                          family=family_from_string(bccvl.params$family),
                          data= trait.data,
@@ -105,7 +107,7 @@ for (formula in formulae) {
         # regression and iagnostic plots
         bccvl.regPlots(glm.result, 
                        outerTitle = paste0(trait.species, ': GLM fit for ', formula$trait), 
-                       fnamePrefix = paste0(formula$trait, '_', trait.species, '_glm_'))
+                       fnamePrefix = paste0(traitname, '_', trait.species, '_glm_'))
 
         # Do projection only if there is no fixed factors i.e. all env variables of env dataset.
         env.names = names(environ.rasterstack)
@@ -142,7 +144,7 @@ for (formula in formulae) {
     }
 
   # Save the model to file
-  bccvl.save(glm.result, paste0(formula$trait, ".glm.model.object.RData"))
+  bccvl.save(glm.result, paste0(traitname, "_glm_model.object.RData"))
 
   ## Save the results as text to file for each trait
   s <- summary(glm.result) 

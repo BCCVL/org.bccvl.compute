@@ -41,8 +41,9 @@ if (is.null(na_action)) {
     na_action = get("na.fail")
 }
 for (formula in formulae) {
+    traitname = gsub("[_ ]", "-", trimws(formula$trait))
     if (formula$type == 'ordinal') {
-        output_filename = paste0(formula$trait, ".diffpolr.results.txt")
+        output_filename = paste0(traitname, "_diffpolr_results.txt")
         glm.result = polr(formula=formula(formula$formula),
                           data=trait.data,
                           weights=NULL,
@@ -52,7 +53,7 @@ for (formula in formulae) {
                           model=TRUE,
                           method="logistic")
     } else if (formula$type == 'nominal') {
-        output_filename = paste0(formula$trait, ".diffnom.results.txt")
+        output_filename = paste0(traitname, "_diffnom_results.txt")
         glm.result = multinom(formula=formula(formula$formula),
                               data=trait.data,
                               weights=NULL,
@@ -61,7 +62,7 @@ for (formula in formulae) {
                               summ=0,        
                               model=TRUE)
     } else {
-        output_filename = paste0(formula$trait, ".diffglm.results.txt")
+        output_filename = paste0(traitname, "_diffglm_results.txt")
         glm.result = glm(formula=formula(formula$formula),
                          family=family_from_string(bccvl.params$family),
                          data= trait.data,
@@ -80,7 +81,7 @@ for (formula in formulae) {
         
     ## Save the result to file
     # Save the model
-    bccvl.save(glm.result, paste0(formula$trait, ".diffglm.model.object.RData"))
+    bccvl.save(glm.result, paste0(traitname, "_diffglm_model.object.RData"))
 
     ## Save the results as text to file for each trait
     s <- summary(glm.result) 

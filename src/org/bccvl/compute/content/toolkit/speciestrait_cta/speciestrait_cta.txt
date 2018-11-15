@@ -1,12 +1,12 @@
 {
     "files": {
-        "*.txt": {
+        "*_results.txt": {
             "title": "Model summary",
             "genre": "DataGenreSTResult",
             "mimetype": "text/plain",
             "order": 1
         },
-        "*.png": {
+        "*_plot.png": {
             "title": "Tree plot",
             "genre": "DataGenreSTResult",
             "mimetype": "image/png",

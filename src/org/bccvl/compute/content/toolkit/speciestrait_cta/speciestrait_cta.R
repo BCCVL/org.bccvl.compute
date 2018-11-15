@@ -52,7 +52,7 @@ if (!is.null(trait.data)) {
 # Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params, include_rf=TRUE)
 for (formula in formulae) {
-    trait_name <- formula$trait
+    trait_name <- gsub("[_ ]", "-", trimws(formula$trait))
     trait.cta.options <- list(formula = formula(formula$formula), # formula should be: trait ~ env1 + env2 + env3 etc 
                               method = ifelse(formula$type == 'continuous', 'anova', 'class'), # should be "class" for categorical trait data, and "anova" for continuous trait data
                               na.action = na.rpart, # default action deletes observations for which trait value is missing, but keeps those in which one or more environmental variables are missing
@@ -82,17 +82,17 @@ for (formula in formulae) {
 
     ### Save the results as text to file for each trait
     s <- summary(trait.cta) # saved and displayed as text
-    bccvl.write.text(s, paste0(trait_name, ".cta.results.txt"))
+    bccvl.write.text(s, paste0(trait_name, "_cta_results.txt"))
     p <- printcp(trait.cta) # saved and displayed as text
-    bccvl.write.text(p, paste0(trait_name, ".cta.results.txt"), append=TRUE)
+    bccvl.write.text(p, paste0(trait_name, "_cta_results.txt"), append=TRUE)
 
     # save the plot as png image
-    png(file.path(bccvl.env$outputdir, paste(trait_name, "cta.plot", "png", sep=".")))
+    png(file.path(bccvl.env$outputdir, paste0(trait_name, "_cta_plot.png")))
     plot(trait.cta)
     text(trait.cta)
     dev.off()
 
 
     # Save the model
-    bccvl.save(trait.cta, paste0(trait_name, ".cta.model.object.RData"))
+    bccvl.save(trait.cta, paste0(trait_name, "_cta_model.object.RData"))
 }

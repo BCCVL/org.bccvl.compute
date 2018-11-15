@@ -14,7 +14,7 @@ write.table(installed.packages()[,c("Package", "Version", "Priority")],
             row.names=FALSE)
 
 ###check if libraries are installed, install if necessary and then load them
-necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "raster", "rgdal", "rgeos", "png", "gstat", "gdalUtils", "gam", "biomod2", "spatial.tools") #list the libraries needed
+necessary=c("ggplot2","tools", "rjson","SDMTools", "gbm", "raster", "rgdal", "rgeos", "png", "gstat", "gdalUtils", "gam", "biomod2", "spatial.tools", "visreg") #list the libraries needed
 installed = necessary %in% installed.packages() #check if library is installed
 if (length(necessary[!installed]) >=1) {
     install.packages(necessary[!installed], dep = T) #if library is not installed, install it
@@ -552,11 +552,12 @@ bccvl.trait.constraint.merge <- function(trait.data, trait.params, rasterstack, 
 
 # function to generate a filename for the specified file type and extension.
 bccvl.get_filepath <- function(file_type, projection_name, trait, species, outputdir=bccvl.env$outputdir, filename_ext=NULL, file_ext='tif') {
+    traitname = gsub("[_ ]", "-", trimws(trait))
     if (is.null(filename_ext)) {
-        basename = paste(file_type, projection_name, trait, species, sep="_")
+        basename = paste(file_type, projection_name, traitname, species, sep="_")
     }
     else {
-        basename = paste(file_type, projection_name, trait, species, filename_ext, sep="_")
+        basename = paste(file_type, projection_name, traitname, species, filename_ext, sep="_")
     }
     return(file.path(outputdir, paste(basename, file_ext, sep=".")))
 }

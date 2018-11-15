@@ -60,8 +60,7 @@ if (is.null(na_action)) {
 # Generate a formula for each trait
 formulae = bccvl.trait.gen_formulae(trait.data.params)
 for (formula in formulae) {
-    trait_name = formula$trait
-
+    trait_name <- gsub("[_ ]", "-", trimws(formula$trait))
     if (formula$type == 'ordinal') {
         fam = ocat(R=nlevels(trait.data[[trait_name]]))
     }
@@ -90,13 +89,13 @@ for (formula in formulae) {
                      y=FALSE)
 
     # Save the model to file
-    bccvl.save(gam.result, paste0(trait_name, ".gam.model.object.RData"))
+    bccvl.save(gam.result, paste0(trait_name, "_gam_model.object.RData"))
 
     # Save result summary to a text file
     s <- summary(gam.result)
-    bccvl.write.text(s, paste0(trait_name, ".gam_result_summary.txt"))
+    bccvl.write.text(s, paste0(trait_name, "_gam_result_summary.txt"))
 
     # save the plot as png image
-    ofilename = paste0(trait_name, ".gam.plotgam")
+    ofilename = paste0(trait_name, "_gam_plotgam")
     bccvl.write.image(gam.result, ofilename, "plot.gam")
 }

@@ -1,6 +1,9 @@
 {
     "files": {
-        "*.txt": {
+        "*_gam_plotgam.png": {
+            "skip": true
+        },
+        "*_result_summary.txt": {
             "title": "Model summary",
             "genre": "DataGenreSTResult",
             "mimetype": "text/plain",

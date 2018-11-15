@@ -1,6 +1,6 @@
 {
     "files": {
-        "*.txt": {
+        "*_results.txt": {
             "title": "Model summary",
             "genre": "DataGenreSTResult",
             "mimetype": "text/plain",
