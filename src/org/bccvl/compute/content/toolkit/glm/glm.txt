@@ -72,83 +72,89 @@
             "mimetype": "image/png",
             "order": 9
         },
-        "vip_plot_*.png": {
-            "title": "Variable Importance plots",
+        "variable_relative_contribution_*.png": {
+            "title": "Variable relative contribution",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 10
+        },
+        "variable_correlations_*.png": {
+            "title": "Variable correlations",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 11
         },
         "Evaluation-statistics_*.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 11
+            "order": 12
         },
         "combined.Full.modelEvaluation.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 12
+            "order": 13
         },
         "Full-presence-absence-plot_*.png": {
             "title": "Presence/absence density plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 13
+            "order": 14
         },
         "Full-presence-absence-hist_*.png": {
             "title": "Presence/absence density histogram",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 14
+            "order": 15
         },
         "Full-occurence_absence_pdf.png": {
             "title": "New Model plots",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 15
+            "order": 16
         },
         "Full-TPR-TNR_*.png": {
             "title": "Sensitivity/Specificity plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 16
+            "order": 17
         },
         "Full-error-rates_*.png": {
             "title": "Error rates plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 17
+            "order": 18
         },
         "Full-ROC_*.png": {
             "title": "ROC plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 18
+            "order": 19
         },
         "Full-loss-functions_*.png": {
             "title": "Loss functions plot",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 19
+            "order": 20
         },
         "Loss-function-intervals-table_*.csv": {
             "title": "Loss functions table",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 20
+            "order": 21
         },
         "Full-loss-intervals_*.png": {
             "title": "Loss functions intervals",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
-            "order": 21
+            "order": 22
         },
         "Evaluation-data_*.csv": {
             "title": "Model evaluation data",
             "genre": "DataGenreSDMEval",
             "mimetype": "text/csv",
-            "order": 22
+            "order": 23
         },
         "*.R": {
             "title": "Job Script",

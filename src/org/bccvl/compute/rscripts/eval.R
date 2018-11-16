@@ -394,7 +394,7 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
     max.TPR.TNR <- all.stats[pick1min(all.stats$L.diag), ] # select row with all stats for maximum value of L.diag
     rownames(max.TPR.TNR) <- c("maximize sum TPR and TNR, minimize sum FPR and FNR")
     # End Addition Number 2, 23 July 2018
-    
+
     # stats.table <- rbind(max.TPR.TNR, TPR.eq.TNR, max.Kappa) 
     stats.table <- max.TPR.TNR
     stats.table$L.diag <- NULL
@@ -403,7 +403,7 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
                             "Cohen's Kappa", "True Skill Statistic (TSS)", "Bias Score (BS)", "Critical Success Index (CSI)", "Equitable Threat Score (ETS)",
                             "Odds-Ratio (OR)","Accuracy", "Misclassification Rate")
     eval.stats <- t(stats.table) # transpose table
-    
+
      # Create Loss function plot: shows the values of different loss functions across the range of threshold probability values
     png(file=file.path(bccvl.env$outputdir, sprintf("%s-loss-functions_%s.png", make.plot, species_algo_str)), width=480, height=480)
     g6 <- ggplot(errs[errs$measure %in% rev(c("L.diag", "L.pred", "L.all", "L.eq.diag")), ], 
@@ -455,7 +455,6 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name, species_al
   }
   
   if (!(length(model.values)==0)) {
-    
     # Create a matrix to hold average values for each environmental variable
     mean.values = matrix(data = NA, nrow = 100, ncol = length(env.vars))
     colnames(mean.values) = env.vars
@@ -463,7 +462,7 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name, species_al
     for (i in 1:ncol(mean.values)) {
       mean.values[,i] = rep(mean(model.values[,i], na.rm=TRUE), 100)
     }
-    
+
     # plot 18 response curves per page
     curvesPerPage = 6*3       # No of rows X No of columns
     for (i in 0:((ncol(mean.values)-1)/curvesPerPage)) {
@@ -854,6 +853,10 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
       theme(axis.title.x=element_blank(),legend.position = "bottom", axis.text.x=element_text(angle=-90)) +
       guides(fill=guide_legend(title="correlation"))
 
+   # Save as variable correlation plot.
+   filename1 = sub("vip_plot", "variable_correlations", filename)
+   bccvl.savePdf(pheat, ncol=1, nrow=1, filename=filename1, aspdf=pdf)
+
    # variable importance plot in terms of AIC scores which represent the information loss,
    # e.g., the AIC score of a predictor variable representing the information loss 
    # if this variable is not included in the selected model.
@@ -890,14 +893,9 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
  
    ppv = pv + geom_col(alpha=0.6,col="green4") + coord_flip()
 
-    if(biom_vi) 
-    {
-      bccvl.savePdf(ps, pheat, ppv, nrow=2, layout_matrix=cbind(c(1,2), c(3,2)), filename=filename, aspdf=pdf)
-    }
-    else
-    {
-      bccvl.savePdf(ps, pheat, ppa, nrow=2, layout_matrix=cbind(c(1,2), c(3,2)), filename=filename, aspdf=pdf) 
-    }
+   # Save as variable relative contribution plot.
+   filename1 = sub("vip_plot", "variable_relative_contribution", filename)
+   bccvl.savePdf(ps, ifelse(biom_vi, ppv, ppa), ncol=2, nrow=1, filename=filename1, aspdf=pdf)
  }
 
 
@@ -1009,10 +1007,9 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
      bccvl.savePdf(ppa, ncol=1, nrow=1, filename=filename, aspdf=pdf)
 
-   }  
+   }
  }
 
-  
  if (!is.na(match("ann",method))) 
  {
    working <- load(filekeep)
@@ -1032,7 +1029,6 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
   
    bccvl.savePdf(ppv, ncol=1, nrow=1, filename=filename, aspdf=pdf)
  }
-   
 
  if (!is.na(match("mars",method))) 
  {
@@ -1137,15 +1133,19 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
       labs(y="variable relative contribution (%)") + labs(title="maxent algorithm")
    pp = p + geom_col(alpha=0.6,col="red") + coord_flip()
 
+   # Save as variable relative contribution plot.
+   filename1 = sub("vip_plot", "variable_relative_contribution", filename)
+   bccvl.savePdf(pp, ncol=1, nrow=1, filename=filename1, aspdf=pdf)
+
    #  the heatmap in terms of correlation among predictor variables
-   if(cor.method=="pearson")  xx = cor(the.data)  
-   if(cor.method=="spearman") xx = cor(the.data,method="spearman")        
+   if(cor.method=="pearson")  xx = cor(the.data)
+   if(cor.method=="spearman") xx = cor(the.data,method="spearman")
  
     get_lower_tri<-function(cormat)
     {
       cormat[upper.tri(cormat)] <- NA
       return(cormat) 
-    }  
+    }
 
    lower_tri = get_lower_tri(xx)
   
@@ -1161,10 +1161,11 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
       labs(y=" ") + theme_minimal() +
       theme(axis.title.x=element_blank(),legend.position = "bottom", axis.text.x=element_text(angle=-90)) +
       guides(fill=guide_legend(title="correlation"))
-
-   bccvl.savePdf(pp, pheat, ncol=1, nrow=2, filename=filename, aspdf=pdf)
- }   
-}  
+   # Save as variable correlation plot.
+   filename1 = sub("vip_plot", "variable_correlations", filename)
+   bccvl.savePdf(pheat, ncol=1, nrow=1, filename=filename1, aspdf=pdf)
+ }
+}
 
 
 ########################################################
@@ -1180,12 +1181,10 @@ setMethod('plot', signature(x='BIOMOD.projection.out', y="missing"),
             } 
             
             if(!length(models_selected)) stop("invalid str.grep arg")
-            
-            
-            
+
             if(class(x@proj) == "BIOMOD.stored.raster.stack"){
               require(rasterVis)
-              
+
               my.scale = ifelse(on_0_1000, 1, 1000)
               ## define the breaks of the color key
               my.at <- seq(0,1000,by=100) / my.scale
@@ -1196,7 +1195,7 @@ setMethod('plot', signature(x='BIOMOD.projection.out', y="missing"),
               ## define colors
               #               my.col <- colorRampPalette(c("red4","orange4","yellow4","green4"))(100)
               my.col <- colorRampPalette(c("grey90","yellow4","green4"))(100)
-              
+
               ## try to use levelplot function
               try_plot <- try(
                 levelplot(get_predictions(x, full.name=models_selected),
@@ -1216,7 +1215,7 @@ setMethod('plot', signature(x='BIOMOD.projection.out', y="missing"),
                   plot(get_predictions(x, full.name=models_selected))
                 )
               } 
-              
+
               if(inherits(try_plot,"try-error")){ # try classical plot
                 cat("\n Plotting function failed.. You should try to do it by yourself!")
               }
@@ -1227,7 +1226,5 @@ setMethod('plot', signature(x='BIOMOD.projection.out', y="missing"),
               } else {
                 multiple.plot(Data = get_predictions(x, full.name=models_selected, as.data.frame=T), coor = x@xy.coord)
               }
-              
             } else {cat("\n !  Biomod Projection plotting issue !", fill=.Options$width)}
-            
           })
