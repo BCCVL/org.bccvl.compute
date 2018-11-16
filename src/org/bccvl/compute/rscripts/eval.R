@@ -827,7 +827,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
       dfout = cbind(df2t,df1t)
       write.csv(dfout,file=paste(filekeep,"paraest_out.csv",sep="_"),row.names=FALSE)
    }
-       
+
    #  the heatmap in terms of correlation among numerical predictor variables
    rescdata = Filter(is.numeric, rescaled.glm$data[,-1, drop=FALSE])
 
@@ -895,9 +895,13 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
    # Save as variable relative contribution plot.
    filename1 = sub("vip_plot", "variable_relative_contribution", filename)
-   bccvl.savePdf(ps, ifelse(biom_vi, ppv, ppa), ncol=2, nrow=1, filename=filename1, aspdf=pdf)
+   if (biom_vi) {
+     bccvl.savePdf(ps, ppv, ncol=2, nrow=1, filename=filename1, aspdf=pdf)
+   }
+   else {
+     bccvl.savePdf(ps, ppa, ncol=2, nrow=1, filename=filename1, aspdf=pdf)
+   }
  }
-
 
  if (!is.na(match("cta",method))) 
  {
@@ -906,7 +910,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
 
 # variable importance is part of the model fitting outcomes with 'rpart' algorithm and
 # this information can be used for generating the variable importance plot
- 
+
    varimp0 = fittedmodel$variable.importance
    nx = length(varimp0)
    df0 = as.data.frame(cbind(1:nx,varimp0))
@@ -951,7 +955,7 @@ bccvl.VIPplot <- function(fittedmodel=NULL,
  {
    working <- load(filekeep)
    fittedmodel <- get_formal_model(eval(parse(text=working)))
- 
+
    if (biom_vi) 
    {
      # variable importance plot using the inbuilt biomod2 function 'variables_importance'
