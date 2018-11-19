@@ -88,9 +88,6 @@ biomod2.data = bccvl.biomod2.formatData(true.absen       = absen,
                                   save.pseudo.absen      = FALSE,
                                   save.env.occur         = FALSE,
                                   species_algo_str       = species_algo_str)
-# Extract occurrence and absence data
-coord = cbind(biomod2.data@coord, biomod2.data@data.env.var)
-occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
 
 ###############
 #
@@ -109,8 +106,7 @@ occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
 # run circles with occurrence data
 if (is.null(opt.d)) {
   model.sdm = circles(p=occur, lonlat=TRUE)
-}
-else {
+} else {
   model.sdm = circles(p=occur, d=opt.d, lonlat=TRUE)
 }
 

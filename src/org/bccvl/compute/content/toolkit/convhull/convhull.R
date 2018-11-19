@@ -89,10 +89,6 @@ biomod2.data = bccvl.biomod2.formatData(true.absen       = absen,
                                   save.env.occur         = FALSE,
                                   species_algo_str       = species_algo_str)
 
-# Extract occurrence and absence data
-coord = cbind(biomod2.data@coord, biomod2.data@data.env.var)
-occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
-
 
 ###############
 #
@@ -106,16 +102,16 @@ occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
 # ... you can also set n=1:x, to get a set of overlapping polygons consisting of 1 to x parts; i.e.
 #   the first polygon has 1 part, the second has 2 parts and x has x parts
 
-  # run convhull with occurence data.
-  model.sdm = convHull(p=occur)
-  # save out the model object
-  bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
+# run convhull with occurence data.
+model.sdm = convHull(p=occur)
+# save out the model object
+bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
 
-  # predict for given climate scenario
-  model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
+# predict for given climate scenario
+model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
 
-  # remove the current.climate.scenario to release disk space
-  bccvl.remove.rasterObject(current.climate.scenario)
+# remove the current.climate.scenario to release disk space
+bccvl.remove.rasterObject(current.climate.scenario)
 
-  # save output
-  bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
+# save output
+bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
