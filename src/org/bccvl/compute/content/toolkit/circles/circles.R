@@ -106,26 +106,22 @@ occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
 # lonlat logical, are these longitude/latitude data? 
 # r radius of the earth; only relevant for longitude/latitude data; default is 6378137 m
 
-if (!all(enviro.data.type=="continuous")) {
-    stop("circles not run because categorical data cannot be used")
-} else {
-    # run circles with matrix of enviro data.
-    if (is.null(opt.d)) {
-      model.sdm = circles(p=occur, lonlat=TRUE)
-    }
-    else {
-      model.sdm = circles(p=occur, d=opt.d, lonlat=TRUE)
-    }
-
-  # save out the model object
-  bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
-
-  # predict for given climate scenario
-  model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
-
-  # remove the current.climate.scenario to release disk space
-  bccvl.remove.rasterObject(current.climate.scenario)
-
-  # save output
-  bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
+# run circles with occurrence data
+if (is.null(opt.d)) {
+  model.sdm = circles(p=occur, lonlat=TRUE)
 }
+else {
+  model.sdm = circles(p=occur, d=opt.d, lonlat=TRUE)
+}
+
+# save out the model object
+bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
+
+# predict for given climate scenario
+model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
+
+# remove the current.climate.scenario to release disk space
+bccvl.remove.rasterObject(current.climate.scenario)
+
+# save output
+bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)

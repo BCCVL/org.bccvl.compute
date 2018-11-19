@@ -106,20 +106,16 @@ occur = coord[c(which(biomod2.data@data.species == 1)), names(coord)]
 # ... you can also set n=1:x, to get a set of overlapping polygons consisting of 1 to x parts; i.e.
 #   the first polygon has 1 part, the second has 2 parts and x has x parts
 
-if (!all(enviro.data.type=="continuous")) {
-    stop("convhull not run because categorical data cannot be used")
-} else {
-    # run convhull with matrix of enviro data
-    model.sdm = convHull(p=occur)
-    # save out the model object
-    bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
+  # run convhull with occurence data.
+  model.sdm = convHull(p=occur)
+  # save out the model object
+  bccvl.save(model.sdm, bccvl.format.outfilename(filename="model.object", id_str=species_algo_str, ext="RData"))
 
-    # predict for given climate scenario
-    model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
+  # predict for given climate scenario
+  model.proj = predict(model.sdm, current.climate.scenario@layers[[1]], mask=TRUE)
 
-    # remove the current.climate.scenario to release disk space
-    bccvl.remove.rasterObject(current.climate.scenario)
+  # remove the current.climate.scenario to release disk space
+  bccvl.remove.rasterObject(current.climate.scenario)
 
-    # save output
-    bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
-}
+  # save output
+  bccvl.saveModelProjection(model.proj, projection.name, occur.species, species_algo_str)
