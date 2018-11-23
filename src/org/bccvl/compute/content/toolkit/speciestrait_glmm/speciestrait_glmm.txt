@@ -5,12 +5,18 @@
             "genre": "DataGenreSTResult",
             "mimetype": "text/plain",
             "order": 1
-        },    
+        },
+        "*_trait_environmental.csv": {
+            "title": "Trait data with environmental data",
+            "genre": "DataGenreSpeciesOccurEnv",
+            "mimetype": "text/csv",
+            "order": 2
+        },
         "*.R": {
             "title": "Job Script",
             "genre": "JobScript",
             "mimetype": "text/x-r",
-            "order": 2
+            "order": 3
         },
         "*_trait_environmental.csv": {
             "title": "Trait data with environmental data",
