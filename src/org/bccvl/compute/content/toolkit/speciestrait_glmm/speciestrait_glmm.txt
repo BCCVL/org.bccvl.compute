@@ -18,12 +18,6 @@
             "mimetype": "text/x-r",
             "order": 3
         },
-        "*_trait_environmental.csv": {
-            "title": "Trait data with environmental data",
-            "genre": "DataGenreSpeciesOccurEnv",
-            "mimetype": "text/csv",
-            "order": 8
-        },
          "*.Rout": {
             "title": "Log file",
             "genre": "DataGenreLog",
