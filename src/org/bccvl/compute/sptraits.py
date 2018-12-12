@@ -58,11 +58,15 @@ def get_traits_params(result):
     # Get the content of the modelling_region BlobFile.
     # Note: deepcopy does not copy the content of BlobFile.
     if result.job_params['modelling_region']:
-        params['modelling_region'] = result.job_params['modelling_region'].data
+        params['modelling_region'] = { 
+                'uuid': IUUID(result),
+                'filename': 'modelling_region.txt',
+                'downloadurl': '{0}/API/em/v1/constraintregion?uuid={1}'.format(getSite().absolute_url(), IUUID(result)),
+        }
 
     # add hints for worker
     workerhints = {
-        'files': [x for x in ('traits_dataset', 'environmental_datasets', ) if x in params]
+        'files': [x for x in ('traits_dataset', 'environmental_datasets', 'modelling_region',) if x in params]
     }
     return {'env': {}, 'params': params, 'worker': workerhints}
 

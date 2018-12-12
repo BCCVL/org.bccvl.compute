@@ -68,12 +68,15 @@ def get_project_params(result):
     # Get the content of the projection_region BlobFile.
     # Note: deepcopy does not copy the content of BlobFile.
     if result.job_params['projection_region']:
-        params['projection_region'] = result.job_params['projection_region'].data
-
+        params['projection_region'] = { 
+                'uuid': IUUID(result),
+                'filename': 'projection_region.txt',
+                'downloadurl': '{0}/API/em/v1/constraintregion?uuid={1}'.format(getSite().absolute_url(), IUUID(result)),
+        }
 
     # add hints for worker
     workerhints = {
-        'files': ('species_distribution_models', 'future_climate_datasets', 'sdm_projections')
+        'files': ('species_distribution_models', 'future_climate_datasets', 'sdm_projections', 'projection_region',)
     }
     return {'env': {}, 'params': params, 'worker': workerhints}
 

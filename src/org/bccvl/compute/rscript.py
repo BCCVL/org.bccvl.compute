@@ -91,12 +91,12 @@ def get_sdm_params(result):
                 'uuid': IUUID(result),
                 'filename': 'modelling_region.txt',
                 'downloadurl': '{0}/API/em/v1/constraintregion?uuid={1}'.format(getSite().absolute_url(), IUUID(result)),
-                    }
+        }
 
     # add hints for worker to download files
     workerhints = {
         # only those parameters that are actually in params dict
-        'files':  [x for x in ('species_occurrence_dataset', 'species_absence_dataset', 'environmental_datasets', 'modelling_region') if x in params]
+        'files':  [x for x in ('species_occurrence_dataset', 'species_absence_dataset', 'environmental_datasets', 'modelling_region',) if x in params]
     }
     return {'env': {}, 'params': params, 'worker': workerhints}
 
