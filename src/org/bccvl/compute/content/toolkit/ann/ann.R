@@ -29,9 +29,9 @@ enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 #layer names for the current environmental layers used
 enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
-#geographic constraints
-environ.data.modelling_region = bccvl.params$modelling_region$filename
-enviro.data.constraints = rjson::fromJSON(bccvl.params$modelling_region$filename)
+#geographic constraints. Read in the string and remove the quote characters
+enviro.data.constraints = readChar(bccvl.params$modelling_region$filename, file.info(bccvl.params$modelling_region$filename)$size)
+enviro.data.constraints = substr(enviro.data.constraints, 2, nchar(enviro.data.constraints)-1)
 #Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
 enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
