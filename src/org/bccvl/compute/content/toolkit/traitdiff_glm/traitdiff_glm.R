@@ -12,8 +12,10 @@ trait.data.filename = bccvl.params$traits_dataset$filename
 trait.data.params = bccvl.params$traits_dataset_params
 # Read in the trait data
 trait.data = read.csv(trait.data.filename)
-# Geographic constraints
-enviro.data.constraints = bccvl.params$modelling_region
+#geographic constraints. Read in the string and remove the begin/end quotes and backslash characters
+enviro.data.constraints = readLines(bccvl.params$modelling_region$filename)
+enviro.data.constraints = substr(enviro.data.constraints, 2, nchar(enviro.data.constraints)-1)
+enviro.data.constraints = gsub("\\", "", enviro.data.constraints, fixed=TRUE)
 
 # Empty environmental dataset as it is not needed
 environ.rasterstack = stack()

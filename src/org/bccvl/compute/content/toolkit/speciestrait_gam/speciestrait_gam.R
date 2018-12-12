@@ -22,8 +22,10 @@ enviro.data.current = lapply(bccvl.params$environmental_datasets, function(x) x$
 enviro.data.type = lapply(bccvl.params$environmental_datasets, function(x) x$type)
 # Layer names for the current environmental layers used
 enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$layer)
-# Geographic constraints
-enviro.data.constraints = bccvl.params$modelling_region
+#geographic constraints. Read in the string and remove the begin/end quotes and backslash characters
+enviro.data.constraints = readLines(bccvl.params$modelling_region$filename)
+enviro.data.constraints = substr(enviro.data.constraints, 2, nchar(enviro.data.constraints)-1)
+enviro.data.constraints = gsub("\\", "", enviro.data.constraints, fixed=TRUE)
 #Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
 enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
 

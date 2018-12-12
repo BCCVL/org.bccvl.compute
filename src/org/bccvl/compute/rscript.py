@@ -89,10 +89,9 @@ def get_sdm_params(result):
     if result.job_params['modelling_region']:
         params['modelling_region'] = { 
                 'uuid': IUUID(result),
-                'filename': 'modelling_region.json',
+                'filename': 'modelling_region.txt',
                 'downloadurl': '{0}/API/em/v1/constraintregion?uuid={1}'.format(getSite().absolute_url(), IUUID(result)),
                     }
-
 
     # add hints for worker to download files
     workerhints = {
