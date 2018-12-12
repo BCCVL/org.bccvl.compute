@@ -6,7 +6,9 @@ from pkg_resources import resource_string
 import re
 
 from plone import api
+from plone.uuid.interfaces import IUUID
 from zope.interface import provider
+from zope.component.hooks import getSite
 
 from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod
@@ -83,15 +85,19 @@ def get_sdm_params(result):
         if isinstance(item, Decimal):
             params[key] = float(item)
 
-    # Get the content of the modelling_region BlobFile.
-    # Note: deepcopy does not copy the content of BlobFile.
+    # Pass the url to get modelling region as input file
     if result.job_params['modelling_region']:
-        params['modelling_region'] = result.job_params['modelling_region'].data
+        params['modelling_region'] = { 
+                'uuid': IUUID(result),
+                'filename': 'modelling_region.json',
+                'downloadurl': '{0}/API/em/v1/constraintregion?uuid={1}'.format(getSite().absolute_url(), IUUID(result)),
+                    }
+
 
     # add hints for worker to download files
     workerhints = {
         # only those parameters that are actually in params dict
-        'files':  [x for x in ('species_occurrence_dataset', 'species_absence_dataset', 'environmental_datasets') if x in params]
+        'files':  [x for x in ('species_occurrence_dataset', 'species_absence_dataset', 'environmental_datasets', 'modelling_region') if x in params]
     }
     return {'env': {}, 'params': params, 'worker': workerhints}
 
