@@ -19,8 +19,10 @@ sdm.algorithm = bccvl.params$'function'
 sdm.projections.files = lapply(bccvl.params$sdm_projections, function(x) x$filename)
 projection.name = bccvl.params$projection_name
 projection.threshold = ifelse(is.null(bccvl.params$threshold), 0.5, bccvl.params$threshold)
-#geographic constraints
-enviro.data.constraints = bccvl.params$projection_region
+#geographic constraints. Read in the string and remove the begin/end quotes and backslash characters
+enviro.data.constraints = readLines(bccvl.params$projection_region$filename)
+enviro.data.constraints = substr(enviro.data.constraints, 2, nchar(enviro.data.constraints)-1)
+enviro.data.constraints = gsub("\\", "", enviro.data.constraints, fixed=TRUE)
 #Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
 enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
