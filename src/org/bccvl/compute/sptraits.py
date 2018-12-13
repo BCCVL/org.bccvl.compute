@@ -5,8 +5,10 @@ import logging
 from pkg_resources import resource_string
 
 from plone import api
+from plone.uuid.interfaces import IUUID
 # do this dynamically in site module?
 from zope.interface import provider
+from zope.component.hooks import getSite
 
 from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod

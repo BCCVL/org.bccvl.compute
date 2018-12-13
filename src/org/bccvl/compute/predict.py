@@ -5,9 +5,11 @@ from pkg_resources import resource_string
 import re
 
 from plone import api
+from plone.uuid.interfaces import IUUID
 from plone.app.uuid.utils import uuidToObject
 # do this dynamically in site module?
 from zope.interface import provider
+from zope.component.hooks import getSite
 
 from org.bccvl.compute.utils import getdatasetparams
 from org.bccvl.site.interfaces import IComputeMethod, IBCCVLMetadata
