@@ -72,6 +72,13 @@
             "mimetype": "image/png",
             "order": 9
         },
+        "*_mean_response_curves*.png": {
+            "hidden": true,
+            "title": "Response curves",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 9
+        },
         "vip_plot_*.png": {
             "title": "Variable Importance plots",
             "genre": "DataGenreSDMEval",

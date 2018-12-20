@@ -61,8 +61,15 @@
             "mimetype": "text/csv",
             "order": 7
         },
-        "*_response_*.png": {
+        "response_curve_*.png": {
             "title": "Marginal response curve",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 8
+        },
+        "*_response_curve_*.png": {
+            "hidden": true,
+            "title": "Marginal Response Curve",
             "genre": "DataGenreSDMEval",
             "mimetype": "image/png",
             "order": 8

@@ -78,6 +78,13 @@
             "mimetype": "image/png",
             "order": 10
         },
+        "*_mean_response_curves*.png": {
+            "hidden": true,
+            "title": "Response curves",
+            "genre": "DataGenreSDMEval",
+            "mimetype": "image/png",
+            "order": 10
+        },
         "biomod2.modelEvaluation.csv": {
             "title": "Model Evaluation",
             "genre": "DataGenreSDMEval",

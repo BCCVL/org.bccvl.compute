@@ -466,10 +466,11 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name, species_al
     # plot 18 response curves per page
     curvesPerPage = 6*3       # No of rows X No of columns
     for (i in 0:((ncol(mean.values)-1)/curvesPerPage)) {
-        png(file=file.path(bccvl.env$outputdir, paste("p", i, "_response_", species_algo_str, ".png", sep="")), width=700, height=900)
+        png(file=file.path(bccvl.env$outputdir, sprintf("response_curve_%s_p%d.png", species_algo_str, i)), width=700, height=900)
         par(mfrow = c(6,3)) # No of rows X No of columns
 
         # Allow each environmental variable to vary, keeping other variable values at average, and predict suitability
+        rcurves = list()
         for (j in ((i*curvesPerPage + 1):min((i+1)*curvesPerPage, ncol(mean.values)))) {
             range.values = seq(min(model.values[,j], na.rm=TRUE), max(model.values[,j], na.rm=TRUE), length.out=100)
             temp.data = mean.values
@@ -486,8 +487,22 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name, species_al
             plot(range.values, new.predictions, ylim=c(0,1), xlab="", ylab="", main=save.name, type="l")
             rug(model.values[,j])
 
+            # save the response curve for later use
+            df1 = data.frame(range.values, new.predictions)
+            names(df1) <- c(save.name, "")
+            rcurves[[save.name]] = df1
         }
         dev.off()
+
+        # Save each response curve 
+        for (ename in names(rcurves))
+        {
+          png(file=file.path(bccvl.env$outputdir, sprintf("%s_response_curve_%s.png", ename, species_algo_str)))
+          plot(rcurves[[ename]], ylim=c(0,1), xlab="", ylab="", main=save.name, type="l")
+          rug(model.values[[ename]])
+          dev.off()
+        }
+        rcurves = NULL
     }
   } else {
     write(paste(species_algo_str, ": Cannot create response curves from", model.name, "object", sep=" "), stdout())
@@ -699,12 +714,22 @@ bccvl.saveBIOMODModelEvaluation <- function(loaded.names, biomod.model, species_
   # save response curves (Elith et al 2005)
   for(name in loaded.names)
   {
+    env_data = get_formal_data(biomod.model,"expl.var")
     png(file=file.path(bccvl.env$outputdir, sprintf("mean_response_curves_%s.png", name)))
     test <- response.plot2(models = name,
-                           Data = get_formal_data(biomod.model,"expl.var"),
+                           Data = env_data,
                            show.variables = get_formal_data(biomod.model,"expl.var.names"),
                            fixed.var.metric = "mean")
     dev.off()
+
+    # save individual response curves
+    for (envname in names(test))
+    {
+      png(file=file.path(bccvl.env$outputdir, sprintf("%s_mean_response_curves_%s.png", envname, name)))
+      plot(test[[envname]], type='l', ylim=c(0, 1.0), main=envname, xlab="", ylab="")
+      rug(env_data[[envname]])
+      dev.off()
+    }
   }
 }
 
