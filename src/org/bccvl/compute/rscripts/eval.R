@@ -495,12 +495,12 @@ bccvl.createMarginalResponseCurves <- function(out.model, model.name, species_al
         dev.off()
 
         # Save each response curve 
-        for (i in 1:length(rcurves))
+        for (k in 1:length(rcurves))
         {
-          ename = env.vars[i]
+          ename = env.vars[k]
           png(file=file.path(bccvl.env$outputdir, sprintf("%s_response_curve_%s.png", ename, species_algo_str)))
           plot(rcurves[[ename]], ylim=c(0,1), xlab="", ylab="", main=ename, type="l")
-          rug(model.values[, i])
+          rug(model.values[, i*curvesPerPage+k])
           dev.off()
         }
         rcurves = NULL
