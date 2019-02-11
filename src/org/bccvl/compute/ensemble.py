@@ -22,11 +22,15 @@ def get_ensemble_params(result):
     dslist = []
     for dsparam in params['datasets']:
         dslist.append(getdatasetparams(dsparam))
-    # replace datasets param
     params['datasets'] = dslist
 
+    sdm_projections = []
+    for uuid in params['sdm_projections']:
+        sdm_projections.append(getdatasetparams(uuid))
+    params['sdm_projections'] = sdm_projections
+
     workerhints = {
-        'files': ('datasets', )
+        'files': ('datasets', 'sdm_projections',)
     }
     return {'env': {}, 'params': params, 'worker': workerhints}
 
@@ -41,7 +45,7 @@ def generate_ensemble_script():
 
 OUTPUTS = {
     'files': {
-        '*_mean.tif': {
+        'ensemble_mean_*.tif': {
             'title': 'Summary Mean',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
@@ -49,7 +53,7 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 1
         },
-        '*_min.tif': {
+        'ensemble_min_*.tif': {
             'title': 'Summary Minimum',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
@@ -57,7 +61,7 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 2
         },
-        '*_max.tif': {
+        'ensemble_max_*.tif': {
             'title': 'Summary Maximum',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
@@ -65,7 +69,7 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 3
         },
-        '*_variance.tif': {
+        'ensemble_variance_*.tif': {
             'title': 'Summary Variance',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
@@ -73,7 +77,7 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 4
         },
-        '*_q0p05.tif': {
+        'ensemble_q0p05_*.tif': {
             'title': '5th Percentile',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
@@ -81,7 +85,7 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 5
         },
-        '*_q0p1.tif': {
+        'ensemble_q0p1_*.tif': {
             'title': '10th Percentile',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
@@ -89,7 +93,7 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 6
         },
-        '*_q0p5.tif': {
+        'ensemble_q0p5_*.tif': {
             'title': '50th Percentile',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
@@ -97,7 +101,7 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 7
         },
-        '*_q0p9.tif': {
+        'ensemble_q0p9_*.tif': {
             'title': '90th Percentile',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
@@ -105,7 +109,7 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 8
         },
-        '*_q0p95.tif': {
+        'ensemble_q0p95_*.tif': {
             'title': '95th Percentile',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
@@ -113,17 +117,31 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 9
         },
+        'ensemble_rangechange_*.tif': {
+            'title': 'Change in species range map',
+            'genre': 'DataGenreClimateChangeMetricMap',
+            'layer': 'range_change',
+            "data_type": "Discrete",
+            'mimetype': 'image/geotiff',
+            "order": 10
+        },
+        'ensemble_rangechange_*.csv': {
+            'title': 'Change in species range table',
+            'genre': 'DataGenreClimateChangeMetric',
+            'mimetype': 'text/csv',
+            "order": 11
+        },
         '*.R': {
             'title': 'Job Script',
             'genre': 'JobScript',
             'mimetype': 'text/x-r',
-            "order": 10
+            "order": 20
         },
         '*.Rout': {
             "title": "Log file",
             "genre": "DataGenreLog",
             "mimetype": "text/x-r-transcript",
-            "order": 11
+            "order": 21
         }
     },
     'archives': {
