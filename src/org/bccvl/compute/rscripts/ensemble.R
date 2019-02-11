@@ -54,7 +54,7 @@ writeRaster( r.q0p95, filename=file.path( output_dir, paste0('ensemble_q0p95_', 
 	format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
 
 # generate species range change metric and summary only if both CC and SDM projections are available.
-if (!is.null(sdm_projection.mean)) {
+if (!is.null(sdm_projections)) {
 	changefilepath = file.path(output_dir, paste0('ensemble_rangechange_', exp_title, '.tif'))
 	proj_rasters = list(sdm_projection.mean, r.mean)
 	bccvl.generateSpeciesRangeChangeMetric(proj_rasters, threshold.median, changefilepath)
