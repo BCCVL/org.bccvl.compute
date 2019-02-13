@@ -54,13 +54,18 @@ def get_project_params(result):
             # FIXME: poor check whether this is a zip file
             if dsinfo['filename'].endswith('.zip'):
                 dsdata['zippath'] = dsinfo['layers'][layer]['filename']
+
+            # FIXME: workaround to get future projection name back, but this works only for file naming scheme with current available data
+            if params['selected_future_layers'] and layer in params['selected_future_layers']:
+                params['projection_name'], _ = os.path.splitext(dsinfo['filename'])
             climatelist.append(dsdata)
     # replace climate_models parameter
     params['future_climate_datasets'] = climatelist
     params['selected_models'] = 'all'
-    # projection.name from dsinfo
-    # FIXME: workaround to get future projection name back, but this works only for file naming scheme with current available data
-    params['projection_name'], _ = os.path.splitext(dsinfo['filename'])
+
+    # In case no future climate layer is selected
+    if not params.get('projection_name'):
+        params['projection_name'], _ = os.path.splitext(dsinfo['filename'])
 
     # TODO: quick fix Decimal json encoding through celery (where is my custom json encoder gone?)
     for key, item in params.items():
