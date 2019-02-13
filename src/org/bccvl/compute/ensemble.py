@@ -135,7 +135,7 @@ OUTPUTS = {
             "order": 11
         },
         'ensemble_meansdm_*.tif': {
-            'title': 'Summary Mean',
+            'title': 'SDM mean',
             'genre': 'DataGenreEnsembleResult',
             "layer": "projection_probability",
             "data_type": "Continuous",
