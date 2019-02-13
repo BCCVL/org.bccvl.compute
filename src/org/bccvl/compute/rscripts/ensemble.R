@@ -4,21 +4,31 @@
 ## Build a raster stack from .tif files selected by the user
 rs = stack(lapply(bccvl.params$datasets, function(x) x$filename))
 exp_title = bccvl.params$title
+resampling.flag = ifelse(is.null(bccvl.params$scale_down) ||
+                         ! as.logical(bccvl.params$scale_down),
+                         'highest', 'lowest')
 sdm_projections = NULL
+sdm_proj_filename = NULL
 threshold.median = NULL
+
+output_dir = bccvl.env$outputdir
+
+# Compute the average of SDM projections if available
 if (length(bccvl.params$sdm_projections) > 0) {
 	sdm_projections = stack(lapply(bccvl.params$sdm_projections, function(x) x$filename))
 	thresholds = bccvl.params$thresholds
 	threshold.median = median(unlist(thresholds))
 	sdm_projection.mean = mean(sdm_projections)
+	sdm_proj_filename = file.path(output_dir, paste0('ensemble_meansdm_', exp_title, '.tif'))
+	writeRaster(sdm_projection.mean, filename=sdm_proj_filename,
+		format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
 }
-
-output_dir = bccvl.env$outputdir
 
 ## Generate ensemble analyses
 
 r.mean = mean(rs)
-writeRaster( r.mean, filename=file.path( output_dir, paste0('ensemble_mean_', exp_title, '.tif')),
+proj_filename = file.path( output_dir, paste0('ensemble_mean_', exp_title, '.tif'))
+writeRaster( r.mean, filename=proj_filename,
 	format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
 
 r.max = max(rs)
@@ -55,7 +65,11 @@ writeRaster( r.q0p95, filename=file.path( output_dir, paste0('ensemble_q0p95_', 
 
 # generate species range change metric and summary only if both CC and SDM projections are available.
 if (!is.null(sdm_projections)) {
+
+	# Make sure the projection files have same extend and resolution
+	proj_files = list(sdm_proj_filename, proj_filename)
+	proj_types = list('continuous', 'continuous')
+	proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(proj_files, raster.types, resampling.flag)
 	changefilepath = file.path(output_dir, paste0('ensemble_rangechange_', exp_title, '.tif'))
-	proj_rasters = list(sdm_projection.mean, r.mean)
 	bccvl.generateSpeciesRangeChangeMetric(proj_rasters, threshold.median, changefilepath)
 }

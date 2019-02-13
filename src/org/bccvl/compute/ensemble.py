@@ -29,6 +29,9 @@ def get_ensemble_params(result):
         sdm_projections.append(getdatasetparams(uuid))
     params['sdm_projections'] = sdm_projections
 
+    # TODO: quick fix Decimal json encoding through celery
+    params['thresholds'] = [float(val) for val in params['thresholds']]
+
     workerhints = {
         'files': ('datasets', 'sdm_projections',)
     }
@@ -130,6 +133,14 @@ OUTPUTS = {
             'genre': 'DataGenreClimateChangeMetric',
             'mimetype': 'text/csv',
             "order": 11
+        },
+        'ensemble_meansdm_*.tif': {
+            'title': 'Summary Mean',
+            'genre': 'DataGenreEnsembleResult',
+            "layer": "projection_probability",
+            "data_type": "Continuous",
+            'mimetype': 'image/geotiff',
+            "order": 12
         },
         '*.R': {
             'title': 'Job Script',
