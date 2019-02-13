@@ -4,9 +4,6 @@
 ## Build a raster stack from .tif files selected by the user
 rs = stack(lapply(bccvl.params$datasets, function(x) x$filename))
 exp_title = bccvl.params$title
-resampling.flag = ifelse(is.null(bccvl.params$scale_down) ||
-                         ! as.logical(bccvl.params$scale_down),
-                         'highest', 'lowest')
 sdm_projections = NULL
 sdm_proj_filename = NULL
 threshold.median = NULL
@@ -65,11 +62,12 @@ writeRaster( r.q0p95, filename=file.path( output_dir, paste0('ensemble_q0p95_', 
 
 # generate species range change metric and summary only if both CC and SDM projections are available.
 if (!is.null(sdm_projections)) {
-
-	# Make sure the projection files have same extend and resolution
+	# Make sure both projections have the same extent and resolution; scale it to the resolution of CC 
 	proj_files = list(sdm_proj_filename, proj_filename)
 	proj_types = list('continuous', 'continuous')
-	proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(proj_files, raster.types, resampling.flag)
+	resamplingflag = ifelse(res(r.mean))[1] <= res(sdm_projection.mean)[1], 'highest', 'lowest')
+	proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(proj_files, 
+							proj_types, resamplingflag, overwrite=FALSE)
 	changefilepath = file.path(output_dir, paste0('ensemble_rangechange_', exp_title, '.tif'))
 	bccvl.generateSpeciesRangeChangeMetric(proj_rasters, threshold.median, changefilepath)
 }
