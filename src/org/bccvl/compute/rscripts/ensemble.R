@@ -65,7 +65,7 @@ if (!is.null(sdm_projections)) {
 	# Make sure both projections have the same extent and resolution; scale it to the resolution of CC 
 	proj_files = list(sdm_proj_filename, proj_filename)
 	proj_types = list('continuous', 'continuous')
-	resamplingflag = ifelse(res(r.mean))[1] <= res(sdm_projection.mean)[1], 'highest', 'lowest')
+	resamplingflag = ifelse(res(r.mean)[1] <= res(sdm_projection.mean)[1], 'highest', 'lowest')
 	proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(proj_files, 
 							proj_types, resamplingflag, overwrite=FALSE)
 	changefilepath = file.path(output_dir, paste0('ensemble_rangechange_', exp_title, '.tif'))
