@@ -51,7 +51,7 @@ OUTPUTS = {
         'ensemble_mean_*.tif': {
             'title': 'Summary Mean',
             'genre': 'DataGenreEnsembleResult',
-            "layer": "projection_probability",
+            "layer": "mean_ensemble_projection_probability",
             "data_type": "Continuous",
             'mimetype': 'image/geotiff',
             "order": 1
@@ -137,7 +137,7 @@ OUTPUTS = {
         'ensemble_meansdm_*.tif': {
             'title': 'SDM mean',
             'genre': 'DataGenreEnsembleResult',
-            "layer": "projection_probability",
+            "layer": "mean_sdm_projection_probability",
             "data_type": "Continuous",
             'mimetype': 'image/geotiff',
             "order": 12
