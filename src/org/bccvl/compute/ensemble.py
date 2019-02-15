@@ -128,11 +128,19 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 10
         },
+        'ensemble_probchange_*.tif': {
+            'title': 'Change in probability map',
+            'genre': 'DataGenreClimateChangeMetricMap',
+            'layer': 'probability_difference',
+            'data_type': 'Continuous',
+            'mimetype': 'image/geotiff',
+            "order": 11
+        },
         'ensemble_rangechange_*.csv': {
             'title': 'Change in species range table',
             'genre': 'DataGenreClimateChangeMetric',
             'mimetype': 'text/csv',
-            "order": 11
+            "order": 12
         },
         'ensemble_meansdm_*.tif': {
             'title': 'SDM mean',
@@ -140,7 +148,7 @@ OUTPUTS = {
             "layer": "mean_sdm_projection_probability",
             "data_type": "Continuous",
             'mimetype': 'image/geotiff',
-            "order": 12
+            "order": 13
         },
         '*.R': {
             'title': 'Job Script',

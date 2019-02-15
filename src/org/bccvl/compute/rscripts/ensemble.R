@@ -19,6 +19,7 @@ if (length(bccvl.params$sdm_projections) > 0) {
 	sdm_proj_filename = file.path(output_dir, paste0('ensemble_meansdm_', exp_title, '.tif'))
 	writeRaster(sdm_projection.mean, filename=sdm_proj_filename,
 		format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
+	cat("\nmedian threshold used for species range change map: ", threshold.median)
 }
 
 ## Generate ensemble analyses
@@ -60,7 +61,7 @@ r.q0p95 = calc( rs, fun=function(x){quantile(x,probs=0.95,na.rm=TRUE)} )
 writeRaster( r.q0p95, filename=file.path( output_dir, paste0('ensemble_q0p95_', exp_title, '.tif')),
 	format="GTiff", options="COMPRESS=LZW", overwrite=TRUE)
 
-# generate species range change metric and summary only if both CC and SDM projections are available.
+# generate probability and range change metric only if both CC and SDM projections are available.
 if (!is.null(sdm_projections)) {
 	# Make sure both projections have the same extent and resolution; scale it to the resolution of CC 
 	proj_files = list(sdm_proj_filename, proj_filename)
@@ -68,6 +69,17 @@ if (!is.null(sdm_projections)) {
 	resamplingflag = ifelse(res(r.mean)[1] <= res(sdm_projection.mean)[1], 'highest', 'lowest')
 	proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(proj_files, 
 							proj_types, resamplingflag, overwrite=FALSE)
+
+	# generate occurrence probability change for future and current mean projections
+	changefilepath = file.path(output_dir, paste0('ensemble_probchange_', exp_title, '.tif'))
+	bccvl.generateOccurrenceProbChangeMetric(proj_rasters, changefilepath)
+
+	# generate species range change map
 	changefilepath = file.path(output_dir, paste0('ensemble_rangechange_', exp_title, '.tif'))
 	bccvl.generateSpeciesRangeChangeMetric(proj_rasters, threshold.median, changefilepath)
+
+	# Remove files in proj_rasters
+	for (i in proj_rasters) {
+	  unlink(i@file@name)
+	}
 }
