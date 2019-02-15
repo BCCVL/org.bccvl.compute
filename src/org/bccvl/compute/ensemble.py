@@ -120,19 +120,19 @@ OUTPUTS = {
             'mimetype': 'image/geotiff',
             "order": 9
         },
-        'ensemble_rangechange_*.tif': {
-            'title': 'Change in species range map',
-            'genre': 'DataGenreClimateChangeMetricMap',
-            'layer': 'range_change',
-            "data_type": "Discrete",
-            'mimetype': 'image/geotiff',
-            "order": 10
-        },
         'ensemble_probchange_*.tif': {
             'title': 'Change in probability map',
             'genre': 'DataGenreClimateChangeMetricMap',
             'layer': 'probability_difference',
             'data_type': 'Continuous',
+            'mimetype': 'image/geotiff',
+            "order": 10
+        },
+        'ensemble_rangechange_*.tif': {
+            'title': 'Change in species range map',
+            'genre': 'DataGenreClimateChangeMetricMap',
+            'layer': 'range_change',
+            "data_type": "Discrete",
             'mimetype': 'image/geotiff',
             "order": 11
         },
