@@ -64,7 +64,7 @@ writeRaster( r.q0p95, filename=file.path( output_dir, paste0('ensemble_q0p95_', 
 # generate probability and range change metric only if both CC and SDM projections are available.
 if (!is.null(sdm_projections)) {
 	# Make sure both projections have the same extent and resolution; scale it to the resolution of CC 
-	proj_files = list(sdm_proj_filename, proj_filename)
+	proj_files = list(proj_filename, sdm_proj_filename)
 	proj_types = list('continuous', 'continuous')
 	resamplingflag = ifelse(res(r.mean)[1] <= res(sdm_projection.mean)[1], 'highest', 'lowest')
 	proj_rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(proj_files, 
