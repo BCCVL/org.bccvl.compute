@@ -682,11 +682,13 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absen, rawgeojson, gene
     }
 
     # create a dummy geojson for convex-hull polygon if no geojson
+    geojson_crs = CRS("+init=epsg:3857")
     if (is.null(rawgeojson)) {
         parsedgeojson <- SpatialPolygons(list(Polygons(list(Polygon(rbind(c(1,1)))), ID=1)), proj4string=crs(rasterstack))
     } else {
         # Parse the geojson from text to SpatialPointsDataFrame
         parsedgeojson <- readOGR(dsn = rawgeojson, layer = "OGRGeoJSON", verbose = FALSE)
+        geojson_crs <- crs(parsedgeojson)
     }
 
     # Assign the same projection to the raster
@@ -735,7 +737,30 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absen, rawgeojson, gene
 
         # Add a small buffer of width 1-resolution cell. This is to fix the issue
         # with missing env values along the boundary of the polygon.
-        parsedgeojson <- gBuffer(parsedgeojson, width=max(region_offset, max(res(rasterstack@layers[[1]]))))
+        parsedgeojson <- gBuffer(parsedgeojson, byid=TRUE, width=max(region_offset, max(res(rasterstack@layers[[1]]))))
+
+        # Save the convex-hull generated as geojson.
+        if (generateCHull) {
+            filename = file.path(bccvl.env$outputdir, 'modelling_region.json')
+            transformed_geojson = spTransform(parsedgeojson, geojson_crs)
+            writeOGR(transformed_geojson, filename, 'OGRGeoJSON', driver='GeoJSON')
+            transformed_geojson = NULL
+
+            # Add in the CRS and properties. A bug in writeOGR does not write CRS.
+            gjson = rjson::fromJSON(file=filename)
+            origjson <- rjson::fromJSON(rawgeojson)
+            if (! 'crs' %in% names(gjson)) {
+                gjson = append(gjson, list(crs=origjson$crs))   
+            }
+            if (! 'properties' %in% names(gjson)) {
+                gjson = append(gjson, list(properties=origjson$properties))
+            }
+            write(rjson::toJSON(gjson), filename)
+
+            # clear them
+            origjson = NULL
+            gjson = NULL
+        }    
 
         occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson))]
         occurconstrained <- as.data.frame(occurSPconstrained)
