@@ -170,6 +170,13 @@
             "mimetype": "text/x-r-transcript",
             "order": 24
         },
+        "modelling_region.json": {
+            "title": "modelling region",
+            "hidden": true,
+            "genre": "DataGenreSDMModellingRegion",
+            "mimetype": "text/x-r-transcript",
+            "order": 30
+        },
         "*.csv": {
             "title": "Model accuracy statistics",
             "genre": "DataGenreSDMEval",

@@ -72,6 +72,13 @@
             "mimetype": "text/x-r-transcript",
             "order": 21
         },
+        "modelling_region.json": {
+            "title": "modelling region",
+            "hidden": true,
+            "genre": "DataGenreSDMModellingRegion",
+            "mimetype": "text/x-r-transcript",
+            "order": 30
+        },
         "params.json": {
             "title": "Input parameters",
             "genre": "InputParams",
