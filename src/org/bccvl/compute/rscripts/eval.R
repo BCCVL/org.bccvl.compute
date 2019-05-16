@@ -310,6 +310,7 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
   # Rescale
   temp$L.eq.diag <- temp$L.eq.diag/max(temp$L.eq.diag, na.rm=T) 
   
+
   #########################################################################
   ### 3: Functions to create SDM outputs
   #########################################################################
@@ -387,17 +388,16 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
     dev.off()
     
     # Create evaluation stats table with values for optimum tpv value for L.diag (= maximize sum of TPR + TNR). 
-    all.stats <- data.frame(list(tpv=list.tpv, L.diag=temp$L.diag, tpr=tpr, tnr=tnr, fpr=fpr, fnr=fnr, fdr=fdr, fors=fors, ppv=ppv, npv=npv, kappa=kappa, tss=tss, bs=bs, csi=csi, ets=ets, or=or, acc=acc, mcr=mcr))   
+    all.stats <- data.frame(list(tpv=list.tpv, tpr=tpr, tnr=tnr, fpr=fpr, fnr=fnr, fdr=fdr, fors=fors, ppv=ppv, npv=npv, kappa=kappa, tss=tss, bs=bs, csi=csi, ets=ets, or=or, acc=acc, mcr=mcr))   
     all.stats <- round(all.stats, digits = 3)
     
     # Addition Number 2, 23 July 2018
-    max.TPR.TNR <- all.stats[pick1min(all.stats$L.diag), ] # select row with all stats for maximum value of L.diag
-    rownames(max.TPR.TNR) <- c("maximize sum TPR and TNR, minimize sum FPR and FNR")
+    selected_rows = c(pick1min(temp$L.diag), pick1min(temp$L.pred), pick1min(temp$L.all), pick1min(temp$L.eq.diaq))
+    stats.table <- all.stats[selected_rows, ] # select row with all stats for maximum value of L.diag
+    rownames(stats.table) <- c("max TPR + TNR", "max PPV + NPV", "balance all errors", "TPR=TNR")
     # End Addition Number 2, 23 July 2018
 
     # stats.table <- rbind(max.TPR.TNR, TPR.eq.TNR, max.Kappa) 
-    stats.table <- max.TPR.TNR
-    stats.table$L.diag <- NULL
     names(stats.table) <- c("Optimum threshold value:", "True Positive Rate (TPR)", "True Negative Rate (TNR)", "False Positive Rate (FPR)", "False Negative Rate (FNR)", 
                             "False Discovery Rate (FDR)", "False Omission Rate (FOR)", "Positive Predictive Value (PPV)", "Negative Predictive Value (NPV)", 
                             "Cohen's Kappa", "True Skill Statistic (TSS)", "Bias Score (BS)", "Critical Success Index (CSI)", "Equitable Threat Score (ETS)",
