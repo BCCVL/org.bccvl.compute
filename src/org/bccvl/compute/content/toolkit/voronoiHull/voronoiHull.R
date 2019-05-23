@@ -33,6 +33,8 @@ enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$la
 enviro.data.constraints = readLines(bccvl.params$modelling_region$filename)
 #Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
 enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
+#Indicate whether to generate unconstraint map or not. True by default
+enviro.data.genUnconstraintMap = ifelse(is.null(bccvl.params$unconstraint_map), TRUE, as.logical(bccvl.params$unconstraint_map))
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
 enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 as.logical(bccvl.params$scale_down),

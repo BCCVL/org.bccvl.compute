@@ -33,6 +33,8 @@ enviro.data.layer = lapply(bccvl.params$environmental_datasets, function(x) x$la
 enviro.data.constraints = readLines(bccvl.params$modelling_region$filename)
 #Indicate to generate and apply convex-hull polygon of occurrence dataset to constraint
 enviro.data.generateCHall = ifelse(is.null(bccvl.params$generate_convexhull), FALSE, as.logical(bccvl.params$generate_convexhull))
+#Indicate whether to generate unconstraint map or not. True by default
+enviro.data.genUnconstraintMap = ifelse(is.null(bccvl.params$unconstraint_map), TRUE, as.logical(bccvl.params$unconstraint_map))
 # resampling (up / down scaling) if scale_down is TRUE, return 'lowest'
 enviro.data.resampling = ifelse(is.null(bccvl.params$scale_down) ||
                                 as.logical(bccvl.params$scale_down),
@@ -210,7 +212,9 @@ bccvl.VIPplot(method="rf", data1=data1, pdf=TRUE,
 bccvl.save(model.sdm, name="model.object.RData")
 
 # Do projection over current climate scenario without constraint only if all env data layers are continuous.
-if (all(enviro.data.type == 'continuous') && (!is.null(enviro.data.constraints) || enviro.data.generateCHall)) {
+if (enviro.data.genUnconstraintMap &&
+   all(enviro.data.type == 'continuous') && 
+   (!is.null(enviro.data.constraints) || enviro.data.generateCHall)) {
     model.proj <-
         BIOMOD_Projection(modeling.output     = model.sdm,
                           new.env             = current.climate.scenario.orig,
