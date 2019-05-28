@@ -463,7 +463,7 @@ bccvl.raster.extent.to.str <- function(ext)
 # rasters: a vector of rasters ... preferrably empty
 # resamplingflag: a flag to determine which resampling approach to take
 # selected_layers: a list of indexes to the raster layers to be considered when determine the resolution to be used.
-bccvl.rasters.common.resolution <- function(rasters, resamplingflag, selected_layers) {
+bccvl.rasters.common.resolution <- function(rasters, resamplingflag, selected_layers, sq.pixel.required=FALSE) {
     # Return the resolution of the raster given by the index
     get.resolution <- function(i, rasters)
     {
@@ -482,18 +482,26 @@ bccvl.rasters.common.resolution <- function(rasters, resamplingflag, selected_la
     #resolutions = lapply(rasters, res)
     if (resamplingflag == "highest") {
         common.res = Reduce(pmin, resolutions)
+        sqres = min(common.res)
     } else if (resamplingflag == "lowest") {
         common.res = Reduce(pmax, resolutions)
+        sqres = max(common.res)
+    }
+
+    # Make square pixel if required
+    resampling_required = sq.pixel.required && common.res[1] != common.res[2]
+    if (resampling_required) {
+      common.res = c(sqres, sqres)
     }
 
     # Get resolutions of all input raster layers
     resolutions = lapply(rasters, res)
     is.same.res = all(sapply(resolutions, function(x) all(common.res == x)))
-    return (list(common.res=common.res, is.same.res=is.same.res))
+    return (list(common.res=common.res, is.same.res=is.same.res && !resampling_required))
 }
 
 # generate reference raster with common resolutin, crs and extent
-bccvl.rasters.common.reference <- function(rasters, resamplingflag, selected_layers) {
+bccvl.rasters.common.reference <- function(rasters, resamplingflag, selected_layers, sq.pixel.required=FALSE) {
     # create list of empty rasters to speed up alignment
     empty.rasters = lapply(rasters, function(x) { projectExtent(x, crs(x)) })
     # choose a common.crs if all crs in rasters are the same use that one, otherwise use EPSG:4326 (common data in bccvl)
@@ -517,7 +525,7 @@ bccvl.rasters.common.reference <- function(rasters, resamplingflag, selected_lay
 
     # determine common resolution
     # Note: resolution is usually in projection units. -> rasters should be in same CRS
-    cr = bccvl.rasters.common.resolution(empty.rasters, resamplingflag, selected_layers)
+    cr = bccvl.rasters.common.resolution(empty.rasters, resamplingflag, selected_layers, sq.pixel.required)
     # TODO: print warning about resampling: common.res$is.same.res
     if (! cr$is.same.res) {
         bccvl.log.warning(sprintf("Auto resampling to %s resolution [%f %f]", resamplingflag, cr$common.res[[1]], cr$common.res[[2]]))
@@ -599,13 +607,13 @@ bccvl.rasters.warp <- function(raster.filenames, raster.types, reference, overwr
 
 # raster.filenames : a vector of filenames that will be loaded as rasters
 # resamplingflag: a flag to determine which resampling approach to take
-bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, raster.types, resamplingflag, selected_layers=NULL, overwrite=TRUE)
+bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filenames, raster.types, resamplingflag, selected_layers=NULL, overwrite=TRUE, sq.pixel.required=FALSE)
 {
     # Load rasters and assign CRS if missing
     rasters = lapply(raster.filenames, bccvl.raster.load)
 
     # determine common raster shape
-    reference = bccvl.rasters.common.reference(rasters, resamplingflag, selected_layers)
+    reference = bccvl.rasters.common.reference(rasters, resamplingflag, selected_layers, sq.pixel.required)
 
     # adjust rasters spatially and convert categorical rasters to factors
     rasters = bccvl.rasters.warp(raster.filenames, raster.types, reference, overwrite)
@@ -617,9 +625,9 @@ bccvl.rasters.to.common.extent.and.resampled.resolution <- function(raster.filen
 # intersecting extent
 # lowest or highest resolution depending upon flag
 # selected_layers is a list of layers to be considered when determine the resolution of the raster. If none, consider all layers.
-bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag, selected_layers=NULL) {
+bccvl.enviro.stack <- function(filenames, types, layernames, resamplingflag, selected_layers=NULL, sq.pixel.required=FALSE) {
     # adjust rasters to same projection, resolution and extent
-    rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, types, resamplingflag, selected_layers)
+    rasters = bccvl.rasters.to.common.extent.and.resampled.resolution(filenames, types, resamplingflag, selected_layers, sq.pixel.required)
     # stack rasters
     rasterstack = stack(rasters)
     # assign predefined variable names
