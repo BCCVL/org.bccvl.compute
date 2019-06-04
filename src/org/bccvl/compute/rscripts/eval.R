@@ -387,13 +387,16 @@ performance.2D <- function(obs, pred, species_algo_str, make.plot="bccvl", kill.
     print(g5)
     dev.off()
     
-    # Create evaluation stats table with values for optimum tpv value for L.diag (= maximize sum of TPR + TNR). 
+    # Create evaluation stats table with values for optimum tpv value.
     all.stats <- data.frame(list(tpv=list.tpv, tpr=tpr, tnr=tnr, fpr=fpr, fnr=fnr, fdr=fdr, fors=fors, ppv=ppv, npv=npv, kappa=kappa, tss=tss, bs=bs, csi=csi, ets=ets, or=or, acc=acc, mcr=mcr))   
     all.stats <- round(all.stats, digits = 3)
     
     # Addition Number 2, 23 July 2018
-    selected_rows = c(pick1min(temp$L.diag), pick1min(temp$L.pred), pick1min(temp$L.all), pick1min(temp$L.eq.diaq))
-    stats.table <- all.stats[selected_rows, ] # select row with all stats for maximum value of L.diag
+    selected_rows = c(pick1min(temp$L.diag), 
+                      pick1min(temp$L.pred == min(temp$L.pred, na.rm=T)), 
+                      pick1min(temp$L.all == min(temp$L.all, na.rm=T)), 
+                      pick1min(temp$L.eq.diag == min(temp$L.eq.diag, na.rm=T)))
+    stats.table <- all.stats[selected_rows, ] # select row with all stats for maximum value of loss methods
     rownames(stats.table) <- c("max TPR + TNR", "max PPV + NPV", "balance all errors", "TPR=TNR")
     # End Addition Number 2, 23 July 2018
 
