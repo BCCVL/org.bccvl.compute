@@ -762,8 +762,9 @@ bccvl.sdm.geoconstrained <- function(rasterstack, occur, absen, rawgeojson, gene
             gjson = NULL
         }    
 
-        fid = names(parsedgeojson)[1]
-        occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson)[fid])]
+        fid = names(parsedgeojson)
+        cat("\nfid used = ", fid, "\n")
+        occurSPconstrained <- occurSP[!is.na(over(occurSP, parsedgeojson)[fid[1]])]
         occurconstrained <- as.data.frame(occurSPconstrained)
         # rest of scripts expects names "lon", "lat" and not "x", "y"
         #names(occurconstrained) <- c("lon", "lat")
